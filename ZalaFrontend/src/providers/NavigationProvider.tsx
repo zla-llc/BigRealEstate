@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import {
   SignupPage,
   LoginPage,
+  KanbanBoardPage,
   LeadSearchPage,
   CampaignPage,
   NotFoundPage,
@@ -20,6 +21,24 @@ export const NavigationProvider = () => {
   return (
     <BrowserRouter>
       <Routes>
+        <Route element={authView ? <AppLayout /> : <AuthLayout />}>
+          {authView && (
+            <>
+              <Route index element={<LeadSearchPage />} />
+              <Route path="/campaign/:campaignId" element={<CampaignPage />} />
+              <Route path="/boards" element={<KanbanBoardPage />} />
+              <Route path="/signup" element={<Navigate to={"/"} />} />
+              <Route path="/login" element={<Navigate to={"/"} />} />
+            </>
+          )}
+
+          {!authView && (
+            <>
+              <Route index path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+            </>
+          )}
+
         <Route element={<RootLayout />}>
           <Route
             path="/login"

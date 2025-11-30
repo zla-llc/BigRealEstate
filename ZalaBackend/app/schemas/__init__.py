@@ -3,6 +3,9 @@
 from .contact import ContactBase, ContactCreate, ContactUpdate, ContactPublic
 from .address import AddressBase, AddressCreate, AddressPublic, AddressUpdate # Added AddressUpdate
 from .property import PropertyBase, PropertyCreate, PropertyUpdate, PropertyPublic
+from .property_image import PropertyImagePublic
+from .board import BoardBase, BoardCreate, BoardUpdate, BoardPublic
+from .board_step import BoardStepBase, BoardStepCreate, BoardStepUpdate, BoardStepPublic
 from .user import (
     UserBase, UserCreate, UserSignup, UserUpdate, UserPublic, 
     UserPublicWithProperties, UserPublicWithLeads, UserPublicWithLeadsAndProperties,
@@ -10,6 +13,7 @@ from .user import (
 )
 from .unit import UnitBase, UnitCreate, UnitUpdate, UnitPublic
 from .lead import LeadBase, LeadCreate, LeadUpdate, LeadPublic
+from .lead_image import LeadImagePublic
 from .login import Login, GoogleLogin
 from .campaign import CampaignBase, CampaignCreate, CampaignUpdate, CampaignPublic
 from .campaign_email import (

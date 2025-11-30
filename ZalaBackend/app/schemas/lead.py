@@ -6,6 +6,7 @@ from app.schemas.address import AddressPublic
 from app.schemas.contact import ContactPublic
 from app.schemas.summaries import UserSummary
 from app.schemas.property import PropertyPublic
+from app.schemas.lead_image import LeadImagePublic
 
 class LeadBase(BaseModel):
     """
@@ -16,6 +17,7 @@ class LeadBase(BaseModel):
     website: Optional[str] = None
     license_num: Optional[str] = None
     notes: Optional[str] = None
+    image_url: Optional[str] = None
 
 
 class LeadCreate(LeadBase):
@@ -31,6 +33,7 @@ class LeadUpdate(BaseModel):
     website: Optional[str] = None
     license_num: Optional[str] = None
     notes: Optional[str] = None
+    image_url: Optional[str] = None
 
 
 class LeadPublic(LeadBase):
@@ -50,6 +53,7 @@ class LeadPublic(LeadBase):
     address: Optional[AddressPublic] = None
     properties: List[PropertyPublic] = []
     campaigns: List["CampaignLeadPublic"] = []
+    images: List[LeadImagePublic] = Field(default_factory=list)
 
     class Config:
         from_attributes = True

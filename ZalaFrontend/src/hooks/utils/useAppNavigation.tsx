@@ -10,6 +10,8 @@ export const useAppNavigation = () => {
   const toCampaignPage = (campaignId: number, leads: ILead[] = []) =>
     navigate("/campaigns/" + campaignId, { state: { leads } });
 
+  const toBoardsPage = () => navigate("/boards");
+
   const toLoginPage = () => navigate("/login");
 
   const toSignupPage = () => navigate("/signup");
@@ -27,6 +29,7 @@ export const useAppNavigation = () => {
     navigate,
 
     toLeadSearchPage,
+    toBoardsPage,
     toCampaignPage,
     toLoginPage,
     toSignupPage,

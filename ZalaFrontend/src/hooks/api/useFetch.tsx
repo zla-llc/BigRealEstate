@@ -9,15 +9,9 @@ type RequestOptions = {
 };
 
 export const useFetch = () => {
-  const jsonHeader = {
-    "Content-Type": "application/json",
+  const defaultHeaders = {
     Accept: "application/json",
-  };
-
-  const formDataHeader = {
-    "Content-Type": "multipart/form-data",
-    Accept: "application/json",
-  };
+  } as Record<string, string>;
 
   const requestSuccess = <T,>(json: unknown): APIResponse<T> => ({
     data: json as T,
@@ -43,12 +37,45 @@ export const useFetch = () => {
       isFormData: false,
     }
   ): Promise<APIResponse<T>> => {
-    const header = isFormData ? formDataHeader : jsonHeader;
     const url = CONFIG.api + apiEndpoint;
 
     try {
+      const headers: Record<string, string> = { ...defaultHeaders };
+      let bodyToSend: BodyInit | null = null;
+
+      if (method !== "GET" && method !== "DELETE" && body != null) {
+        if (isFormData) {
+          if (body instanceof FormData) {
+            bodyToSend = body;
+          } else {
+            throw new Error("Form data body must be an instance of FormData");
+          }
+        } else {
+          headers["Content-Type"] = "application/json";
+          bodyToSend = JSON.stringify(body);
+        }
+      }
+
       const response = await fetch(url, {
         method,
+        body: bodyToSend,
+        headers,
+        signal: abortController.signal,
+      });
+      const raw = await response.text();
+      let json: any = null;
+      if (raw) {
+        try {
+          json = JSON.parse(raw);
+        } catch {
+          // leave json as null and treat as error below if status not ok
+          json = null;
+        }
+      }
+
+      if (!OK_STATUS_CODES.includes(response.status) || json?.err || json?.error)
+        throw new Error(
+          json?.err ?? json?.error ?? "Error communicating with API"
         body:
           method !== "GET" && method !== "DELETE" && body
             ? JSON.stringify(body)

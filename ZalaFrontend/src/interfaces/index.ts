@@ -4,6 +4,7 @@ export * from "./pages";
 export * from "./User";
 export * from "./Lead";
 export * from "./contact";
+export * from "./board";
 export * from "./Address";
 export * from "./SourceResult";
 export * from "./campaignEmail";

@@ -1,12 +1,15 @@
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func
+from sqlalchemy.orm import Session, joinedload, selectinload
 from sqlalchemy.exc import IntegrityError
 from typing import Optional, List
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile
 
 from app.models.property import Property
+from app.models.property_image import PropertyImage
 from app.models.address import Address
 from app.schemas.property import PropertyCreate, PropertyUpdate
+from app.services.file_storage import save_upload_file, remove_upload
 
 
 def create_property(db: Session, property_in: PropertyCreate, address_id: int) -> Property:
@@ -19,7 +22,8 @@ def create_property(db: Session, property_in: PropertyCreate, address_id: int) -
         property_name=property_in.property_name,
         mls_number=property_in.mls_number,
         notes=property_in.notes,
-        address_id=address_id
+        address_id=address_id,
+        image_url=property_in.image_url,
     )
     db.add(db_property)
     try:
@@ -36,7 +40,12 @@ def get_properties(db: Session, address_id: int, skip: int = 0, limit: int = 100
     """Return properties for an address, eager-loading address and units to avoid N+1."""
     return (
         db.query(Property)
-        .options(joinedload(Property.address), joinedload(Property.units), joinedload(Property.users))
+        .options(
+            joinedload(Property.address),
+            joinedload(Property.units),
+            joinedload(Property.users),
+            selectinload(Property.images),
+        )
         .filter(Property.address_id == address_id)
         .offset(skip)
         .limit(limit)
@@ -48,7 +57,12 @@ def get_property(db: Session, address_id: int, property_id: int) -> Optional[Pro
     """Get single property scoped to address, eager-loading address and units."""
     return (
         db.query(Property)
-        .options(joinedload(Property.address), joinedload(Property.units), joinedload(Property.users))
+        .options(
+            joinedload(Property.address),
+            joinedload(Property.units),
+            joinedload(Property.users),
+            selectinload(Property.images),
+        )
         .filter(Property.property_id == property_id, Property.address_id == address_id)
         .first()
     )
@@ -69,6 +83,8 @@ def update_property(db: Session, address_id: int, property_id: int, property_in:
         db_property.notes = property_in.notes
     if hasattr(property_in, "lead_id") and property_in.lead_id is not None:
         db_property.lead_id = property_in.lead_id
+    if property_in.image_url is not None:
+        db_property.image_url = property_in.image_url
 
     try:
         db.commit()
@@ -85,6 +101,118 @@ def delete_property(db: Session, address_id: int, property_id: int):
     db_property = db.query(Property).filter(Property.property_id == property_id, Property.address_id == address_id).first()
     if not db_property:
         return None
+    remove_upload(db_property.image_url)
+    for image in list(getattr(db_property, "images", []) or []):
+        remove_upload(image.image_url)
     db.delete(db_property)
     db.commit()
     return db_property
+
+
+def _next_property_image_order(db: Session, property_id: int) -> int:
+    current_max = (
+        db.query(func.max(PropertyImage.sort_order))
+        .filter(PropertyImage.property_id == property_id)
+        .scalar()
+    )
+    return (current_max or 0) + 1
+
+
+def list_property_images(db: Session, property_id: int) -> List[PropertyImage]:
+    return (
+        db.query(PropertyImage)
+        .filter(PropertyImage.property_id == property_id)
+        .order_by(PropertyImage.sort_order.asc(), PropertyImage.property_image_id.asc())
+        .all()
+    )
+
+
+def add_property_image(
+    db: Session,
+    address_id: int,
+    property_id: int,
+    upload: UploadFile,
+    caption: Optional[str] = None,
+    sort_order: Optional[int] = None,
+) -> Optional[PropertyImage]:
+    db_property = (
+        db.query(Property)
+        .filter(Property.property_id == property_id, Property.address_id == address_id)
+        .first()
+    )
+    if not db_property:
+        return None
+
+    new_path = save_upload_file(upload, "properties")
+    effective_order = sort_order if sort_order is not None else _next_property_image_order(db, property_id)
+
+    image = PropertyImage(
+        property_id=property_id,
+        image_url=new_path,
+        caption=caption,
+        sort_order=effective_order,
+    )
+
+    db.add(image)
+    if not db_property.image_url:
+        db_property.image_url = new_path
+        db.add(db_property)
+
+    db.commit()
+    db.refresh(image)
+    return image
+
+
+def _sync_primary_property_image(db: Session, property_obj: Property) -> None:
+    first_image = (
+        db.query(PropertyImage)
+        .filter(PropertyImage.property_id == property_obj.property_id)
+        .order_by(PropertyImage.sort_order.asc(), PropertyImage.property_image_id.asc())
+        .first()
+    )
+    property_obj.image_url = first_image.image_url if first_image else None
+    db.add(property_obj)
+    db.commit()
+    db.refresh(property_obj)
+
+
+def delete_property_image(db: Session, address_id: int, property_id: int, image_id: int) -> bool:
+    image = (
+        db.query(PropertyImage)
+        .filter(
+            PropertyImage.property_image_id == image_id,
+            PropertyImage.property_id == property_id,
+        )
+        .first()
+    )
+    if not image:
+        return False
+
+    property_obj = image.property
+    image_path = image.image_url
+    db.delete(image)
+    db.commit()
+
+    remove_upload(image_path)
+
+    if property_obj:
+        _sync_primary_property_image(db, property_obj)
+
+    return True
+
+
+def attach_property_image(db: Session, address_id: int, property_id: int, upload: UploadFile) -> Optional[Property]:  # legacy
+    created = add_property_image(db, address_id, property_id, upload)
+    if not created:
+        return None
+    return get_property(db, address_id, property_id)
+
+
+def remove_property_image(db: Session, address_id: int, property_id: int) -> Optional[Property]:  # legacy
+    images = list_property_images(db, property_id)
+    if not images:
+        return get_property(db, address_id, property_id)
+    deleted = delete_property_image(db, address_id, property_id, images[0].property_image_id)
+    if not deleted:
+        return None
+    return get_property(db, address_id, property_id)
