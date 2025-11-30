@@ -1640,26 +1640,41 @@ const LeadCardView = ({
       className="bg-white rounded-lg p-4 space-y-2 box-shadow-sm border-l-4 border-accent hover:shadow-lg transition-shadow group cursor-grab active:cursor-grabbing"
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-secondary truncate">{leadTitle}</p>
+        <div className="flex-1 min-w-0 space-y-2">
+          <div>
+            <span className="text-[10px] font-semibold text-secondary-50 uppercase">Business</span>
+            <p className="font-semibold text-secondary truncate">{leadTitle}</p>
+          </div>
           {lead.contact?.email && (
-            <p className="text-xs text-secondary-50 mt-1 truncate">{lead.contact.email}</p>
+            <div>
+              <span className="text-[10px] font-semibold text-secondary-50 uppercase">Email</span>
+              <p className="text-xs text-secondary truncate">{lead.contact.email}</p>
+            </div>
           )}
           {lead.person_type && (
-            <p className="text-xs text-accent font-medium mt-1">{lead.person_type}</p>
+            <div>
+              <span className="text-[10px] font-semibold text-secondary-50 uppercase">Category</span>
+              <p className="text-xs text-accent font-medium">{lead.person_type}</p>
+            </div>
           )}
           {lead.website && (
-            <a
-              href={lead.website.startsWith("http") ? lead.website : `https://${lead.website}`}
-              target="_blank"
-              rel="noreferrer"
-              className="text-xs text-blue-600 mt-1 block truncate"
-            >
-              {lead.website}
-            </a>
+            <div>
+              <span className="text-[10px] font-semibold text-secondary-50 uppercase">Website</span>
+              <a
+                href={lead.website.startsWith("http") ? lead.website : `https://${lead.website}`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs text-blue-600 block truncate"
+              >
+                {lead.website}
+              </a>
+            </div>
           )}
           {lead.license_num && (
-            <p className="text-xs text-secondary-50 mt-1">License: {lead.license_num}</p>
+            <div>
+              <span className="text-[10px] font-semibold text-secondary-50 uppercase">License #</span>
+              <p className="text-xs text-secondary">{lead.license_num}</p>
+            </div>
           )}
         </div>
         <span className="text-xs font-bold text-accent bg-primary px-2 py-1 rounded whitespace-nowrap">
@@ -1676,9 +1691,12 @@ const LeadCardView = ({
         </div>
       )}
       {lead.notes && (
-        <p className="text-xs text-secondary whitespace-pre-wrap line-clamp-3">
-          {lead.notes}
-        </p>
+        <div>
+          <span className="text-[10px] font-semibold text-secondary-50 uppercase">Notes</span>
+          <p className="text-xs text-secondary whitespace-pre-wrap line-clamp-3">
+            {lead.notes}
+          </p>
+        </div>
       )}
       <div className="flex flex-wrap gap-1 text-xs pt-2 border-t border-secondary-50">
         <button
@@ -1738,44 +1756,69 @@ const LeadCardView = ({
       </div>
 
       {isEditing && (
-        <div className="space-y-2 border-t border-secondary-50 pt-3 bg-primary -mx-4 -mb-4 px-4 py-3 rounded-b-lg">
-          <input
-            type="text"
-            placeholder="Business name"
-            value={form.business}
-            onChange={(e) => onChange("business", e.target.value)}
-            className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-          />
-          <input
-            type="text"
-            placeholder="Category"
-            value={form.person_type}
-            onChange={(e) => onChange("person_type", e.target.value)}
-            className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-          />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div className="space-y-3 border-t border-secondary-50 pt-3 bg-primary -mx-4 -mb-4 px-4 py-3 rounded-b-lg">
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-secondary uppercase">
+              Business Name
+            </label>
             <input
               type="text"
-              placeholder="Website"
-              value={form.website}
-              onChange={(e) => onChange("website", e.target.value)}
-              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-            />
-            <input
-              type="text"
-              placeholder="License #"
-              value={form.license_num}
-              onChange={(e) => onChange("license_num", e.target.value)}
+              placeholder="Business name"
+              value={form.business}
+              onChange={(e) => onChange("business", e.target.value)}
               className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
             />
           </div>
-          <textarea
-            placeholder="Notes"
-            value={form.notes}
-            onChange={(e) => onChange("notes", e.target.value)}
-            className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent resize-none"
-            rows={3}
-          />
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-secondary uppercase">
+              Category
+            </label>
+            <input
+              type="text"
+              placeholder="Category"
+              value={form.person_type}
+              onChange={(e) => onChange("person_type", e.target.value)}
+              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="block text-xs font-semibold text-secondary uppercase">
+                Website
+              </label>
+              <input
+                type="text"
+                placeholder="Website"
+                value={form.website}
+                onChange={(e) => onChange("website", e.target.value)}
+                className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-xs font-semibold text-secondary uppercase">
+                License #
+              </label>
+              <input
+                type="text"
+                placeholder="License #"
+                value={form.license_num}
+                onChange={(e) => onChange("license_num", e.target.value)}
+                className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-secondary uppercase">
+              Notes
+            </label>
+            <textarea
+              placeholder="Notes"
+              value={form.notes}
+              onChange={(e) => onChange("notes", e.target.value)}
+              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent resize-none"
+              rows={3}
+            />
+          </div>
           <button
             className="w-full bg-accent hover:bg-accent/90 text-white rounded py-2 text-xs font-semibold transition-colors disabled:opacity-50"
             onClick={() => {
@@ -1784,7 +1827,7 @@ const LeadCardView = ({
             }}
             disabled={busy}
           >
-            Save
+            Save Changes
           </button>
         </div>
       )}
@@ -1875,15 +1918,24 @@ const PropertyCardView = ({
       className="bg-white rounded-lg p-4 space-y-2 box-shadow-sm border-l-4 border-accent hover:shadow-lg transition-shadow group cursor-grab active:cursor-grabbing"
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-secondary truncate">
-            {propertyTitle}
-          </p>
+        <div className="flex-1 min-w-0 space-y-2">
+          <div>
+            <span className="text-[10px] font-semibold text-secondary-50 uppercase">Property Name</span>
+            <p className="font-semibold text-secondary truncate">
+              {propertyTitle}
+            </p>
+          </div>
           {property.address && (
-            <p className="text-xs text-secondary-50 mt-1 truncate">{`${property.address.street_1 ?? ""} ${property.address.city ?? ""}`}</p>
+            <div>
+              <span className="text-[10px] font-semibold text-secondary-50 uppercase">Address</span>
+              <p className="text-xs text-secondary truncate">{`${property.address.street_1 ?? ""} ${property.address.city ?? ""}`}</p>
+            </div>
           )}
           {property.mls_number && (
-            <p className="text-xs text-accent font-medium mt-1">MLS: {property.mls_number}</p>
+            <div>
+              <span className="text-[10px] font-semibold text-secondary-50 uppercase">MLS #</span>
+              <p className="text-xs text-accent font-medium">{property.mls_number}</p>
+            </div>
           )}
         </div>
         <span className="text-xs font-bold text-accent bg-primary px-2 py-1 rounded whitespace-nowrap">
@@ -1891,9 +1943,12 @@ const PropertyCardView = ({
         </span>
       </div>
       {property.notes && (
-        <p className="text-xs text-secondary whitespace-pre-wrap line-clamp-3">
-          {property.notes}
-        </p>
+        <div>
+          <span className="text-[10px] font-semibold text-secondary-50 uppercase">Notes</span>
+          <p className="text-xs text-secondary whitespace-pre-wrap line-clamp-3">
+            {property.notes}
+          </p>
+        </div>
       )}
       {imageSrc && (
         <div className="rounded-lg overflow-hidden border border-secondary-50">
@@ -1962,28 +2017,43 @@ const PropertyCardView = ({
       </div>
 
       {isEditing && (
-        <div className="space-y-2 border-t border-secondary-50 pt-3 bg-primary -mx-4 -mb-4 px-4 py-3 rounded-b-lg">
-          <input
-            type="text"
-            placeholder="Property name"
-            value={form.property_name}
-            onChange={(e) => onChange("property_name", e.target.value)}
-            className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-          />
-          <input
-            type="text"
-            placeholder="MLS #"
-            value={form.mls_number}
-            onChange={(e) => onChange("mls_number", e.target.value)}
-            className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-          />
-          <textarea
-            placeholder="Notes"
-            value={form.notes}
-            onChange={(e) => onChange("notes", e.target.value)}
-            className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent resize-none"
-            rows={3}
-          />
+        <div className="space-y-3 border-t border-secondary-50 pt-3 bg-primary -mx-4 -mb-4 px-4 py-3 rounded-b-lg">
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-secondary uppercase">
+              Property Name
+            </label>
+            <input
+              type="text"
+              placeholder="Property name"
+              value={form.property_name}
+              onChange={(e) => onChange("property_name", e.target.value)}
+              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-secondary uppercase">
+              MLS #
+            </label>
+            <input
+              type="text"
+              placeholder="MLS #"
+              value={form.mls_number}
+              onChange={(e) => onChange("mls_number", e.target.value)}
+              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-secondary uppercase">
+              Notes
+            </label>
+            <textarea
+              placeholder="Notes"
+              value={form.notes}
+              onChange={(e) => onChange("notes", e.target.value)}
+              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent resize-none"
+              rows={3}
+            />
+          </div>
           <button
             className="w-full bg-accent hover:bg-accent/90 text-white rounded py-2 text-xs font-semibold transition-colors disabled:opacity-50"
             onClick={() => {
@@ -1992,7 +2062,7 @@ const PropertyCardView = ({
             }}
             disabled={busy}
           >
-            Save
+            Save Changes
           </button>
         </div>
       )}
