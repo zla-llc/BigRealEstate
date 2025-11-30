@@ -96,6 +96,13 @@ CREATE TABLE board_step_leads (
     board_step_id   INTEGER REFERENCES board_steps(board_step_id) ON DELETE CASCADE,
     lead_id         INTEGER REFERENCES leads(lead_id) ON DELETE CASCADE,
     PRIMARY KEY (board_step_id, lead_id)
+CREATE TABLE user_google_credentials (
+    user_id                     INTEGER PRIMARY KEY REFERENCES users(user_id) ON DELETE CASCADE,
+    access_token_encrypted      TEXT,
+    refresh_token_encrypted     TEXT,
+    token_expiry                TIMESTAMPTZ,
+    scope                       TEXT,
+    updated_at                  TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TYPE user_role AS ENUM ('user', 'admin', 'moderator');
