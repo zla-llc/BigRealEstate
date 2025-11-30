@@ -77,6 +77,83 @@ def delete_team(db: Session, team_id: int) -> bool:
     return True
 
 
+def _append_unique_id(values: List[int], user_id: int) -> List[int]:
+    """Return a new list with user_id appended if it was not already present."""
+
+    if values is None:
+        values = []
+    if user_id in values:
+        return values
+    return values + [user_id]
+
+
+def _remove_id(values: List[int], user_id: int) -> List[int]:
+    """Return a new list without user_id (if present)."""
+
+    if not values:
+        return []
+    return [value for value in values if value != user_id]
+
+
+def add_member(db: Session, team_id: int, user_id: int) -> Optional[Team]:
+    """Add a user to the member list."""
+
+    team = get_team_by_id(db, team_id)
+    if not team:
+        return None
+
+    team.member_ids = _append_unique_id(list(team.member_ids or []), user_id)
+    db.add(team)
+    db.commit()
+    db.refresh(team)
+    return team
+
+
+def remove_member(db: Session, team_id: int, user_id: int) -> Optional[Team]:
+    """Remove a user from the member list."""
+
+    team = get_team_by_id(db, team_id)
+    if not team:
+        return None
+
+    team.member_ids = _remove_id(list(team.member_ids or []), user_id)
+    db.add(team)
+    db.commit()
+    db.refresh(team)
+    return team
+
+
+def add_admin(db: Session, team_id: int, user_id: int) -> Optional[Team]:
+    """Add a user to the admin list and ensure they are not duplicated as a member."""
+
+    team = get_team_by_id(db, team_id)
+    if not team:
+        return None
+
+    team.admin_ids = _append_unique_id(list(team.admin_ids or []), user_id)
+    # Optional: keep the member list free of duplicates
+    team.member_ids = _remove_id(list(team.member_ids or []), user_id)
+
+    db.add(team)
+    db.commit()
+    db.refresh(team)
+    return team
+
+
+def remove_admin(db: Session, team_id: int, user_id: int) -> Optional[Team]:
+    """Remove a user from the admin list."""
+
+    team = get_team_by_id(db, team_id)
+    if not team:
+        return None
+
+    team.admin_ids = _remove_id(list(team.admin_ids or []), user_id)
+    db.add(team)
+    db.commit()
+    db.refresh(team)
+    return team
+
+
 def get_leaderboard(db: Session, limit: int = 10) -> List[Team]:
     """Return teams ordered by XP descending for leaderboard views."""
 

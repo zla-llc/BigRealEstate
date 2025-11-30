@@ -81,3 +81,59 @@ def delete_team(team_id: int, db: Session = Depends(get_db)):
     if not team_crud.delete_team(db, team_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
     return None
+
+
+@router.post(
+    "/{team_id}/members/{user_id}",
+    response_model=schemas.TeamPublic,
+    summary="Add user as member",
+)
+def add_member(team_id: int, user_id: int, db: Session = Depends(get_db)):
+    """Append the user to the member list."""
+
+    team = team_crud.add_member(db, team_id, user_id)
+    if not team:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+    return team
+
+
+@router.delete(
+    "/{team_id}/members/{user_id}",
+    response_model=schemas.TeamPublic,
+    summary="Remove user from member list",
+)
+def remove_member(team_id: int, user_id: int, db: Session = Depends(get_db)):
+    """Remove the user from the member list."""
+
+    team = team_crud.remove_member(db, team_id, user_id)
+    if not team:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+    return team
+
+
+@router.post(
+    "/{team_id}/admins/{user_id}",
+    response_model=schemas.TeamPublic,
+    summary="Add user as admin",
+)
+def add_admin(team_id: int, user_id: int, db: Session = Depends(get_db)):
+    """Append the user to the admin list."""
+
+    team = team_crud.add_admin(db, team_id, user_id)
+    if not team:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+    return team
+
+
+@router.delete(
+    "/{team_id}/admins/{user_id}",
+    response_model=schemas.TeamPublic,
+    summary="Remove user from admin list",
+)
+def remove_admin(team_id: int, user_id: int, db: Session = Depends(get_db)):
+    """Remove the user from the admin list."""
+
+    team = team_crud.remove_admin(db, team_id, user_id)
+    if not team:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+    return team
