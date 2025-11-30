@@ -8,8 +8,9 @@ import type {
   KanbanBoard,
   LeadCard,
   PropertyCard,
+  CardImage,
 } from "../../interfaces";
-import { Plus, Trash2, Check, X, ChevronLeft, ChevronRight, Upload, Image, Pencil } from "lucide-react";
+import { Plus, Trash2, Check, X, ChevronLeft, ChevronRight, Upload, Image, Move, Save, AlertTriangle } from "lucide-react";
 import { CONFIG } from "../../config";
 
 const resolveAssetUrl = (path?: string | null) => {
@@ -74,7 +75,170 @@ const createDefaultPropertyForm = (): PropertyComposerState => ({
   },
 });
 
+// Form input component for editing fields in modal
+const FormField = ({
+  value,
+  onChange,
+  placeholder,
+  className,
+  multiline = false,
+  label,
+}: {
+  value: string;
+  onChange: (newValue: string) => void;
+  placeholder?: string;
+  className?: string;
+  multiline?: boolean;
+  label?: string;
+}) => {
+  const baseClass = "w-full px-3 py-2 text-sm border border-secondary-50 rounded-lg focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 bg-white transition-colors";
+  
+  if (multiline) {
+    return (
+      <div>
+        {label && <label className="text-[10px] font-semibold text-secondary-50 uppercase block mb-1">{label}</label>}
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={clsx(baseClass, "resize-none", className)}
+          rows={3}
+        />
+      </div>
+    );
+  }
+  
+  return (
+    <div>
+      {label && <label className="text-[10px] font-semibold text-secondary-50 uppercase block mb-1">{label}</label>}
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={clsx(baseClass, className)}
+      />
+    </div>
+  );
+};
 
+// Image carousel component for modal view
+const ImageCarousel = ({
+  images,
+  currentIndex,
+  onIndexChange,
+  onUpload,
+  onDelete,
+  busy,
+}: {
+  images: { url: string; id?: number }[];
+  currentIndex: number;
+  onIndexChange: (index: number) => void;
+  onUpload: (file: File) => void;
+  onDelete: (imageId: number) => void;
+  busy: boolean;
+}) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePrev = () => {
+    onIndexChange(currentIndex === 0 ? images.length - 1 : currentIndex - 1);
+  };
+
+  const handleNext = () => {
+    onIndexChange(currentIndex === images.length - 1 ? 0 : currentIndex + 1);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) onUpload(file);
+    e.target.value = "";
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="relative bg-secondary-50/10 rounded-lg overflow-hidden">
+        {images.length > 0 ? (
+          <>
+            <img
+              src={images[currentIndex]?.url}
+              alt={`Image ${currentIndex + 1}`}
+              className="w-full h-64 object-contain"
+            />
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrev}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <button
+                  onClick={handleNext}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+                >
+                  <ChevronRight size={20} />
+                </button>
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                  {images.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => onIndexChange(idx)}
+                      className={clsx(
+                        "w-2 h-2 rounded-full transition-colors",
+                        idx === currentIndex ? "bg-white" : "bg-white/50 hover:bg-white/75"
+                      )}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <div className="h-48 flex items-center justify-center text-secondary-50">
+            <div className="text-center">
+              <Image size={32} className="mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No images yet</p>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <div className="flex gap-2">
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={busy}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors text-sm font-medium disabled:opacity-50"
+        >
+          <Upload size={16} />
+          Add Image
+        </button>
+        {images.length > 0 && images[currentIndex]?.id && (
+          <button
+            onClick={() => onDelete(images[currentIndex].id!)}
+            disabled={busy}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-error/10 text-error hover:bg-error/20 transition-colors text-sm font-medium disabled:opacity-50"
+          >
+            <Trash2 size={16} />
+            Delete Image
+          </button>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+      </div>
+      
+      {images.length > 1 && (
+        <p className="text-xs text-secondary-50 text-center">
+          Image {currentIndex + 1} of {images.length}
+        </p>
+      )}
+    </div>
+  );
+};
 
 const TextArea = ({
   value,
@@ -699,6 +863,59 @@ export const KanbanBoardPage = () => {
     }, activeBoardId);
   };
 
+  // Gallery image handlers for multiple images
+  const handleUploadLeadGalleryImage = async (leadId: number, file: File) => {
+    await withBusy("Uploading image...", async () => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const { err } = await post(`/api/leads/${leadId}/images`, formData, true);
+      if (err) throw new Error(err);
+    }, activeBoardId);
+  };
+
+  const handleDeleteLeadGalleryImage = async (leadId: number, imageId: number) => {
+    await withBusy("Deleting image...", async () => {
+      const { err } = await del(`/api/leads/${leadId}/images/${imageId}`);
+      if (err) throw new Error(err);
+    }, activeBoardId);
+  };
+
+  const handleUploadPropertyGalleryImage = async (property: PropertyCard, file: File) => {
+    const addressId = resolvePropertyAddressId(property);
+    if (!addressId) {
+      enqueueSnackbar("Property must have an address before uploading an image", {
+        variant: "warning",
+      });
+      return;
+    }
+
+    await withBusy("Uploading image...", async () => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const { err } = await post(
+        `/api/addresses/${addressId}/properties/${property.property_id}/images`,
+        formData,
+        true
+      );
+      if (err) throw new Error(err);
+    }, activeBoardId);
+  };
+
+  const handleDeletePropertyGalleryImage = async (property: PropertyCard, imageId: number) => {
+    const addressId = resolvePropertyAddressId(property);
+    if (!addressId) {
+      enqueueSnackbar("Property must have an address", { variant: "warning" });
+      return;
+    }
+
+    await withBusy("Deleting image...", async () => {
+      const { err } = await del(
+        `/api/addresses/${addressId}/properties/${property.property_id}/images/${imageId}`
+      );
+      if (err) throw new Error(err);
+    }, activeBoardId);
+  };
+
   const handleRenameStep = async (
     boardId: number,
     stepId: number,
@@ -1148,8 +1365,8 @@ export const KanbanBoardPage = () => {
               onMove={(targetStepId) =>
                 handleMoveLead(lead.lead_id, step.board_step_id, targetStepId)
               }
-              onUploadImage={(file) => handleUploadLeadImage(lead.lead_id, file)}
-              onRemoveImage={() => handleRemoveLeadImage(lead.lead_id)}
+              onUploadGalleryImage={(file) => handleUploadLeadGalleryImage(lead.lead_id, file)}
+              onDeleteGalleryImage={(imageId) => handleDeleteLeadGalleryImage(lead.lead_id, imageId)}
             />
           ))}
 
@@ -1173,8 +1390,8 @@ export const KanbanBoardPage = () => {
                   targetStepId
                 )
               }
-              onUploadImage={(file) => handleUploadPropertyImage(property, file)}
-              onRemoveImage={() => handleRemovePropertyImage(property)}
+              onUploadGalleryImage={(file) => handleUploadPropertyGalleryImage(property, file)}
+              onDeleteGalleryImage={(imageId) => handleDeletePropertyGalleryImage(property, imageId)}
             />
           ))}
         </div>
@@ -1600,8 +1817,8 @@ const LeadCardView = ({
   onSave,
   onDelete,
   onMove,
-  onUploadImage,
-  onRemoveImage,
+  onUploadGalleryImage,
+  onDeleteGalleryImage,
 }: {
   lead: LeadCard;
   stepId: number;
@@ -1610,11 +1827,15 @@ const LeadCardView = ({
   onSave: (updates: LeadComposerState) => void;
   onDelete: () => void;
   onMove: (targetStepId: number) => void;
-  onUploadImage: (file: File) => Promise<void> | void;
-  onRemoveImage: () => Promise<void> | void;
+  onUploadGalleryImage: (file: File) => Promise<void> | void;
+  onDeleteGalleryImage: (imageId: number) => Promise<void> | void;
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState<LeadComposerState>({
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  
+  // Local form state - initialized from lead data
+  const [formState, setFormState] = useState<LeadComposerState>({
     business: lead.business ?? "",
     person_type: lead.person_type ?? "",
     website: lead.website ?? "",
@@ -1622,248 +1843,296 @@ const LeadCardView = ({
     notes: lead.notes ?? "",
   });
 
+  // Reset form when modal opens
   useEffect(() => {
-    setForm({
-      business: lead.business ?? "",
-      person_type: lead.person_type ?? "",
-      website: lead.website ?? "",
-      license_num: lead.license_num ?? "",
-      notes: lead.notes ?? "",
-    });
-  }, [lead.lead_id, lead.business, lead.person_type, lead.website, lead.license_num, lead.notes]);
+    if (isModalOpen) {
+      setFormState({
+        business: lead.business ?? "",
+        person_type: lead.person_type ?? "",
+        website: lead.website ?? "",
+        license_num: lead.license_num ?? "",
+        notes: lead.notes ?? "",
+      });
+    }
+  }, [isModalOpen, lead]);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageSrc = resolveAssetUrl(lead.image_url);
-  const leadTitle =
-    lead.business && lead.business.trim().length > 0
-      ? lead.business
-      : "Untitled Lead";
+  // Check if form has unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    return (
+      formState.business !== (lead.business ?? "") ||
+      formState.person_type !== (lead.person_type ?? "") ||
+      formState.website !== (lead.website ?? "") ||
+      formState.license_num !== (lead.license_num ?? "") ||
+      formState.notes !== (lead.notes ?? "")
+    );
+  }, [formState, lead]);
 
-  const onChange = (key: keyof LeadComposerState, value: string) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  // Build images array from gallery images
+  const galleryImages = useMemo(() => {
+    const imgs: { url: string; id?: number }[] = [];
+    if (lead.images && lead.images.length > 0) {
+      lead.images.forEach((img) => {
+        const url = resolveAssetUrl(img.image_url);
+        if (url) imgs.push({ url, id: img.lead_image_id });
+      });
+    } else if (lead.image_url) {
+      const url = resolveAssetUrl(lead.image_url);
+      if (url) imgs.push({ url });
+    }
+    return imgs;
+  }, [lead.images, lead.image_url]);
+
+  const leadTitle = lead.business?.trim() || "Untitled Lead";
+  const thumbnailImage = galleryImages[currentImageIndex]?.url || galleryImages[0]?.url;
+
+  const updateField = (field: keyof LeadComposerState, value: string) => {
+    setFormState(prev => ({ ...prev, [field]: value }));
   };
 
-  const onImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      await onUploadImage(file);
+  const handleSave = () => {
+    onSave(formState);
+  };
+
+  const handleCloseModal = () => {
+    if (hasUnsavedChanges) {
+      setShowUnsavedWarning(true);
+    } else {
+      setIsModalOpen(false);
     }
-    event.target.value = "";
+  };
+
+  const handleDiscardAndClose = () => {
+    setShowUnsavedWarning(false);
+    setIsModalOpen(false);
   };
 
   return (
-    <div 
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData(
-          "card",
-          JSON.stringify({
-            cardId: lead.lead_id,
-            fromStepId: stepId,
-            cardType: "lead",
-          })
-        );
-      }}
-      className="bg-white rounded-lg p-4 space-y-2 box-shadow-sm border-l-4 border-accent hover:shadow-lg transition-shadow group cursor-grab active:cursor-grabbing"
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0 space-y-2">
-          <div>
-            <span className="text-[10px] font-semibold text-secondary-50 uppercase">Business</span>
-            <p className="font-semibold text-secondary truncate">{leadTitle}</p>
+    <>
+      {/* Compact Card Thumbnail */}
+      <div
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData(
+            "card",
+            JSON.stringify({ cardId: lead.lead_id, fromStepId: stepId, cardType: "lead" })
+          );
+        }}
+        onClick={() => setIsModalOpen(true)}
+        className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+      >
+        {thumbnailImage && (
+          <div className="relative">
+            <img
+              src={thumbnailImage}
+              alt={leadTitle}
+              className="w-full h-32 object-cover rounded-t-lg"
+            />
+            {galleryImages.length > 1 && (
+              <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+                {galleryImages.length} images
+              </span>
+            )}
           </div>
-          {lead.contact?.email && (
-            <div>
-              <span className="text-[10px] font-semibold text-secondary-50 uppercase">Email</span>
-              <p className="text-xs text-secondary truncate">{lead.contact.email}</p>
+        )}
+        <div className="p-3 space-y-1.5">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Business</span>
+              <p className="font-medium text-secondary text-sm truncate">{leadTitle}</p>
             </div>
-          )}
+            <span className="text-[10px] font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">
+              LEAD
+            </span>
+          </div>
           {lead.person_type && (
             <div>
-              <span className="text-[10px] font-semibold text-secondary-50 uppercase">Category</span>
-              <p className="text-xs text-accent font-medium">{lead.person_type}</p>
+              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Category</span>
+              <p className="text-xs text-secondary truncate">{lead.person_type}</p>
             </div>
           )}
           {lead.website && (
             <div>
-              <span className="text-[10px] font-semibold text-secondary-50 uppercase">Website</span>
-              <a
-                href={lead.website.startsWith("http") ? lead.website : `https://${lead.website}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs text-blue-600 block truncate"
-              >
-                {lead.website}
-              </a>
+              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Website</span>
+              <p className="text-xs text-blue-600 truncate">{lead.website}</p>
             </div>
           )}
           {lead.license_num && (
             <div>
-              <span className="text-[10px] font-semibold text-secondary-50 uppercase">License #</span>
-              <p className="text-xs text-secondary">{lead.license_num}</p>
+              <span className="text-[9px] font-semibold text-secondary-50 uppercase">License #</span>
+              <p className="text-xs text-secondary truncate">{lead.license_num}</p>
+            </div>
+          )}
+          {lead.contact?.email && (
+            <div>
+              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Email</span>
+              <p className="text-xs text-secondary truncate">{lead.contact.email}</p>
+            </div>
+          )}
+          {lead.notes && (
+            <div>
+              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Notes</span>
+              <p className="text-xs text-secondary-50 line-clamp-2">{lead.notes}</p>
             </div>
           )}
         </div>
-        <span className="text-xs font-bold text-accent bg-primary px-2 py-1 rounded whitespace-nowrap">
-          LEAD
-        </span>
-      </div>
-      {imageSrc && (
-        <div className="rounded-lg overflow-hidden border border-secondary-50">
-          <img
-            src={imageSrc}
-            alt={`${lead.business ?? "Lead"} visual`}
-            className="w-full h-40 object-cover"
-          />
-        </div>
-      )}
-      {lead.notes && (
-        <div>
-          <span className="text-[10px] font-semibold text-secondary-50 uppercase">Notes</span>
-          <p className="text-xs text-secondary whitespace-pre-wrap line-clamp-3">
-            {lead.notes}
-          </p>
-        </div>
-      )}
-      <div className="flex flex-wrap gap-2 text-xs pt-2 border-t border-secondary-50">
-        <button
-          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-accent/10 text-accent hover:bg-accent/20 transition-colors font-medium"
-          onClick={() => setIsEditing((prev) => !prev)}
-        >
-          <Pencil size={12} />
-          {isEditing ? "Close" : "Edit"}
-        </button>
-        <button
-          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-error/10 text-error hover:bg-error/20 transition-colors font-medium"
-          onClick={onDelete}
-          disabled={busy}
-        >
-          <Trash2 size={12} />
-          Delete
-        </button>
-        {moveTargets.length > 1 && (
-          <select
-            className="flex-1 min-w-[100px] border border-secondary-50 rounded-md px-2 py-1.5 text-xs focus:outline-none focus:border-accent bg-white"
-            value={stepId}
-            onChange={(event) => onMove(Number(event.target.value))}
-          >
-            {moveTargets.map((target) => (
-              <option key={target.board_step_id} value={target.board_step_id}>
-                {target.step_name}
-              </option>
-            ))}
-          </select>
-        )}
       </div>
 
-      <div className="flex flex-wrap gap-2 text-xs">
-        <button
-          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-secondary/10 text-secondary hover:bg-secondary/20 transition-colors font-medium"
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={busy}
+      {/* Modal */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) handleCloseModal(); }}
         >
-          <Upload size={12} />
-          {lead.image_url ? "Replace" : "Upload Image"}
-        </button>
-        {lead.image_url && (
-          <button
-            className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-error/10 text-error hover:bg-error/20 transition-colors font-medium"
-            type="button"
-            onClick={() => onRemoveImage()}
-            disabled={busy}
-          >
-            <Trash2 size={12} />
-            Remove
-          </button>
-        )}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={onImageChange}
-        />
-      </div>
+          <div className="modal-content bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-secondary-50/30">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-accent bg-accent/10 px-2 py-1 rounded">LEAD</span>
+                {hasUnsavedChanges && (
+                  <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded flex items-center gap-1">
+                    <AlertTriangle size={12} />
+                    Unsaved changes
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={handleCloseModal}
+                className="p-1 rounded-lg hover:bg-secondary-50/20 text-secondary-50 hover:text-secondary transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-      {isEditing && (
-        <div className="space-y-3 border-t border-secondary-50 pt-3 bg-primary -mx-4 -mb-4 px-4 py-3 rounded-b-lg">
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-secondary uppercase">
-              Business Name
-            </label>
-            <input
-              type="text"
-              placeholder="Business name"
-              value={form.business}
-              onChange={(e) => onChange("business", e.target.value)}
-              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-secondary uppercase">
-              Category
-            </label>
-            <input
-              type="text"
-              placeholder="Category"
-              value={form.person_type}
-              onChange={(e) => onChange("person_type", e.target.value)}
-              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-secondary uppercase">
-                Website
-              </label>
-              <input
-                type="text"
-                placeholder="Website"
-                value={form.website}
-                onChange={(e) => onChange("website", e.target.value)}
-                className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+            <div className="p-6 space-y-6">
+              {/* Image Carousel */}
+              <ImageCarousel
+                images={galleryImages}
+                currentIndex={currentImageIndex}
+                onIndexChange={setCurrentImageIndex}
+                onUpload={onUploadGalleryImage}
+                onDelete={onDeleteGalleryImage}
+                busy={busy}
               />
-            </div>
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-secondary uppercase">
-                License #
-              </label>
-              <input
-                type="text"
-                placeholder="License #"
-                value={form.license_num}
-                onChange={(e) => onChange("license_num", e.target.value)}
-                className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-              />
+
+              {/* Form Fields */}
+              <div className="space-y-4">
+                <FormField
+                  label="Business Name"
+                  value={formState.business}
+                  onChange={(v) => updateField("business", v)}
+                  placeholder="Enter business name"
+                />
+
+                <FormField
+                  label="Category"
+                  value={formState.person_type}
+                  onChange={(v) => updateField("person_type", v)}
+                  placeholder="Enter category"
+                />
+
+                <FormField
+                  label="Website"
+                  value={formState.website}
+                  onChange={(v) => updateField("website", v)}
+                  placeholder="Enter website URL"
+                />
+
+                <FormField
+                  label="License #"
+                  value={formState.license_num}
+                  onChange={(v) => updateField("license_num", v)}
+                  placeholder="Enter license number"
+                />
+
+                <FormField
+                  label="Notes"
+                  value={formState.notes}
+                  onChange={(v) => updateField("notes", v)}
+                  placeholder="Add notes..."
+                  multiline
+                />
+
+                {lead.contact?.email && (
+                  <div>
+                    <span className="text-[10px] font-semibold text-secondary-50 uppercase block mb-1">Email (read-only)</span>
+                    <p className="text-sm text-secondary px-3 py-2 bg-secondary-50/10 rounded-lg">{lead.contact.email}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-wrap gap-2 pt-4 border-t border-secondary-50/30">
+                {moveTargets.length > 1 && (
+                  <div className="flex items-center gap-2">
+                    <Move size={14} className="text-secondary-50" />
+                    <select
+                      className="border border-secondary-50 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-accent bg-white"
+                      value={stepId}
+                      onChange={(e) => { onMove(Number(e.target.value)); setIsModalOpen(false); }}
+                    >
+                      {moveTargets.map((target) => (
+                        <option key={target.board_step_id} value={target.board_step_id}>
+                          {target.step_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <div className="flex-1" />
+                <button
+                  onClick={handleSave}
+                  disabled={busy || !hasUnsavedChanges}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors text-sm font-medium disabled:opacity-50"
+                >
+                  <Save size={16} />
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => { onDelete(); setIsModalOpen(false); }}
+                  disabled={busy}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-error/10 text-error hover:bg-error/20 transition-colors text-sm font-medium disabled:opacity-50"
+                >
+                  <Trash2 size={16} />
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-secondary uppercase">
-              Notes
-            </label>
-            <textarea
-              placeholder="Notes"
-              value={form.notes}
-              onChange={(e) => onChange("notes", e.target.value)}
-              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent resize-none"
-              rows={3}
-            />
-          </div>
-          <button
-            className="w-full bg-accent hover:bg-accent/90 text-white rounded py-2 text-xs font-semibold transition-colors disabled:opacity-50"
-            onClick={() => {
-              onSave(form);
-              setIsEditing(false);
-            }}
-            disabled={busy}
-          >
-            Save Changes
-          </button>
         </div>
       )}
-    </div>
+
+      {/* Unsaved Changes Warning Modal */}
+      {showUnsavedWarning && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-full bg-amber-100">
+                <AlertTriangle size={24} className="text-amber-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-secondary">Unsaved Changes</h3>
+            </div>
+            <p className="text-secondary-50 mb-6">
+              You have unsaved changes. Are you sure you want to close without saving?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowUnsavedWarning(false)}
+                className="px-4 py-2 rounded-lg text-secondary hover:bg-secondary-50/20 transition-colors text-sm font-medium"
+              >
+                Keep Editing
+              </button>
+              <button
+                onClick={handleDiscardAndClose}
+                className="px-4 py-2 rounded-lg bg-error text-white hover:bg-error/90 transition-colors text-sm font-medium"
+              >
+                Discard Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -1875,233 +2144,296 @@ const PropertyCardView = ({
   onSave,
   onDelete,
   onMove,
-  onUploadImage,
-  onRemoveImage,
+  onUploadGalleryImage,
+  onDeleteGalleryImage,
 }: {
   property: PropertyCard;
   stepId: number;
   moveTargets: BoardStepCard[];
   busy: boolean;
-  onSave: (updates: {
-    property_name?: string;
-    notes?: string;
-    mls_number?: string;
-  }) => void;
+  onSave: (updates: { property_name: string; notes: string; mls_number: string }) => void;
   onDelete: () => void;
   onMove: (targetStepId: number) => void;
-  onUploadImage: (file: File) => Promise<void> | void;
-  onRemoveImage: () => Promise<void> | void;
+  onUploadGalleryImage: (file: File) => Promise<void> | void;
+  onDeleteGalleryImage: (imageId: number) => Promise<void> | void;
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState({
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+
+  // Local form state
+  const [formState, setFormState] = useState({
     property_name: property.property_name ?? "",
     notes: property.notes ?? "",
     mls_number: property.mls_number ?? "",
   });
 
+  // Reset form when modal opens
   useEffect(() => {
-    setForm({
-      property_name: property.property_name ?? "",
-      notes: property.notes ?? "",
-      mls_number: property.mls_number ?? "",
-    });
-  }, [
-    property.property_id,
-    property.property_name,
-    property.notes,
-    property.mls_number,
-  ]);
+    if (isModalOpen) {
+      setFormState({
+        property_name: property.property_name ?? "",
+        notes: property.notes ?? "",
+        mls_number: property.mls_number ?? "",
+      });
+    }
+  }, [isModalOpen, property]);
 
-  const onChange = (key: keyof typeof form, value: string) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  // Check if form has unsaved changes
+  const hasUnsavedChanges = useMemo(() => {
+    return (
+      formState.property_name !== (property.property_name ?? "") ||
+      formState.notes !== (property.notes ?? "") ||
+      formState.mls_number !== (property.mls_number ?? "")
+    );
+  }, [formState, property]);
+
+  // Build images array from gallery images
+  const galleryImages = useMemo(() => {
+    const imgs: { url: string; id?: number }[] = [];
+    if (property.images && property.images.length > 0) {
+      property.images.forEach((img) => {
+        const url = resolveAssetUrl(img.image_url);
+        if (url) imgs.push({ url, id: img.property_image_id });
+      });
+    } else if (property.image_url) {
+      const url = resolveAssetUrl(property.image_url);
+      if (url) imgs.push({ url });
+    }
+    return imgs;
+  }, [property.images, property.image_url]);
+
+  const propertyTitle = property.property_name?.trim() || "Unnamed Property";
+  const thumbnailImage = galleryImages[currentImageIndex]?.url || galleryImages[0]?.url;
+  const addressLine = property.address
+    ? `${property.address.street_1 ?? ""} ${property.address.city ?? ""}`.trim()
+    : "";
+
+  const updateField = (field: keyof typeof formState, value: string) => {
+    setFormState(prev => ({ ...prev, [field]: value }));
   };
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageSrc = resolveAssetUrl(property.image_url);
-  const propertyTitle =
-    property.property_name && property.property_name.trim().length > 0
-      ? property.property_name
-      : "Unnamed property";
+  const handleSave = () => {
+    onSave(formState);
+  };
 
-  const handleImageChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      await onUploadImage(file);
+  const handleCloseModal = () => {
+    if (hasUnsavedChanges) {
+      setShowUnsavedWarning(true);
+    } else {
+      setIsModalOpen(false);
     }
-    event.target.value = "";
+  };
+
+  const handleDiscardAndClose = () => {
+    setShowUnsavedWarning(false);
+    setIsModalOpen(false);
   };
 
   return (
-    <div 
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData(
-          "card",
-          JSON.stringify({
-            cardId: property.property_id,
-            fromStepId: stepId,
-            cardType: "property",
-          })
-        );
-      }}
-      className="bg-white rounded-lg p-4 space-y-2 box-shadow-sm border-l-4 border-accent hover:shadow-lg transition-shadow group cursor-grab active:cursor-grabbing"
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0 space-y-2">
-          <div>
-            <span className="text-[10px] font-semibold text-secondary-50 uppercase">Property Name</span>
-            <p className="font-semibold text-secondary truncate">
-              {propertyTitle}
-            </p>
+    <>
+      {/* Compact Card Thumbnail */}
+      <div
+        draggable
+        onDragStart={(e) => {
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData(
+            "card",
+            JSON.stringify({ cardId: property.property_id, fromStepId: stepId, cardType: "property" })
+          );
+        }}
+        onClick={() => setIsModalOpen(true)}
+        className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+      >
+        {thumbnailImage && (
+          <div className="relative">
+            <img
+              src={thumbnailImage}
+              alt={propertyTitle}
+              className="w-full h-32 object-cover rounded-t-lg"
+            />
+            {galleryImages.length > 1 && (
+              <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+                {galleryImages.length} images
+              </span>
+            )}
           </div>
-          {property.address && (
+        )}
+        <div className="p-3 space-y-1.5">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Property Name</span>
+              <p className="font-medium text-secondary text-sm truncate">{propertyTitle}</p>
+            </div>
+            <span className="text-[10px] font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">
+              PROPERTY
+            </span>
+          </div>
+          {addressLine && (
             <div>
-              <span className="text-[10px] font-semibold text-secondary-50 uppercase">Address</span>
-              <p className="text-xs text-secondary truncate">{`${property.address.street_1 ?? ""} ${property.address.city ?? ""}`}</p>
+              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Address</span>
+              <p className="text-xs text-secondary truncate">{addressLine}</p>
             </div>
           )}
           {property.mls_number && (
             <div>
-              <span className="text-[10px] font-semibold text-secondary-50 uppercase">MLS #</span>
-              <p className="text-xs text-accent font-medium">{property.mls_number}</p>
+              <span className="text-[9px] font-semibold text-secondary-50 uppercase">MLS #</span>
+              <p className="text-xs text-accent">{property.mls_number}</p>
+            </div>
+          )}
+          {property.notes && (
+            <div>
+              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Notes</span>
+              <p className="text-xs text-secondary-50 line-clamp-2">{property.notes}</p>
             </div>
           )}
         </div>
-        <span className="text-xs font-bold text-accent bg-primary px-2 py-1 rounded whitespace-nowrap">
-          PROPERTY
-        </span>
-      </div>
-      {property.notes && (
-        <div>
-          <span className="text-[10px] font-semibold text-secondary-50 uppercase">Notes</span>
-          <p className="text-xs text-secondary whitespace-pre-wrap line-clamp-3">
-            {property.notes}
-          </p>
-        </div>
-      )}
-      {imageSrc && (
-        <div className="rounded-lg overflow-hidden border border-secondary-50">
-          <img
-            src={imageSrc}
-            alt={`${property.property_name ?? "Property"} visual`}
-            className="w-full h-40 object-cover"
-          />
-        </div>
-      )}
-      <div className="flex flex-wrap gap-2 text-xs pt-2 border-t border-secondary-50">
-        <button
-          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-accent/10 text-accent hover:bg-accent/20 transition-colors font-medium"
-          onClick={() => setIsEditing((prev) => !prev)}
-        >
-          <Pencil size={12} />
-          {isEditing ? "Close" : "Edit"}
-        </button>
-        <button
-          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-error/10 text-error hover:bg-error/20 transition-colors font-medium"
-          onClick={onDelete}
-          disabled={busy}
-        >
-          <Trash2 size={12} />
-          Delete
-        </button>
-        {moveTargets.length > 1 && (
-          <select
-            className="flex-1 min-w-[100px] border border-secondary-50 rounded-md px-2 py-1.5 text-xs focus:outline-none focus:border-accent bg-white"
-            value={stepId}
-            onChange={(event) => onMove(Number(event.target.value))}
-          >
-            {moveTargets.map((target) => (
-              <option key={target.board_step_id} value={target.board_step_id}>
-                {target.step_name}
-              </option>
-            ))}
-          </select>
-        )}
       </div>
 
-      <div className="flex flex-wrap gap-2 text-xs">
-        <button
-          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-secondary/10 text-secondary hover:bg-secondary/20 transition-colors font-medium"
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={busy}
+      {/* Modal */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) handleCloseModal(); }}
         >
-          <Upload size={12} />
-          {property.image_url ? "Replace" : "Upload Image"}
-        </button>
-        {property.image_url && (
-          <button
-            className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-error/10 text-error hover:bg-error/20 transition-colors font-medium"
-            type="button"
-            onClick={() => onRemoveImage()}
-            disabled={busy}
-          >
-            <Trash2 size={12} />
-            Remove
-          </button>
-        )}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleImageChange}
-        />
-      </div>
+          <div className="modal-content bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-4 border-b border-secondary-50/30">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-accent bg-accent/10 px-2 py-1 rounded">PROPERTY</span>
+                {hasUnsavedChanges && (
+                  <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded flex items-center gap-1">
+                    <AlertTriangle size={12} />
+                    Unsaved changes
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={handleCloseModal}
+                className="p-1 rounded-lg hover:bg-secondary-50/20 text-secondary-50 hover:text-secondary transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-      {isEditing && (
-        <div className="space-y-3 border-t border-secondary-50 pt-3 bg-primary -mx-4 -mb-4 px-4 py-3 rounded-b-lg">
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-secondary uppercase">
-              Property Name
-            </label>
-            <input
-              type="text"
-              placeholder="Property name"
-              value={form.property_name}
-              onChange={(e) => onChange("property_name", e.target.value)}
-              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-            />
+            <div className="p-6 space-y-6">
+              {/* Image Carousel */}
+              <ImageCarousel
+                images={galleryImages}
+                currentIndex={currentImageIndex}
+                onIndexChange={setCurrentImageIndex}
+                onUpload={onUploadGalleryImage}
+                onDelete={onDeleteGalleryImage}
+                busy={busy}
+              />
+
+              {/* Form Fields */}
+              <div className="space-y-4">
+                <FormField
+                  label="Property Name"
+                  value={formState.property_name}
+                  onChange={(v) => updateField("property_name", v)}
+                  placeholder="Enter property name"
+                />
+
+                <FormField
+                  label="MLS #"
+                  value={formState.mls_number}
+                  onChange={(v) => updateField("mls_number", v)}
+                  placeholder="Enter MLS number"
+                />
+
+                <FormField
+                  label="Notes"
+                  value={formState.notes}
+                  onChange={(v) => updateField("notes", v)}
+                  placeholder="Add notes..."
+                  multiline
+                />
+
+                {property.address && (
+                  <div>
+                    <span className="text-[10px] font-semibold text-secondary-50 uppercase block mb-1">Address (read-only)</span>
+                    <p className="text-sm text-secondary px-3 py-2 bg-secondary-50/10 rounded-lg">
+                      {property.address.street_1}
+                      <br />
+                      {property.address.city}, {property.address.state} {property.address.zipcode}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-wrap gap-2 pt-4 border-t border-secondary-50/30">
+                {moveTargets.length > 1 && (
+                  <div className="flex items-center gap-2">
+                    <Move size={14} className="text-secondary-50" />
+                    <select
+                      className="border border-secondary-50 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-accent bg-white"
+                      value={stepId}
+                      onChange={(e) => { onMove(Number(e.target.value)); setIsModalOpen(false); }}
+                    >
+                      {moveTargets.map((target) => (
+                        <option key={target.board_step_id} value={target.board_step_id}>
+                          {target.step_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <div className="flex-1" />
+                <button
+                  onClick={handleSave}
+                  disabled={busy || !hasUnsavedChanges}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors text-sm font-medium disabled:opacity-50"
+                >
+                  <Save size={16} />
+                  Save Changes
+                </button>
+                <button
+                  onClick={() => { onDelete(); setIsModalOpen(false); }}
+                  disabled={busy}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-error/10 text-error hover:bg-error/20 transition-colors text-sm font-medium disabled:opacity-50"
+                >
+                  <Trash2 size={16} />
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-secondary uppercase">
-              MLS #
-            </label>
-            <input
-              type="text"
-              placeholder="MLS #"
-              value={form.mls_number}
-              onChange={(e) => onChange("mls_number", e.target.value)}
-              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="block text-xs font-semibold text-secondary uppercase">
-              Notes
-            </label>
-            <textarea
-              placeholder="Notes"
-              value={form.notes}
-              onChange={(e) => onChange("notes", e.target.value)}
-              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent resize-none"
-              rows={3}
-            />
-          </div>
-          <button
-            className="w-full bg-accent hover:bg-accent/90 text-white rounded py-2 text-xs font-semibold transition-colors disabled:opacity-50"
-            onClick={() => {
-              onSave(form);
-              setIsEditing(false);
-            }}
-            disabled={busy}
-          >
-            Save Changes
-          </button>
         </div>
       )}
-    </div>
+
+      {/* Unsaved Changes Warning Modal */}
+      {showUnsavedWarning && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-full bg-amber-100">
+                <AlertTriangle size={24} className="text-amber-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-secondary">Unsaved Changes</h3>
+            </div>
+            <p className="text-secondary-50 mb-6">
+              You have unsaved changes. Are you sure you want to close without saving?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowUnsavedWarning(false)}
+                className="px-4 py-2 rounded-lg text-secondary hover:bg-secondary-50/20 transition-colors text-sm font-medium"
+              >
+                Keep Editing
+              </button>
+              <button
+                onClick={handleDiscardAndClose}
+                className="px-4 py-2 rounded-lg bg-error text-white hover:bg-error/90 transition-colors text-sm font-medium"
+              >
+                Discard Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };

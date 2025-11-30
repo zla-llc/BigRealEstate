@@ -11,6 +11,14 @@ export type BoardSummary = {
   } | null;
 };
 
+export type CardImage = {
+  lead_image_id?: number;
+  property_image_id?: number;
+  image_url: string;
+  caption?: string | null;
+  sort_order?: number | null;
+};
+
 export type LeadCard = {
   lead_id: number;
   person_type?: string | null;
@@ -19,6 +27,7 @@ export type LeadCard = {
   license_num?: string | null;
   notes?: string | null;
   image_url?: string | null;
+  images?: CardImage[];
   created_by?: number | null;
   created_by_user?: {
     user_id: number;
@@ -41,6 +50,7 @@ export type PropertyCard = {
   notes?: string | null;
   address_id?: number | null;
   image_url?: string | null;
+  images?: CardImage[];
   address?: {
     address_id?: number | null;
     street_1?: string | null;
