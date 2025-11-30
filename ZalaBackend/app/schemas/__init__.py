@@ -37,6 +37,14 @@ from .campaign_lead import (
 )
 from .location import LocationFilter, DataSource
 from .summaries import UserSummary, LeadSummary, PropertySummary, CampaignSummary # Add CampaignSummary
+from .team import (
+    TeamBase,
+    TeamCreate,
+    TeamUpdate,
+    TeamPublic,
+    TeamLeaderboardEntry,
+    TeamUserXPEntry,
+)
 
 
 CampaignPublic.model_rebuild()

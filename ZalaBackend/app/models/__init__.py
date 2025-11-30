@@ -14,6 +14,7 @@ from .board_step import BoardStep
 from .campaign import Campaign
 from .campaign_email import CampaignEmail
 from .lead import Lead
+from .team import Team
 
 
 from .campaign_lead import CampaignLead
