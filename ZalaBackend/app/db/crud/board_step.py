@@ -34,9 +34,11 @@ def _board_step_query(db: Session):
             selectinload(BoardStep.leads)
             .selectinload(Lead.campaigns)
             .joinedload(CampaignLead.campaign),
+            selectinload(BoardStep.leads).selectinload(Lead.images),
             selectinload(BoardStep.properties).joinedload(Property.address),
             selectinload(BoardStep.properties).selectinload(Property.units),
             selectinload(BoardStep.properties).joinedload(Property.users),
+            selectinload(BoardStep.properties).selectinload(Property.images),
         )
     )
 

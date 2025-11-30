@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from dotenv import load_dotenv
 
@@ -22,8 +23,12 @@ from app.routes import (
     campaign_leads,
     campaign_emails,
 )
+from app.services.file_storage import get_upload_root
 
 app = FastAPI()
+
+uploads_path = get_upload_root()
+app.mount("/uploads", StaticFiles(directory=str(uploads_path)), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,7 +57,7 @@ app.include_router(campaigns.router, prefix="/api", include_in_schema=False)
 app.include_router(addresses.router, prefix="/api", include_in_schema=False)
 app.include_router(properties.router, prefix="/api", include_in_schema=False)
 app.include_router(units.router, prefix="/api", include_in_schema=False)
-app.include_router(leads.router, prefix="/api", include_in_schema=False)
+app.include_router(leads.router, prefix="/api", include_in_schema=True)
 
 
 app.include_router(users.router, prefix="/api", include_in_schema=False)

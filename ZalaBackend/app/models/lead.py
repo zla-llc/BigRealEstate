@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import Column, ForeignKey, Table
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -30,6 +30,7 @@ class Lead(Base):
     website: Mapped[str] = mapped_column(nullable=True)
     license_num: Mapped[str] = mapped_column(nullable=True)
     notes: Mapped[str] = mapped_column(nullable=True)
+    image_url: Mapped[Optional[str]] = mapped_column(nullable=True)
 
     created_by_user: Mapped["User"] = relationship("User", back_populates="leads_created", uselist=False)
     # back_populates on contact/address to allow bidirectional access
@@ -52,4 +53,10 @@ class Lead(Base):
         "BoardStep",
         secondary=board_step_leads,
         back_populates="leads",
+    )
+    images: Mapped[List["LeadImage"]] = relationship(
+        "LeadImage",
+        back_populates="lead",
+        cascade="all, delete-orphan",
+        order_by="LeadImage.sort_order",
     )

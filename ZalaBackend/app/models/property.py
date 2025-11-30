@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column
@@ -20,6 +20,7 @@ class Property(Base):
     mls_number: Mapped[str] = mapped_column(nullable=True)
     lead_id: Mapped[int] = mapped_column(ForeignKey("leads.lead_id"), nullable=True)
     notes: Mapped[str] = mapped_column(nullable=True)
+    image_url: Mapped[Optional[str]] = mapped_column(nullable=True)
 
 
     users: Mapped[List["User"]] = relationship(
@@ -33,4 +34,10 @@ class Property(Base):
         "BoardStep",
         secondary=board_step_properties,
         back_populates="properties",
+    )
+    images: Mapped[List["PropertyImage"]] = relationship(
+        "PropertyImage",
+        back_populates="property",
+        cascade="all, delete-orphan",
+        order_by="PropertyImage.sort_order",
     )

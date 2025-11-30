@@ -1,5 +1,5 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Response, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -206,3 +206,65 @@ def unlink_address(lead_id: int, address_id: int, db: Session = Depends(get_db))
     if not updated:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead or Address not found")
     return read_lead(lead_id, db)
+
+
+@router.get(
+    "/{lead_id}/images",
+    tags=["Lead Images"],
+    response_model=List[schemas.LeadImagePublic],
+    summary="List images for a lead",
+)
+def list_lead_images(lead_id: int, db: Session = Depends(get_db)):
+    lead = lead_crud.get_lead_by_id(db, lead_id=lead_id)
+    if not lead:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found")
+    return lead_crud.list_lead_images(db, lead_id)
+
+
+@router.post(
+    "/{lead_id}/images",
+    tags=["Lead Images"],
+    response_model=schemas.LeadImagePublic,
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_lead_gallery_image(
+    lead_id: int,
+    file: UploadFile = File(...),
+    caption: Optional[str] = Form(None),
+    sort_order: Optional[int] = Form(None),
+    db: Session = Depends(get_db),
+):
+    image = lead_crud.add_lead_image(db, lead_id=lead_id, upload=file, caption=caption, sort_order=sort_order)
+    await file.close()
+    if not image:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found")
+    return image
+
+
+@router.delete(
+    "/{lead_id}/images/{image_id}",
+    tags=["Lead Images"],
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_lead_gallery_image(lead_id: int, image_id: int, db: Session = Depends(get_db)):
+    deleted = lead_crud.delete_lead_image(db, lead_id=lead_id, image_id=image_id)
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead or image not found")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{lead_id}/image", tags=["Leads"], response_model=schemas.LeadPublic)
+async def upload_lead_image(lead_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    updated = lead_crud.attach_lead_image(db, lead_id=lead_id, upload=file)
+    await file.close()
+    if not updated:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found")
+    return updated
+
+
+@router.delete("/{lead_id}/image", tags=["Leads"], response_model=schemas.LeadPublic)
+def remove_lead_image(lead_id: int, db: Session = Depends(get_db)):
+    updated = lead_crud.remove_lead_image(db, lead_id=lead_id)
+    if not updated:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Lead not found")
+    return updated
