@@ -4,8 +4,8 @@ import type { APIResponse } from "./types";
 const OK_STATUS_CODES = [200, 201, 202, 204];
 
 type RequestOptions = {
-  isFormData: boolean;
-  signal: AbortSignal;
+  isFormData?: boolean;
+  signal?: AbortSignal;
 };
 
 export const useFetch = () => {
@@ -25,19 +25,17 @@ export const useFetch = () => {
         ? err
         : err instanceof Error
         ? err.message
-        : "Get request failed",
+        : "Request failed",
   });
 
   const fetchWithParams = async <T,>(
     apiEndpoint: string,
     method: "POST" | "GET" | "PUT" | "DELETE",
     body: unknown,
-    { signal, isFormData }: RequestOptions = {
-      signal: new AbortController().signal,
-      isFormData: false,
-    }
+    { signal, isFormData }: RequestOptions = {}
   ): Promise<APIResponse<T>> => {
     const url = CONFIG.api + apiEndpoint;
+    const abortSignal = signal ?? new AbortController().signal;
 
     try {
       const headers: Record<string, string> = { ...defaultHeaders };
@@ -60,31 +58,11 @@ export const useFetch = () => {
         method,
         body: bodyToSend,
         headers,
-        signal: abortController.signal,
+        signal: abortSignal,
       });
-      const raw = await response.text();
-      let json: any = null;
-      if (raw) {
-        try {
-          json = JSON.parse(raw);
-        } catch {
-          // leave json as null and treat as error below if status not ok
-          json = null;
-        }
-      }
 
-      if (!OK_STATUS_CODES.includes(response.status) || json?.err || json?.error)
-        throw new Error(
-          json?.err ?? json?.error ?? "Error communicating with API"
-        body:
-          method !== "GET" && method !== "DELETE" && body
-            ? JSON.stringify(body)
-            : null,
-        headers: header,
-        signal,
-      });
-      let parsed: any = null;
       const rawBody = await response.text();
+      let parsed: unknown = null;
       if (rawBody && rawBody.length > 0) {
         try {
           parsed = JSON.parse(rawBody);
@@ -95,11 +73,13 @@ export const useFetch = () => {
 
       if (
         !OK_STATUS_CODES.includes(response.status) ||
-        (parsed && (parsed.err || parsed.error))
-      )
+        (parsed && typeof parsed === "object" && ((parsed as Record<string, unknown>).err || (parsed as Record<string, unknown>).error))
+      ) {
+        const errorObj = parsed as Record<string, unknown> | null;
         throw new Error(
-          parsed?.err ?? parsed?.error ?? "Error communicating with API"
+          (errorObj?.err as string) ?? (errorObj?.error as string) ?? "Error communicating with API"
         );
+      }
 
       return requestSuccess<T>(parsed as T);
     } catch (err) {
@@ -109,9 +89,9 @@ export const useFetch = () => {
 
   const get = async <T,>(
     apiEndpoint: string,
-    signal: AbortSignal = new AbortController().signal
+    signal?: AbortSignal
   ): Promise<APIResponse<T>> => {
-    return await fetchWithParams(apiEndpoint, "GET", null, {
+    return await fetchWithParams<T>(apiEndpoint, "GET", null, {
       isFormData: false,
       signal,
     });
@@ -120,30 +100,24 @@ export const useFetch = () => {
   const post = async <T,>(
     apiEndpoint: string,
     body: unknown,
-    options: RequestOptions = {
-      signal: new AbortController().signal,
-      isFormData: false,
-    }
+    options: RequestOptions = {}
   ): Promise<APIResponse<T>> => {
-    return await fetchWithParams(apiEndpoint, "POST", body, options);
+    return await fetchWithParams<T>(apiEndpoint, "POST", body, options);
   };
 
   const put = async <T,>(
     apiEndpoint: string,
     body: unknown,
-    options: RequestOptions = {
-      signal: new AbortController().signal,
-      isFormData: false,
-    }
+    options: RequestOptions = {}
   ): Promise<APIResponse<T>> => {
-    return await fetchWithParams(apiEndpoint, "PUT", body, options);
+    return await fetchWithParams<T>(apiEndpoint, "PUT", body, options);
   };
 
   const del = async <T,>(
     apiEndpoint: string,
-    signal: AbortSignal = new AbortController().signal
+    signal?: AbortSignal
   ): Promise<APIResponse<T>> => {
-    return await fetchWithParams(apiEndpoint, "DELETE", null, {
+    return await fetchWithParams<T>(apiEndpoint, "DELETE", null, {
       isFormData: false,
       signal,
     });

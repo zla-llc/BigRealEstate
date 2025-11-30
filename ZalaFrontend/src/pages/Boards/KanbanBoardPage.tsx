@@ -625,7 +625,7 @@ export const KanbanBoardPage = () => {
     await withBusy("Uploading lead image...", async () => {
       const formData = new FormData();
       formData.append("file", file);
-      const { err } = await post(`/api/leads/${leadId}/image`, formData, true);
+      const { err } = await post(`/api/leads/${leadId}/image`, formData, { isFormData: true });
       if (err) throw new Error(err);
     }, activeBoardId);
   };
@@ -650,7 +650,7 @@ export const KanbanBoardPage = () => {
       const { err } = await post(
         `/api/addresses/${addressId}/properties/${property.property_id}/image`,
         formData,
-        true
+        { isFormData: true }
       );
       if (err) throw new Error(err);
     }, activeBoardId);
@@ -661,7 +661,7 @@ export const KanbanBoardPage = () => {
     await withBusy("Uploading image...", async () => {
       const formData = new FormData();
       formData.append("file", file);
-      const { err } = await post(`/api/leads/${leadId}/images`, formData, true);
+      const { err } = await post(`/api/leads/${leadId}/images`, formData, { isFormData: true });
       if (err) throw new Error(err);
     }, activeBoardId);
   };
@@ -688,7 +688,7 @@ export const KanbanBoardPage = () => {
       const { err } = await post(
         `/api/addresses/${addressId}/properties/${property.property_id}/images`,
         formData,
-        true
+        { isFormData: true }
       );
       if (err) throw new Error(err);
     }, activeBoardId);

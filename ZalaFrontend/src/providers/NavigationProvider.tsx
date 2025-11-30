@@ -21,24 +21,6 @@ export const NavigationProvider = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={authView ? <AppLayout /> : <AuthLayout />}>
-          {authView && (
-            <>
-              <Route index element={<LeadSearchPage />} />
-              <Route path="/campaign/:campaignId" element={<CampaignPage />} />
-              <Route path="/boards" element={<KanbanBoardPage />} />
-              <Route path="/signup" element={<Navigate to={"/"} />} />
-              <Route path="/login" element={<Navigate to={"/"} />} />
-            </>
-          )}
-
-          {!authView && (
-            <>
-              <Route index path="/login" element={<LoginPage />} />
-              <Route path="/signup" element={<SignupPage />} />
-            </>
-          )}
-
         <Route element={<RootLayout />}>
           <Route
             path="/login"
@@ -52,6 +34,7 @@ export const NavigationProvider = () => {
           {!user && <Route path="*" element={<NavToLogin />} />}
 
           <Route index path="/" element={<LeadSearchPage />} />
+          <Route path="/boards" element={<KanbanBoardPage />} />
 
           <Route path="/campaigns">
             <Route index element={<PastCampaignsPage />} />

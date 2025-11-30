@@ -3,8 +3,8 @@ import { useApi } from "../../api";
 import { useAppNavigation } from "../../utils";
 
 export const useAppHeader = () => {
-  const { location, toLeadSearchPage } = useAppNavigation();
-  const { open: openSideNav, close: closeSideNav, toBoardsPage } = useSideNavControlStore();
+  const { location, toLeadSearchPage, toBoardsPage } = useAppNavigation();
+  const { open: openSideNav, close: closeSideNav } = useSideNavControlStore();
   const { query, setData, setQuery, setLoading } = useSearchQueryStore();
 
   const { searchLeads } = useApi();
