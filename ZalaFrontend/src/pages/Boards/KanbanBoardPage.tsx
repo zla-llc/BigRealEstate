@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { useSnackbar } from "notistack";
 import { useFetch } from "../../hooks";
@@ -10,6 +10,23 @@ import type {
   PropertyCard,
 } from "../../interfaces";
 import { Plus, Trash2, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { CONFIG } from "../../config";
+
+const resolveAssetUrl = (path?: string | null) => {
+  if (!path) return null;
+  if (/^https?:\/\//i.test(path)) return path;
+  const fallback = typeof window !== "undefined" ? window.location.origin : "";
+  const base = CONFIG.api || fallback;
+  try {
+    return new URL(path, base).toString();
+  } catch {
+    const normalizedBase = base.endsWith("/") ? base.slice(0, -1) : base;
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+    return `${normalizedBase}${normalizedPath}`;
+  }
+};
+
+const BOARD_TYPE_STORAGE_KEY = "zala-board-type-overrides";
 
 type LeadComposerState = {
   business: string;
@@ -88,6 +105,29 @@ export const KanbanBoardPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [boardTypeOverrides, setBoardTypeOverrides] = useState<Record<number, "lead" | "property">>(() => {
+    if (typeof window === "undefined") {
+      return {};
+    }
+    try {
+      const stored = window.localStorage.getItem(BOARD_TYPE_STORAGE_KEY);
+      return stored ? (JSON.parse(stored) as Record<number, "lead" | "property">) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(
+        BOARD_TYPE_STORAGE_KEY,
+        JSON.stringify(boardTypeOverrides)
+      );
+    } catch {
+      // no-op: storage might be unavailable (private browsing, etc.)
+    }
+  }, [boardTypeOverrides]);
 
   const loadBoards = async (preferredId?: number | null) => {
     setLoading(true);
@@ -128,6 +168,60 @@ export const KanbanBoardPage = () => {
     return boards.find((board) => board.board_id === activeBoardId) ?? null;
   }, [boards, activeBoardId]);
 
+  const boardComposition = useMemo(() => {
+    if (!activeBoard) {
+      return { hasLeads: false, hasProperties: false };
+    }
+    return {
+      hasLeads: activeBoard.board_steps.some((step) => step.leads.length > 0),
+      hasProperties: activeBoard.board_steps.some((step) => step.properties.length > 0),
+    };
+  }, [activeBoard]);
+
+  const detectedBoardType = useMemo<"lead" | "property" | null>(() => {
+    if (!activeBoard) return null;
+    if (boardComposition.hasLeads && !boardComposition.hasProperties) {
+      return "lead";
+    }
+    if (!boardComposition.hasLeads && boardComposition.hasProperties) {
+      return "property";
+    }
+    return null;
+  }, [activeBoard, boardComposition]);
+
+  const activeBoardType = useMemo<"lead" | "property" | null>(() => {
+    if (!activeBoard) return null;
+    if (detectedBoardType) return detectedBoardType;
+    const override = boardTypeOverrides[activeBoard.board_id];
+    return override ?? "lead";
+  }, [activeBoard, detectedBoardType, boardTypeOverrides]);
+
+  useEffect(() => {
+    if (!activeBoard) {
+      setWarning(null);
+      return;
+    }
+    if (boardComposition.hasLeads && boardComposition.hasProperties) {
+      setWarning(
+        "This board currently contains both lead and property cards. Move cards so only one type remains."
+      );
+    } else {
+      setWarning(null);
+    }
+  }, [activeBoard, boardComposition]);
+
+  useEffect(() => {
+    if (!activeBoard || !detectedBoardType) return;
+    setBoardTypeOverrides((prev) => {
+      if (!prev[activeBoard.board_id]) {
+        return prev;
+      }
+      const next = { ...prev };
+      delete next[activeBoard.board_id];
+      return next;
+    });
+  }, [activeBoard, detectedBoardType]);
+
   const findStep = (stepId: number): BoardStepCard | undefined => {
     return boards
       .flatMap((board) => board.board_steps)
@@ -151,6 +245,21 @@ export const KanbanBoardPage = () => {
     } finally {
       setBusy(null);
     }
+  };
+
+  const handleBoardTypeSelection = (type: "lead" | "property") => {
+    if (!activeBoard) return;
+    if (detectedBoardType) {
+      enqueueSnackbar(
+        "Board type is locked once cards exist. Remove all cards to switch.",
+        { variant: "info" }
+      );
+      return;
+    }
+    setBoardTypeOverrides((prev) => ({
+      ...prev,
+      [activeBoard.board_id]: type,
+    }));
   };
 
   const handleCreateBoard = async (name: string, steps?: string[]) => {
@@ -241,29 +350,26 @@ export const KanbanBoardPage = () => {
 
   const handleCreateLead = async (
     stepId: number,
-    form: LeadComposerState
+    form: LeadComposerState,
+    imageFile?: File | null
   ) => {
     const step = findStep(stepId);
     if (!step) {
       setError("Unable to find target step for lead");
       return;
     }
-    if (step.properties.length > 0) {
+    if (activeBoardType === "property") {
       enqueueSnackbar(
-        `This column is reserved for properties. Move the properties out before adding leads.`,
+        "This board is configured for property cards. Switch to leads to add lead cards.",
         { variant: "warning" }
       );
       return;
     }
-    const title = form.business.trim();
-    if (!title) {
-      enqueueSnackbar("Lead name is required", { variant: "warning" });
-      return;
-    }
+    let createdLeadId: number | null = null;
 
     await withBusy("Creating lead...", async () => {
       const payload: LeadComposerState = {
-        business: title,
+        business: form.business?.trim() ?? "",
         person_type: form.person_type?.trim() ?? "",
         website: form.website?.trim() ?? "",
         license_num: form.license_num?.trim() ?? "",
@@ -271,6 +377,7 @@ export const KanbanBoardPage = () => {
       };
       const { data, err } = await post<LeadCard>(`/api/leads`, payload);
       if (err || !data) throw new Error(err ?? "Unable to create lead");
+      createdLeadId = data.lead_id;
 
       const newLeadIds = [...(step.leads ?? []).map((lead) => lead.lead_id)];
       newLeadIds.push(data.lead_id);
@@ -280,11 +387,15 @@ export const KanbanBoardPage = () => {
       });
       if (stepErr) throw new Error(stepErr);
     }, step.board_id);
+
+    if (imageFile && createdLeadId) {
+      await handleUploadLeadImage(createdLeadId, imageFile);
+    }
   };
 
   const handleUpdateLead = async (leadId: number, updates: LeadComposerState) => {
     const payload: LeadComposerState = {
-      business: updates.business?.trim() || "Untitled Lead",
+      business: updates.business?.trim() ?? "",
       person_type: updates.person_type?.trim() ?? "",
       website: updates.website?.trim() ?? "",
       license_num: updates.license_num?.trim() ?? "",
@@ -331,15 +442,6 @@ export const KanbanBoardPage = () => {
       return;
     }
 
-    // Check if target step has only properties (no leads ever added to it)
-    if (toStep.leads.length === 0 && toStep.properties.length > 0) {
-      setWarning(
-        `Cannot move lead to "${toStep.step_name}" - this step only contains properties`
-      );
-      setTimeout(() => setWarning(null), 5000);
-      return;
-    }
-
     await withBusy("Moving lead...", async () => {
       const remainingIds = fromStep.leads
         .filter((lead) => lead.lead_id !== leadId)
@@ -362,16 +464,17 @@ export const KanbanBoardPage = () => {
 
   const handleCreateProperty = async (
     stepId: number,
-    form: PropertyComposerState
+    form: PropertyComposerState,
+    imageFile?: File | null
   ) => {
     const step = findStep(stepId);
     if (!step) {
       setError("Unable to find target step for property");
       return;
     }
-    if (step.leads.length > 0) {
+    if (activeBoardType === "lead") {
       enqueueSnackbar(
-        `This column currently holds lead cards. Move them before adding properties.`,
+        "This board is configured for lead cards. Switch to properties to add property cards.",
         { variant: "warning" }
       );
       return;
@@ -392,6 +495,8 @@ export const KanbanBoardPage = () => {
       );
       return;
     }
+
+    let createdProperty: PropertyCard | null = null;
 
     await withBusy("Creating property...", async () => {
       const { data: address, err: addressErr } = await post<AddressResponse>(
@@ -418,6 +523,7 @@ export const KanbanBoardPage = () => {
 
       if (propertyErr || !property)
         throw new Error(propertyErr ?? "Unable to create property");
+      createdProperty = property;
 
       const propertyIds = [
         ...(step.properties ?? []).map((prop) => prop.property_id),
@@ -429,6 +535,10 @@ export const KanbanBoardPage = () => {
       });
       if (stepErr) throw new Error(stepErr);
     }, step.board_id);
+
+    if (imageFile && createdProperty) {
+      await handleUploadPropertyImage(createdProperty, imageFile);
+    }
   };
 
   const handleUpdateProperty = async (
@@ -507,15 +617,6 @@ export const KanbanBoardPage = () => {
       return;
     }
 
-    // Check if target step has only leads (no properties ever added to it)
-    if (toStep.properties.length === 0 && toStep.leads.length > 0) {
-      setWarning(
-        `Cannot move property to "${toStep.step_name}" - this step only contains leads`
-      );
-      setTimeout(() => setWarning(null), 5000);
-      return;
-    }
-
     await withBusy("Moving property...", async () => {
       const remainingIds = fromStep.properties
         .filter((prop) => prop.property_id !== propertyId)
@@ -537,6 +638,65 @@ export const KanbanBoardPage = () => {
       });
       if (toErr) throw new Error(toErr);
     }, fromStep.board_id);
+  };
+
+  const handleUploadLeadImage = async (leadId: number, file: File) => {
+    await withBusy("Uploading lead image...", async () => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const { err } = await post(`/api/leads/${leadId}/image`, formData, true);
+      if (err) throw new Error(err);
+    }, activeBoardId);
+  };
+
+  const handleRemoveLeadImage = async (leadId: number) => {
+    await withBusy("Removing lead image...", async () => {
+      const { err } = await del(`/api/leads/${leadId}/image`);
+      if (err) throw new Error(err);
+    }, activeBoardId);
+  };
+
+  const resolvePropertyAddressId = (property: PropertyCard): number | null => {
+    if (property.address_id) return property.address_id;
+    return property.address?.address_id ?? null;
+  };
+
+  const handleUploadPropertyImage = async (property: PropertyCard, file: File) => {
+    const addressId = resolvePropertyAddressId(property);
+    if (!addressId) {
+      enqueueSnackbar("Property must have an address before uploading an image", {
+        variant: "warning",
+      });
+      return;
+    }
+
+    await withBusy("Uploading property image...", async () => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const { err } = await post(
+        `/api/addresses/${addressId}/properties/${property.property_id}/image`,
+        formData,
+        true
+      );
+      if (err) throw new Error(err);
+    }, activeBoardId);
+  };
+
+  const handleRemovePropertyImage = async (property: PropertyCard) => {
+    const addressId = resolvePropertyAddressId(property);
+    if (!addressId) {
+      enqueueSnackbar("Property must have an address before removing an image", {
+        variant: "warning",
+      });
+      return;
+    }
+
+    await withBusy("Removing property image...", async () => {
+      const { err } = await del(
+        `/api/addresses/${addressId}/properties/${property.property_id}/image`
+      );
+      if (err) throw new Error(err);
+    }, activeBoardId);
   };
 
   const handleRenameStep = async (
@@ -565,13 +725,23 @@ export const KanbanBoardPage = () => {
     };
 
     return (
-      <div className="h-full p-6 flex flex-col space-y-6 bg-primary rounded-xl">
-        <div>
-          <h2 className="text-2xl font-bold text-secondary">Boards</h2>
-          <p className="text-secondary-50 text-sm mt-1">Manage your projects</p>
+      <div className="h-full flex flex-col bg-background">
+        <div className="flex items-center justify-between p-4 border-b border-secondary-50/30">
+          <div>
+            <h2 className="text-xl font-bold text-secondary">Boards</h2>
+            <p className="text-secondary-50 text-xs">Manage your projects</p>
+          </div>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            title="Close sidebar"
+            className="p-2 rounded-lg hover:bg-secondary-50/20 text-secondary transition-colors"
+          >
+            <ChevronLeft size={20} />
+          </button>
         </div>
+        <div className="flex-1 flex flex-col p-4 space-y-4 overflow-hidden">
 
-        <div className="space-y-2 overflow-auto pr-2 flex-1">
+        <div className="space-y-1 overflow-auto flex-1">
           {boards.map((board) => {
             const isActive = activeBoardId === board.board_id;
             const ownerId = board.user?.user_id ?? board.user_id ?? null;
@@ -593,67 +763,66 @@ export const KanbanBoardPage = () => {
               <div
                 key={board.board_id}
                 className={clsx(
-                  "flex items-center justify-between rounded-lg px-4 py-3 cursor-pointer transition-all duration-200",
+                  "flex items-center justify-between rounded-lg px-3 py-2 cursor-pointer transition-all duration-200",
                   isActive
-                    ? "bg-accent text-white shadow-lg transform scale-105"
-                    : "bg-transparent hover:bg-primary/10 text-secondary"
+                    ? "bg-accent text-white shadow-md"
+                    : "hover:bg-secondary-50/20 text-secondary"
                 )}
                 onClick={() => setActiveBoardId(board.board_id)}
               >
                 <div className="flex flex-col min-w-0">
-                  <span className="text-base font-semibold truncate">
+                  <span className="text-sm font-semibold truncate">
                     {board.board_name}
                   </span>
                   <span
                     className={clsx(
-                      "text-xs",
+                      "text-[11px]",
                       isActive ? "text-white/80" : "text-secondary-50"
                     )}
                   >
-                    Owner: {ownerLabel}
+                    {ownerLabel}
                   </span>
                 </div>
 
                 <button
-                  className="ml-2 p-1 hover:bg-white/20 rounded transition-colors"
+                  className="ml-2 p-1.5 hover:bg-white/20 rounded transition-colors opacity-0 group-hover:opacity-100"
                   onClick={(event) => {
                     event.stopPropagation();
                     handleDeleteBoard(board.board_id);
                   }}
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={14} />
                 </button>
               </div>
             );
           })}
           {boards.length === 0 && (
             <p className="text-sm text-secondary-50 text-center py-8">
-              No boards yet. Create your first board below.
+              No boards yet
             </p>
           )}
         </div>
+        </div>
 
-        <div className="border-t border-secondary-50 pt-4">
-          <h3 className="text-lg font-bold text-secondary mb-3">New Board</h3>
+        <div className="border-t border-secondary-50/30 p-4">
           <form
-            className="space-y-3"
+            className="flex gap-2"
             onSubmit={onSubmit}
             autoComplete="off"
           >
             <input
               type="text"
-              placeholder="Board name"
+              placeholder="+ Add board"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-white border border-secondary-50 text-secondary placeholder-secondary-50 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
+              className="flex-1 px-3 py-2 rounded-lg bg-secondary-50/10 border border-transparent text-secondary text-sm placeholder-secondary-50 focus:outline-none focus:border-accent focus:bg-white transition-colors"
             />
-
             <button
               type="submit"
-              className="w-full rounded-lg bg-accent hover:bg-accent/90 text-white py-2 text-sm font-semibold transition-colors disabled:opacity-50"
+              className="px-3 py-2 rounded-lg bg-accent hover:bg-accent/90 text-white text-sm font-medium transition-colors disabled:opacity-50"
               disabled={!name.trim() || !!busy}
             >
-              {busy === "Creating board..." ? "Creating..." : "Create Board"}
+              <Plus size={18} />
             </button>
           </form>
         </div>
@@ -676,85 +845,144 @@ export const KanbanBoardPage = () => {
         ? "You"
         : "Team member"
       : "Unassigned";
+    const boardHasCards = boardComposition.hasLeads || boardComposition.hasProperties;
+    const boardTypeLabel = activeBoardType === "property" ? "Properties" : "Leads";
 
     return (
-      <div className="card-base box-shadow p-6 space-y-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-secondary mb-2">{activeBoard.board_name}</h1>
-            <p className="text-secondary-50">Owner: <span className="font-semibold text-secondary">{ownedByCurrent ? "You" : ownerName}</span></p>
+      <div className="flex items-center gap-4 px-6 py-3 bg-background border-b border-secondary-50/30">
+        {!sidebarOpen && (
+          <button
+            onClick={() => setSidebarOpen(true)}
+            title="Open sidebar"
+            className="p-2 rounded-lg hover:bg-secondary-50/20 text-secondary transition-colors"
+          >
+            <ChevronRight size={20} />
+          </button>
+        )}
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl font-bold text-secondary truncate">{activeBoard.board_name}</h1>
+          <p className="text-xs text-secondary-50">Owner: {ownedByCurrent ? "You" : ownerName}</p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-secondary-50/10 rounded-lg px-3 py-1.5">
+            <span className="text-xs text-secondary-50">Type:</span>
+            {boardHasCards ? (
+              <span className="text-xs font-semibold text-secondary">{boardTypeLabel}</span>
+            ) : (
+              <>
+                {(["lead", "property"] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    className={clsx(
+                      "px-2 py-1 rounded text-xs font-medium transition-colors",
+                      activeBoardType === type
+                        ? "bg-accent text-white"
+                        : "text-secondary-50 hover:text-secondary"
+                    )}
+                    onClick={() => handleBoardTypeSelection(type)}
+                  >
+                    {type === "lead" ? "Leads" : "Properties"}
+                  </button>
+                ))}
+              </>
+            )}
           </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              className="px-4 py-2 rounded-lg bg-primary hover:bg-primary/80 text-secondary text-sm font-semibold transition-colors border border-secondary-50"
-              onClick={() =>
-                handleUpdateBoard(activeBoard.board_id, {
-                  user_id: currentUser?.userId ?? null,
-                })
-              }
-              disabled={!currentUser || ownedByCurrent}
-            >
-              {ownedByCurrent ? "Your Board" : "Take Ownership"}
-            </button>
-            <button
-              className="px-4 py-2 rounded-lg bg-error hover:bg-error/90 text-white text-sm font-semibold transition-colors disabled:opacity-50"
-              onClick={() => handleDeleteBoard(activeBoard.board_id)}
-              disabled={!!busy}
-            >
-              Delete
-            </button>
-          </div>
+
+          <button
+            type="button"
+            className="px-3 py-1.5 rounded-lg text-xs font-medium text-secondary hover:bg-secondary-50/20 transition-colors"
+            onClick={() =>
+              handleUpdateBoard(activeBoard.board_id, {
+                user_id: currentUser?.userId ?? null,
+              })
+            }
+            disabled={!currentUser || ownedByCurrent}
+          >
+            {ownedByCurrent ? "Your Board" : "Claim"}
+          </button>
+          <button
+            className="p-2 rounded-lg text-error hover:bg-error/10 transition-colors"
+            onClick={() => handleDeleteBoard(activeBoard.board_id)}
+            disabled={!!busy}
+            title="Delete board"
+          >
+            <Trash2 size={16} />
+          </button>
         </div>
       </div>
     );
   };
 
-  const StepCreator = () => {
+  const AddListCard = () => {
+    const [isAdding, setIsAdding] = useState(false);
     const [stepName, setStepName] = useState("");
 
     if (!activeBoard) return null;
 
-    const onSubmit = (event: React.FormEvent) => {
+    const handleSubmit = (event: React.FormEvent) => {
       event.preventDefault();
+      if (!stepName.trim()) return;
       handleCreateStep(activeBoard.board_id, stepName);
       setStepName("");
+      setIsAdding(false);
     };
 
+    if (!isAdding) {
+      return (
+        <button
+          onClick={() => setIsAdding(true)}
+          className="min-w-[280px] h-fit px-4 py-3 rounded-xl bg-secondary-50/20 hover:bg-secondary-50/30 text-secondary-50 text-sm font-medium transition-colors flex items-center gap-2"
+        >
+          <Plus size={18} />
+          Add another list
+        </button>
+      );
+    }
+
     return (
-      <div className="card-base box-shadow p-4">
-        <form className="flex flex-wrap gap-3 items-end" onSubmit={onSubmit}>
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs font-semibold text-secondary mb-2 uppercase">Step name</label>
-            <input
-              type="text"
-              placeholder="e.g., To Do, In Progress, Done"
-              value={stepName}
-              onChange={(e) => setStepName(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border border-secondary-50 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
-            />
+      <div className="min-w-[280px] rounded-xl bg-secondary-50/20 p-3">
+        <form onSubmit={handleSubmit} className="space-y-2">
+          <input
+            autoFocus
+            type="text"
+            placeholder="Enter list title..."
+            value={stepName}
+            onChange={(e) => setStepName(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-secondary-50/50 bg-white text-sm text-secondary focus:outline-none focus:border-accent"
+          />
+          <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              className="px-3 py-1.5 rounded-lg bg-accent hover:bg-accent/90 text-white text-sm font-medium transition-colors disabled:opacity-50"
+              disabled={!stepName.trim() || !!busy}
+            >
+              Add list
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsAdding(false);
+                setStepName("");
+              }}
+              className="p-1.5 rounded-lg text-secondary-50 hover:text-secondary hover:bg-secondary-50/20 transition-colors"
+            >
+              <X size={18} />
+            </button>
           </div>
-          <button
-            type="submit"
-            className="px-6 py-2 rounded-lg bg-accent hover:bg-accent/90 text-white text-sm font-semibold transition-colors disabled:opacity-50 flex items-center gap-2"
-            disabled={!stepName || !!busy}
-          >
-            <Plus size={16} />
-            {busy === "Creating step..." ? "Adding..." : "Add Step"}
-          </button>
         </form>
       </div>
     );
   };
 
-  const StepColumn = ({ step }: { step: BoardStepCard }) => {
-    const [cardType, setCardType] = useState<"lead" | "property">(
-      step.leads.length > 0
-        ? "lead"
-        : step.properties.length > 0
-        ? "property"
-        : "lead"
-    );
+  const StepColumn = ({
+    step,
+    boardType,
+  }: {
+    step: BoardStepCard;
+    boardType: "lead" | "property" | null;
+  }) => {
     const [composerOpen, setComposerOpen] = useState(false);
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [editedTitle, setEditedTitle] = useState(step.step_name);
@@ -763,17 +991,13 @@ export const KanbanBoardPage = () => {
     );
     const [propertyForm, setPropertyForm] =
       useState<PropertyComposerState>(createDefaultPropertyForm());
+    const [leadImageFile, setLeadImageFile] = useState<File | null>(null);
+    const [propertyImageFile, setPropertyImageFile] = useState<File | null>(null);
     const [dragOverStepId, setDragOverStepId] = useState<number | null>(null);
 
-    useEffect(() => {
-      const enforced =
-        step.leads.length > 0
-          ? "lead"
-          : step.properties.length > 0
-          ? "property"
-          : null;
-      if (enforced) setCardType(enforced);
-    }, [step.leads.length, step.properties.length]);
+    const resolvedBoardType = boardType ?? "lead";
+    const isLeadBoard = resolvedBoardType === "lead";
+    const isPropertyBoard = resolvedBoardType === "property";
 
     const updateLeadForm = (key: keyof LeadComposerState, value: string) => {
       setLeadForm((prev) => ({ ...prev, [key]: value }));
@@ -796,25 +1020,7 @@ export const KanbanBoardPage = () => {
       }));
     };
 
-    const lockToLead = step.leads.length > 0;
-    const lockToProperty = step.properties.length > 0;
-    const effectiveCardType = lockToLead
-      ? "lead"
-      : lockToProperty
-      ? "property"
-      : cardType;
-
-    const allowedLeadTargets = activeBoard?.board_steps.filter(
-      (candidate) =>
-        candidate.board_step_id === step.board_step_id ||
-        candidate.properties.length === 0
-    );
-
-    const allowedPropertyTargets = activeBoard?.board_steps.filter(
-      (candidate) =>
-        candidate.board_step_id === step.board_step_id ||
-        candidate.leads.length === 0
-    );
+    const moveTargets = activeBoard?.board_steps ?? [];
 
     const cardCount = step.leads.length + step.properties.length;
 
@@ -838,6 +1044,10 @@ export const KanbanBoardPage = () => {
         const { cardId, fromStepId, cardType: type } = JSON.parse(data);
         if (fromStepId === step.board_step_id) return;
 
+        if (boardType && type !== boardType) {
+          return;
+        }
+
         if (type === "lead") {
           handleMoveLead(cardId, fromStepId, step.board_step_id);
         } else {
@@ -860,20 +1070,20 @@ export const KanbanBoardPage = () => {
     return (
       <div 
         className={clsx(
-          "card-base box-shadow p-4 space-y-3 min-w-[340px] max-w-[340px] h-fit border-2 flex flex-col transition-all",
+          "rounded-xl p-3 space-y-3 min-w-[280px] max-w-[280px] h-fit flex flex-col transition-all",
           dragOverStepId === step.board_step_id 
-            ? "border-accent bg-primary/50" 
-            : "border-primary"
+            ? "bg-accent/20" 
+            : "bg-secondary-50/20"
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         {/* Header with editable title */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-2 px-1">
           <div className="flex-1 min-w-0">
             {isEditingTitle ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <input
                   autoFocus
                   type="text"
@@ -886,61 +1096,60 @@ export const KanbanBoardPage = () => {
                       setIsEditingTitle(false);
                     }
                   }}
-                  className="flex-1 px-3 py-2 rounded border-2 border-accent text-sm font-bold focus:outline-none text-secondary"
+                  className="flex-1 px-2 py-1 rounded border border-accent bg-white text-sm font-semibold focus:outline-none text-secondary"
                 />
                 <button
                   onClick={handleSaveTitle}
-                  className="p-2 hover:bg-primary rounded transition-colors text-accent"
+                  className="p-1 hover:bg-white/50 rounded transition-colors text-accent"
                   title="Save"
                 >
-                  <Check size={18} />
+                  <Check size={16} />
                 </button>
                 <button
                   onClick={() => {
                     setEditedTitle(step.step_name);
                     setIsEditingTitle(false);
                   }}
-                  className="p-2 hover:bg-error/20 rounded transition-colors text-error"
+                  className="p-1 hover:bg-error/20 rounded transition-colors text-error"
                   title="Cancel"
                 >
-                  <X size={18} />
+                  <X size={16} />
                 </button>
               </div>
             ) : (
-              <div 
+              <h3 
                 onClick={() => setIsEditingTitle(true)}
-                className="cursor-pointer group"
+                className="text-sm font-semibold text-secondary truncate cursor-pointer hover:text-accent transition-colors py-1"
               >
-                <h3 className="text-lg font-bold text-secondary truncate group-hover:text-accent transition-colors">{step.step_name}</h3>
-                <p className="text-xs font-semibold text-secondary-50 mt-1">
-                  {cardCount} {cardCount === 1 ? "card" : "cards"}
-                </p>
-              </div>
+                {step.step_name}
+              </h3>
             )}
           </div>
           <button
-            className="p-2 hover:bg-primary rounded-lg transition-colors text-secondary hover:text-accent"
+            className="p-1 rounded hover:bg-white/50 text-secondary-50 hover:text-secondary transition-colors"
             onClick={() => handleDeleteStep(step.board_id, step.board_step_id)}
-            title="Delete step"
+            title="Delete list"
           >
-            <Trash2 size={18} />
+            <Trash2 size={16} />
           </button>
         </div>
 
         {/* Cards Container */}
-        <div className="space-y-3 flex-1 overflow-y-auto max-h-[600px] pr-2">
+        <div className="space-y-2 flex-1 overflow-y-auto max-h-[calc(100vh-280px)]">
           {step.leads.map((lead) => (
             <LeadCardView
               key={lead.lead_id}
               lead={lead}
               stepId={step.board_step_id}
-              moveTargets={allowedLeadTargets ?? []}
+              moveTargets={moveTargets}
               busy={!!busy}
               onSave={(updates) => handleUpdateLead(lead.lead_id, updates)}
               onDelete={() => handleDeleteLead(lead.lead_id, step.board_step_id)}
               onMove={(targetStepId) =>
                 handleMoveLead(lead.lead_id, step.board_step_id, targetStepId)
               }
+              onUploadImage={(file) => handleUploadLeadImage(lead.lead_id, file)}
+              onRemoveImage={() => handleRemoveLeadImage(lead.lead_id)}
             />
           ))}
 
@@ -949,7 +1158,7 @@ export const KanbanBoardPage = () => {
               key={property.property_id}
               property={property}
               stepId={step.board_step_id}
-              moveTargets={allowedPropertyTargets ?? []}
+              moveTargets={moveTargets}
               busy={!!busy}
               onSave={(updates) =>
                 handleUpdateProperty(property, updates)
@@ -964,77 +1173,41 @@ export const KanbanBoardPage = () => {
                   targetStepId
                 )
               }
+              onUploadImage={(file) => handleUploadPropertyImage(property, file)}
+              onRemoveImage={() => handleRemovePropertyImage(property)}
             />
           ))}
-
-          {cardCount === 0 && !composerOpen && (
-            <div className="flex items-center justify-center py-8 text-secondary-50">
-              <p className="text-sm">No cards yet</p>
-            </div>
-          )}
         </div>
 
         {/* Add Card Button */}
         <button
-          className="w-full rounded-lg border-2 border-dashed border-secondary-50 py-3 text-sm font-semibold text-secondary hover:border-accent hover:text-accent transition-colors flex items-center justify-center gap-2"
+          className="w-full rounded-lg py-2 text-sm text-secondary-50 hover:bg-white/50 hover:text-secondary transition-colors flex items-center gap-2 px-2"
           onClick={() => setComposerOpen((prev) => !prev)}
         >
           <Plus size={16} />
-          {composerOpen ? "Close" : "Add Card"}
+          {composerOpen ? "Close" : "Add a card"}
         </button>
 
         {/* Composer */}
         {composerOpen && (
           <div className="space-y-3 border-t border-secondary-50 pt-3 bg-primary rounded-lg p-3">
-            {(step.leads.length === 0 || step.properties.length === 0) && (
-              <div className="flex flex-row gap-2">
-                <button
-                  type="button"
-                  className={clsx(
-                    "flex-1 rounded-lg px-3 py-2 text-sm font-semibold border transition",
-                    effectiveCardType === "lead"
-                      ? "bg-accent text-white border-accent"
-                      : "bg-white border-secondary-50"
-                  )}
-                  onClick={() => setCardType("lead")}
-                  disabled={lockToProperty}
-                >
-                  Lead
-                </button>
-                <button
-                  type="button"
-                  className={clsx(
-                    "flex-1 rounded-lg px-3 py-2 text-sm font-semibold border transition",
-                    effectiveCardType === "property"
-                      ? "bg-accent text-white border-accent"
-                      : "bg-white border-secondary-50"
-                  )}
-                  onClick={() => setCardType("property")}
-                  disabled={lockToLead}
-                >
-                  Property
-                </button>
-              </div>
-            )}
-            {lockToLead && (
-              <p className="text-xs text-slate-500">
-                This column holds lead cards.
-              </p>
-            )}
-            {lockToProperty && (
-              <p className="text-xs text-slate-500">
-                This column holds property cards.
-              </p>
-            )}
+            <p className="text-xs text-secondary-50">
+              {isLeadBoard
+                ? "This board is configured for lead cards."
+                : "This board is configured for property cards."}
+            </p>
 
-            {effectiveCardType === "lead" ? (
+            {isLeadBoard ? (
               <LeadComposerForm
                 disabled={!!busy}
                 form={leadForm}
                 onChange={updateLeadForm}
+                imageFile={leadImageFile}
+                onImageChange={setLeadImageFile}
                 onSubmit={() => {
-                  handleCreateLead(step.board_step_id, leadForm);
+                  handleCreateLead(step.board_step_id, leadForm, leadImageFile);
                   setLeadForm(createDefaultLeadForm());
+                  setLeadImageFile(null);
                   setComposerOpen(false);
                 }}
               />
@@ -1044,9 +1217,16 @@ export const KanbanBoardPage = () => {
                 form={propertyForm}
                 onChange={updatePropertyForm}
                 onAddressChange={updatePropertyAddress}
+                imageFile={propertyImageFile}
+                onImageChange={setPropertyImageFile}
                 onSubmit={() => {
-                  handleCreateProperty(step.board_step_id, propertyForm);
+                  handleCreateProperty(
+                    step.board_step_id,
+                    propertyForm,
+                    propertyImageFile
+                  );
                   setPropertyForm(createDefaultPropertyForm());
+                  setPropertyImageFile(null);
                   setComposerOpen(false);
                 }}
               />
@@ -1059,31 +1239,12 @@ export const KanbanBoardPage = () => {
 
   return (
     <div className="flex flex-1 bg-background overflow-hidden">
-      {/* Sidebar with toggle button */}
-      <div className="flex items-stretch relative">
-        {/* Sidebar */}
-        <div className={clsx(
-          "flex-shrink-0 h-full overflow-auto border-r border-primary bg-white transition-all duration-300 flex flex-col",
-          sidebarOpen ? "w-80" : "w-0"
-        )}>
-          <div className="p-4 flex-1">
-            <BoardList />
-          </div>
-        </div>
-
-        {/* Toggle Button - positioned to the right of sidebar, always visible */}
-        <button
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
-          className={clsx(
-            "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300",
-            "bg-white border border-secondary-50 hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-accent",
-            "shadow-md absolute",
-            sidebarOpen ? "left-80 top-4" : "left-0 top-4"
-          )}
-        >
-          {sidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
-        </button>
+      {/* Sidebar */}
+      <div className={clsx(
+        "flex-shrink-0 h-full overflow-auto border-r border-secondary-50/30 bg-background transition-all duration-300 flex flex-col",
+        sidebarOpen ? "w-72" : "w-0"
+      )}>
+        <BoardList />
       </div>
 
       {/* Main Content */}
@@ -1136,29 +1297,22 @@ export const KanbanBoardPage = () => {
             {/* Header */}
             <div className="flex-shrink-0">
               <BoardHeader />
-              <div className="px-6 py-4">
-                <StepCreator />
-              </div>
             </div>
 
             {/* Kanban Board */}
             <div className="flex-1 overflow-x-auto overflow-y-hidden">
-              <div className="flex gap-6 p-6 pb-8 h-full min-w-min">
-                {activeBoard.board_steps.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center text-secondary-50 flex-1">
-                    <div className="text-center max-w-md">
-                      <div className="text-4xl mb-4">→</div>
-                      <p className="text-secondary-50">Use the "Add Step" button above to create custom columns</p>
-                    </div>
-                  </div>
-                ) : (
-                  activeBoard.board_steps
-                    .slice()
-                    .sort((a, b) => a.board_column - b.board_column)
-                    .map((step) => (
-                      <StepColumn key={step.board_step_id} step={step} />
-                    ))
-                )}
+              <div className="flex gap-4 p-4 h-full min-w-min items-start">
+                {activeBoard.board_steps
+                  .slice()
+                  .sort((a, b) => a.board_column - b.board_column)
+                  .map((step) => (
+                    <StepColumn
+                      key={step.board_step_id}
+                      step={step}
+                      boardType={activeBoardType}
+                    />
+                  ))}
+                <AddListCard />
               </div>
             </div>
           </>
@@ -1172,18 +1326,25 @@ const LeadComposerForm = ({
   form,
   disabled,
   onChange,
+  imageFile,
+  onImageChange,
   onSubmit,
 }: {
   form: LeadComposerState;
   disabled: boolean;
   onChange: (key: keyof LeadComposerState, value: string) => void;
+  imageFile: File | null;
+  onImageChange: (file: File | null) => void;
   onSubmit: () => void;
 }) => {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs text-slate-500 uppercase tracking-wide">
         <span className="font-semibold">
-          Lead Title <span className="text-red-500">*</span>
+          Lead Title
+          <span className="ml-2 text-[11px] font-normal text-secondary-50 normal-case">
+            Optional
+          </span>
         </span>
         <span className="text-slate-400 normal-case">
           Appears on the card
@@ -1224,8 +1385,24 @@ const LeadComposerForm = ({
         value={form.notes}
         onChange={(value) => onChange("notes", value)}
       />
+      <div className="space-y-1">
+        <label className="block text-xs font-semibold text-secondary uppercase">
+          Card Image
+        </label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => onImageChange(e.target.files?.[0] ?? null)}
+          className="w-full text-xs"
+        />
+        {imageFile && (
+          <p className="text-xs text-secondary-50 truncate">
+            Selected: {imageFile.name}
+          </p>
+        )}
+      </div>
       <p className="text-xs text-slate-500">
-        Fields marked with <span className="text-red-500">*</span> are required.
+        All lead fields are optional. Provide whatever context you have.
       </p>
       <button
         type="button"
@@ -1244,6 +1421,8 @@ const PropertyComposerForm = ({
   disabled,
   onChange,
   onAddressChange,
+  imageFile,
+  onImageChange,
   onSubmit,
 }: {
   form: PropertyComposerState;
@@ -1253,6 +1432,8 @@ const PropertyComposerForm = ({
     key: keyof PropertyComposerState["address"],
     value: string
   ) => void;
+  imageFile: File | null;
+  onImageChange: (file: File | null) => void;
   onSubmit: () => void;
 }) => {
   const hasAllAddressFields =
@@ -1264,13 +1445,18 @@ const PropertyComposerForm = ({
 
   return (
     <div className="space-y-2">
-      <input
-        type="text"
-        placeholder="Property name"
-        value={form.property_name}
-        onChange={(e) => onChange("property_name", e.target.value)}
-        className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-      />
+      <div className="space-y-1">
+        <label className="block text-xs font-semibold text-secondary uppercase">
+          Property Name <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          placeholder="Property name"
+          value={form.property_name}
+          onChange={(e) => onChange("property_name", e.target.value)}
+          className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+        />
+      </div>
       <input
         type="text"
         placeholder="MLS #"
@@ -1286,13 +1472,18 @@ const PropertyComposerForm = ({
       <div className="space-y-1">
         <label className="block text-xs font-semibold text-secondary uppercase">Address</label>
         <div className="grid grid-cols-1 gap-2">
-          <input
-            type="text"
-            placeholder="Street 1"
-            value={form.address.street_1}
-            onChange={(e) => onAddressChange("street_1", e.target.value)}
-            className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-          />
+          <div className="space-y-1">
+            <label className="text-[11px] font-semibold text-secondary">
+              Street 1 <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder="Street 1"
+              value={form.address.street_1}
+              onChange={(e) => onAddressChange("street_1", e.target.value)}
+              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+            />
+          </div>
           <input
             type="text"
             placeholder="Street 2"
@@ -1301,34 +1492,65 @@ const PropertyComposerForm = ({
             className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
           />
           <div className="grid grid-cols-3 gap-2">
-            <input
-              type="text"
-              placeholder="City"
-              value={form.address.city}
-              onChange={(e) => onAddressChange("city", e.target.value)}
-              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-            />
-            <input
-              type="text"
-              placeholder="State"
-              value={form.address.state}
-              onChange={(e) => onAddressChange("state", e.target.value)}
-              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-            />
-            <input
-              type="text"
-              placeholder="Zip"
-              value={form.address.zipcode}
-              onChange={(e) => onAddressChange("zipcode", e.target.value)}
-              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
-            />
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-secondary">
+                City <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="City"
+                value={form.address.city}
+                onChange={(e) => onAddressChange("city", e.target.value)}
+                className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-secondary">
+                State <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="State"
+                value={form.address.state}
+                onChange={(e) => onAddressChange("state", e.target.value)}
+                className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-secondary">
+                Zip <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Zip"
+                value={form.address.zipcode}
+                onChange={(e) => onAddressChange("zipcode", e.target.value)}
+                className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+              />
+            </div>
           </div>
         </div>
       </div>
+      <div className="space-y-1">
+        <label className="block text-xs font-semibold text-secondary uppercase">
+          Card Image
+        </label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => onImageChange(e.target.files?.[0] ?? null)}
+          className="w-full text-xs"
+        />
+        {imageFile && (
+          <p className="text-xs text-secondary-50 truncate">
+            Selected: {imageFile.name}
+          </p>
+        )}
+      </div>
       <p className="text-xs text-slate-500">
         {hasRequiredFields
-          ? "All required details provided."
-          : "Provide a name plus street, city, state, and zip before saving."}
+          ? "All required fields provided."
+          : "Provide property name, street 1, city, state, and zip before saving."}
       </p>
       <button
         type="button"
@@ -1350,6 +1572,8 @@ const LeadCardView = ({
   onSave,
   onDelete,
   onMove,
+  onUploadImage,
+  onRemoveImage,
 }: {
   lead: LeadCard;
   stepId: number;
@@ -1358,6 +1582,8 @@ const LeadCardView = ({
   onSave: (updates: LeadComposerState) => void;
   onDelete: () => void;
   onMove: (targetStepId: number) => void;
+  onUploadImage: (file: File) => Promise<void> | void;
+  onRemoveImage: () => Promise<void> | void;
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState<LeadComposerState>({
@@ -1378,8 +1604,23 @@ const LeadCardView = ({
     });
   }, [lead.lead_id, lead.business, lead.person_type, lead.website, lead.license_num, lead.notes]);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageSrc = resolveAssetUrl(lead.image_url);
+  const leadTitle =
+    lead.business && lead.business.trim().length > 0
+      ? lead.business
+      : "Untitled Lead";
+
   const onChange = (key: keyof LeadComposerState, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const onImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      await onUploadImage(file);
+    }
+    event.target.value = "";
   };
 
   return (
@@ -1400,7 +1641,7 @@ const LeadCardView = ({
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-secondary truncate">{lead.business ?? "Untitled Lead"}</p>
+          <p className="font-semibold text-secondary truncate">{leadTitle}</p>
           {lead.contact?.email && (
             <p className="text-xs text-secondary-50 mt-1 truncate">{lead.contact.email}</p>
           )}
@@ -1425,6 +1666,15 @@ const LeadCardView = ({
           LEAD
         </span>
       </div>
+      {imageSrc && (
+        <div className="rounded-lg overflow-hidden border border-secondary-50">
+          <img
+            src={imageSrc}
+            alt={`${lead.business ?? "Lead"} visual`}
+            className="w-full h-40 object-cover"
+          />
+        </div>
+      )}
       {lead.notes && (
         <p className="text-xs text-secondary whitespace-pre-wrap line-clamp-3">
           {lead.notes}
@@ -1457,6 +1707,34 @@ const LeadCardView = ({
             ))}
           </select>
         )}
+      </div>
+
+      <div className="flex flex-wrap gap-1 text-xs">
+        <button
+          className="px-2 py-1 rounded bg-primary text-secondary hover:bg-primary/80 transition-colors"
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={busy}
+        >
+          {lead.image_url ? "Replace Image" : "Upload Image"}
+        </button>
+        {lead.image_url && (
+          <button
+            className="px-2 py-1 rounded bg-error/10 text-error hover:bg-error/20 transition-colors"
+            type="button"
+            onClick={() => onRemoveImage()}
+            disabled={busy}
+          >
+            Remove Image
+          </button>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={onImageChange}
+        />
       </div>
 
       {isEditing && (
@@ -1522,6 +1800,8 @@ const PropertyCardView = ({
   onSave,
   onDelete,
   onMove,
+  onUploadImage,
+  onRemoveImage,
 }: {
   property: PropertyCard;
   stepId: number;
@@ -1534,6 +1814,8 @@ const PropertyCardView = ({
   }) => void;
   onDelete: () => void;
   onMove: (targetStepId: number) => void;
+  onUploadImage: (file: File) => Promise<void> | void;
+  onRemoveImage: () => Promise<void> | void;
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({
@@ -1559,6 +1841,23 @@ const PropertyCardView = ({
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageSrc = resolveAssetUrl(property.image_url);
+  const propertyTitle =
+    property.property_name && property.property_name.trim().length > 0
+      ? property.property_name
+      : "Unnamed property";
+
+  const handleImageChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      await onUploadImage(file);
+    }
+    event.target.value = "";
+  };
+
   return (
     <div 
       draggable
@@ -1578,7 +1877,7 @@ const PropertyCardView = ({
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-secondary truncate">
-            {property.property_name ?? "Unnamed property"}
+            {propertyTitle}
           </p>
           {property.address && (
             <p className="text-xs text-secondary-50 mt-1 truncate">{`${property.address.street_1 ?? ""} ${property.address.city ?? ""}`}</p>
@@ -1595,6 +1894,15 @@ const PropertyCardView = ({
         <p className="text-xs text-secondary whitespace-pre-wrap line-clamp-3">
           {property.notes}
         </p>
+      )}
+      {imageSrc && (
+        <div className="rounded-lg overflow-hidden border border-secondary-50">
+          <img
+            src={imageSrc}
+            alt={`${property.property_name ?? "Property"} visual`}
+            className="w-full h-40 object-cover"
+          />
+        </div>
       )}
       <div className="flex flex-wrap gap-1 text-xs pt-2 border-t border-secondary-50">
         <button
@@ -1623,6 +1931,34 @@ const PropertyCardView = ({
             ))}
           </select>
         )}
+      </div>
+
+      <div className="flex flex-wrap gap-1 text-xs">
+        <button
+          className="px-2 py-1 rounded bg-primary text-secondary hover:bg-primary/80 transition-colors"
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={busy}
+        >
+          {property.image_url ? "Replace Image" : "Upload Image"}
+        </button>
+        {property.image_url && (
+          <button
+            className="px-2 py-1 rounded bg-error/10 text-error hover:bg-error/20 transition-colors"
+            type="button"
+            onClick={() => onRemoveImage()}
+            disabled={busy}
+          >
+            Remove Image
+          </button>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageChange}
+        />
       </div>
 
       {isEditing && (

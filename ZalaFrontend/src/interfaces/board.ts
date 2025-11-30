@@ -18,6 +18,7 @@ export type LeadCard = {
   website?: string | null;
   license_num?: string | null;
   notes?: string | null;
+  image_url?: string | null;
   created_by?: number | null;
   created_by_user?: {
     user_id: number;
@@ -25,6 +26,7 @@ export type LeadCard = {
   } | null;
   contact?: AContact | null;
   address?: {
+    address_id?: number | null;
     street_1?: string | null;
     city?: string | null;
     state?: string | null;
@@ -38,7 +40,9 @@ export type PropertyCard = {
   mls_number?: string | null;
   notes?: string | null;
   address_id?: number | null;
+  image_url?: string | null;
   address?: {
+    address_id?: number | null;
     street_1?: string | null;
     city?: string | null;
     state?: string | null;

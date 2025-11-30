@@ -4,15 +4,9 @@ import type { APIResponse } from "./types";
 const OK_STATUS_CODES = [200, 201, 204];
 
 export const useFetch = () => {
-  const jsonHeader = {
-    "Content-Type": "application/json",
+  const defaultHeaders = {
     Accept: "application/json",
-  };
-
-  const formDataHeader = {
-    "Content-Type": "multipart/form-data",
-    Accept: "application/json",
-  };
+  } as Record<string, string>;
 
   const requestSuccess = <T,>(json: unknown): APIResponse<T> => ({
     data: json as T,
@@ -36,17 +30,29 @@ export const useFetch = () => {
     isFormData: boolean = false,
     abortController = new AbortController()
   ): Promise<APIResponse<T>> => {
-    const header = isFormData ? formDataHeader : jsonHeader;
     const url = CONFIG.api + apiEndpoint;
 
     try {
+      const headers: Record<string, string> = { ...defaultHeaders };
+      let bodyToSend: BodyInit | null = null;
+
+      if (method !== "GET" && method !== "DELETE" && body != null) {
+        if (isFormData) {
+          if (body instanceof FormData) {
+            bodyToSend = body;
+          } else {
+            throw new Error("Form data body must be an instance of FormData");
+          }
+        } else {
+          headers["Content-Type"] = "application/json";
+          bodyToSend = JSON.stringify(body);
+        }
+      }
+
       const response = await fetch(url, {
         method,
-        body:
-          method !== "GET" && method !== "DELETE" && body
-            ? JSON.stringify(body)
-            : null,
-        headers: header,
+        body: bodyToSend,
+        headers,
         signal: abortController.signal,
       });
       const raw = await response.text();
