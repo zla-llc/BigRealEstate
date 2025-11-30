@@ -9,7 +9,7 @@ import type {
   LeadCard,
   PropertyCard,
 } from "../../interfaces";
-import { Plus, Trash2, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Trash2, Check, X, ChevronLeft, ChevronRight, Upload, Image, Pencil } from "lucide-react";
 import { CONFIG } from "../../config";
 
 const resolveAssetUrl = (path?: string | null) => {
@@ -1385,20 +1385,34 @@ const LeadComposerForm = ({
         value={form.notes}
         onChange={(value) => onChange("notes", value)}
       />
-      <div className="space-y-1">
+      <div className="space-y-2">
         <label className="block text-xs font-semibold text-secondary uppercase">
           Card Image
         </label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => onImageChange(e.target.files?.[0] ?? null)}
-          className="w-full text-xs"
-        />
+        <label className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-secondary-50 rounded-lg cursor-pointer hover:border-accent hover:bg-accent/5 transition-colors">
+          <Upload size={18} className="text-secondary-50" />
+          <span className="text-sm text-secondary-50">Click to upload image</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => onImageChange(e.target.files?.[0] ?? null)}
+            className="hidden"
+          />
+        </label>
         {imageFile && (
-          <p className="text-xs text-secondary-50 truncate">
-            Selected: {imageFile.name}
-          </p>
+          <div className="flex items-center gap-2 p-2 bg-accent/10 rounded-lg">
+            <Image size={16} className="text-accent" />
+            <p className="text-xs text-secondary truncate flex-1">
+              {imageFile.name}
+            </p>
+            <button
+              type="button"
+              onClick={() => onImageChange(null)}
+              className="text-secondary-50 hover:text-error transition-colors"
+            >
+              <X size={14} />
+            </button>
+          </div>
         )}
       </div>
       <p className="text-xs text-slate-500">
@@ -1531,20 +1545,34 @@ const PropertyComposerForm = ({
           </div>
         </div>
       </div>
-      <div className="space-y-1">
+      <div className="space-y-2">
         <label className="block text-xs font-semibold text-secondary uppercase">
           Card Image
         </label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => onImageChange(e.target.files?.[0] ?? null)}
-          className="w-full text-xs"
-        />
+        <label className="flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed border-secondary-50 rounded-lg cursor-pointer hover:border-accent hover:bg-accent/5 transition-colors">
+          <Upload size={18} className="text-secondary-50" />
+          <span className="text-sm text-secondary-50">Click to upload image</span>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => onImageChange(e.target.files?.[0] ?? null)}
+            className="hidden"
+          />
+        </label>
         {imageFile && (
-          <p className="text-xs text-secondary-50 truncate">
-            Selected: {imageFile.name}
-          </p>
+          <div className="flex items-center gap-2 p-2 bg-accent/10 rounded-lg">
+            <Image size={16} className="text-accent" />
+            <p className="text-xs text-secondary truncate flex-1">
+              {imageFile.name}
+            </p>
+            <button
+              type="button"
+              onClick={() => onImageChange(null)}
+              className="text-secondary-50 hover:text-error transition-colors"
+            >
+              <X size={14} />
+            </button>
+          </div>
         )}
       </div>
       <p className="text-xs text-slate-500">
@@ -1698,23 +1726,25 @@ const LeadCardView = ({
           </p>
         </div>
       )}
-      <div className="flex flex-wrap gap-1 text-xs pt-2 border-t border-secondary-50">
+      <div className="flex flex-wrap gap-2 text-xs pt-2 border-t border-secondary-50">
         <button
-          className="px-2 py-1 rounded bg-primary text-accent hover:bg-primary/80 transition-colors"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-accent/10 text-accent hover:bg-accent/20 transition-colors font-medium"
           onClick={() => setIsEditing((prev) => !prev)}
         >
+          <Pencil size={12} />
           {isEditing ? "Close" : "Edit"}
         </button>
         <button
-          className="px-2 py-1 rounded bg-error/20 text-error hover:bg-error/30 transition-colors"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-error/10 text-error hover:bg-error/20 transition-colors font-medium"
           onClick={onDelete}
           disabled={busy}
         >
+          <Trash2 size={12} />
           Delete
         </button>
         {moveTargets.length > 1 && (
           <select
-            className="flex-1 min-w-[120px] border border-secondary-50 rounded px-2 py-1 text-xs focus:outline-none focus:border-accent"
+            className="flex-1 min-w-[100px] border border-secondary-50 rounded-md px-2 py-1.5 text-xs focus:outline-none focus:border-accent bg-white"
             value={stepId}
             onChange={(event) => onMove(Number(event.target.value))}
           >
@@ -1727,23 +1757,25 @@ const LeadCardView = ({
         )}
       </div>
 
-      <div className="flex flex-wrap gap-1 text-xs">
+      <div className="flex flex-wrap gap-2 text-xs">
         <button
-          className="px-2 py-1 rounded bg-primary text-secondary hover:bg-primary/80 transition-colors"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-secondary/10 text-secondary hover:bg-secondary/20 transition-colors font-medium"
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={busy}
         >
-          {lead.image_url ? "Replace Image" : "Upload Image"}
+          <Upload size={12} />
+          {lead.image_url ? "Replace" : "Upload Image"}
         </button>
         {lead.image_url && (
           <button
-            className="px-2 py-1 rounded bg-error/10 text-error hover:bg-error/20 transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-error/10 text-error hover:bg-error/20 transition-colors font-medium"
             type="button"
             onClick={() => onRemoveImage()}
             disabled={busy}
           >
-            Remove Image
+            <Trash2 size={12} />
+            Remove
           </button>
         )}
         <input
@@ -1959,23 +1991,25 @@ const PropertyCardView = ({
           />
         </div>
       )}
-      <div className="flex flex-wrap gap-1 text-xs pt-2 border-t border-secondary-50">
+      <div className="flex flex-wrap gap-2 text-xs pt-2 border-t border-secondary-50">
         <button
-          className="px-2 py-1 rounded bg-primary text-accent hover:bg-primary/80 transition-colors"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-accent/10 text-accent hover:bg-accent/20 transition-colors font-medium"
           onClick={() => setIsEditing((prev) => !prev)}
         >
+          <Pencil size={12} />
           {isEditing ? "Close" : "Edit"}
         </button>
         <button
-          className="px-2 py-1 rounded bg-error/20 text-error hover:bg-error/30 transition-colors"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-error/10 text-error hover:bg-error/20 transition-colors font-medium"
           onClick={onDelete}
           disabled={busy}
         >
+          <Trash2 size={12} />
           Delete
         </button>
         {moveTargets.length > 1 && (
           <select
-            className="flex-1 min-w-[120px] border border-secondary-50 rounded px-2 py-1 text-xs focus:outline-none focus:border-accent"
+            className="flex-1 min-w-[100px] border border-secondary-50 rounded-md px-2 py-1.5 text-xs focus:outline-none focus:border-accent bg-white"
             value={stepId}
             onChange={(event) => onMove(Number(event.target.value))}
           >
@@ -1988,23 +2022,25 @@ const PropertyCardView = ({
         )}
       </div>
 
-      <div className="flex flex-wrap gap-1 text-xs">
+      <div className="flex flex-wrap gap-2 text-xs">
         <button
-          className="px-2 py-1 rounded bg-primary text-secondary hover:bg-primary/80 transition-colors"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-secondary/10 text-secondary hover:bg-secondary/20 transition-colors font-medium"
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={busy}
         >
-          {property.image_url ? "Replace Image" : "Upload Image"}
+          <Upload size={12} />
+          {property.image_url ? "Replace" : "Upload Image"}
         </button>
         {property.image_url && (
           <button
-            className="px-2 py-1 rounded bg-error/10 text-error hover:bg-error/20 transition-colors"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-md bg-error/10 text-error hover:bg-error/20 transition-colors font-medium"
             type="button"
             onClick={() => onRemoveImage()}
             disabled={busy}
           >
-            Remove Image
+            <Trash2 size={12} />
+            Remove
           </button>
         )}
         <input
