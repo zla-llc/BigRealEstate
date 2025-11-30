@@ -83,6 +83,9 @@ const FormField = ({
   className,
   multiline = false,
   label,
+  required = false,
+  error = false,
+  errorMessage,
 }: {
   value: string;
   onChange: (newValue: string) => void;
@@ -90,13 +93,26 @@ const FormField = ({
   className?: string;
   multiline?: boolean;
   label?: string;
+  required?: boolean;
+  error?: boolean;
+  errorMessage?: string;
 }) => {
-  const baseClass = "w-full px-3 py-2 text-sm border border-secondary-50 rounded-lg focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 bg-white transition-colors";
+  const baseClass = clsx(
+    "w-full px-3 py-2 text-sm rounded-lg focus:outline-none transition-colors",
+    error
+      ? "border-2 border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+      : "border border-secondary-50 focus:border-accent focus:ring-2 focus:ring-accent/20 bg-white"
+  );
   
   if (multiline) {
     return (
       <div>
-        {label && <label className="text-[10px] font-semibold text-secondary-50 uppercase block mb-1">{label}</label>}
+        {label && (
+          <label className="text-[10px] font-semibold text-secondary-50 uppercase block mb-1">
+            {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
+          </label>
+        )}
         <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -104,13 +120,21 @@ const FormField = ({
           className={clsx(baseClass, "resize-none", className)}
           rows={3}
         />
+        {error && errorMessage && (
+          <p className="text-xs text-red-500 mt-1">{errorMessage}</p>
+        )}
       </div>
     );
   }
   
   return (
     <div>
-      {label && <label className="text-[10px] font-semibold text-secondary-50 uppercase block mb-1">{label}</label>}
+      {label && (
+        <label className="text-[10px] font-semibold text-secondary-50 uppercase block mb-1">
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+      )}
       <input
         type="text"
         value={value}
@@ -118,53 +142,84 @@ const FormField = ({
         placeholder={placeholder}
         className={clsx(baseClass, className)}
       />
+      {error && errorMessage && (
+        <p className="text-xs text-red-500 mt-1">{errorMessage}</p>
+      )}
     </div>
   );
 };
 
-// Image carousel component for modal view
+// Image carousel component for modal view with batch upload support
 const ImageCarousel = ({
   images,
   currentIndex,
   onIndexChange,
-  onUpload,
   onDelete,
   busy,
+  pendingImages,
+  onAddPendingImages,
+  onRemovePendingImage,
+  onSavePendingImages,
 }: {
   images: { url: string; id?: number }[];
   currentIndex: number;
   onIndexChange: (index: number) => void;
-  onUpload: (file: File) => void;
   onDelete: (imageId: number) => void;
   busy: boolean;
+  pendingImages: { file: File; previewUrl: string }[];
+  onAddPendingImages: (files: File[]) => void;
+  onRemovePendingImage: (index: number) => void;
+  onSavePendingImages: () => Promise<void>;
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Combine existing images with pending previews for display
+  const allImages = useMemo(() => {
+    const existing = images.map(img => ({ ...img, isPending: false as const, pendingIndex: -1 }));
+    const pending = pendingImages.map((p, idx) => ({ 
+      url: p.previewUrl, 
+      id: undefined as number | undefined, 
+      isPending: true as const, 
+      pendingIndex: idx 
+    }));
+    return [...existing, ...pending];
+  }, [images, pendingImages]);
 
   const handlePrev = () => {
-    onIndexChange(currentIndex === 0 ? images.length - 1 : currentIndex - 1);
+    onIndexChange(currentIndex === 0 ? allImages.length - 1 : currentIndex - 1);
   };
 
   const handleNext = () => {
-    onIndexChange(currentIndex === images.length - 1 ? 0 : currentIndex + 1);
+    onIndexChange(currentIndex === allImages.length - 1 ? 0 : currentIndex + 1);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) onUpload(file);
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      onAddPendingImages(Array.from(files));
+    }
     e.target.value = "";
   };
+
+  const currentImage = allImages[currentIndex];
+  const isPendingImage = currentImage?.isPending === true;
 
   return (
     <div className="space-y-3">
       <div className="relative bg-secondary-50/10 rounded-lg overflow-hidden">
-        {images.length > 0 ? (
+        {allImages.length > 0 ? (
           <>
             <img
-              src={images[currentIndex]?.url}
+              src={allImages[currentIndex]?.url}
               alt={`Image ${currentIndex + 1}`}
               className="w-full h-64 object-contain"
             />
-            {images.length > 1 && (
+            {isPendingImage && (
+              <span className="absolute top-2 left-2 bg-amber-500 text-white text-xs px-2 py-1 rounded-lg font-medium">
+                Pending Upload
+              </span>
+            )}
+            {allImages.length > 1 && (
               <>
                 <button
                   onClick={handlePrev}
@@ -179,13 +234,14 @@ const ImageCarousel = ({
                   <ChevronRight size={20} />
                 </button>
                 <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                  {images.map((_, idx) => (
+                  {allImages.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => onIndexChange(idx)}
                       className={clsx(
                         "w-2 h-2 rounded-full transition-colors",
-                        idx === currentIndex ? "bg-white" : "bg-white/50 hover:bg-white/75"
+                        idx === currentIndex ? "bg-white" : "bg-white/50 hover:bg-white/75",
+                        img.isPending && "ring-2 ring-amber-400"
                       )}
                     />
                   ))}
@@ -202,6 +258,44 @@ const ImageCarousel = ({
           </div>
         )}
       </div>
+
+      {/* Pending images thumbnails */}
+      {pendingImages.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-amber-600">
+            {pendingImages.length} image{pendingImages.length > 1 ? 's' : ''} ready to upload
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {pendingImages.map((pending, idx) => (
+              <div key={idx} className="relative group">
+                <img
+                  src={pending.previewUrl}
+                  alt={`Pending ${idx + 1}`}
+                  className="w-16 h-16 object-cover rounded-lg border-2 border-amber-400 cursor-pointer"
+                  onClick={() => onIndexChange(images.length + idx)}
+                />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemovePendingImage(idx);
+                  }}
+                  className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={onSavePendingImages}
+            disabled={busy}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors text-sm font-medium disabled:opacity-50"
+          >
+            <Upload size={16} />
+            Upload {pendingImages.length} Image{pendingImages.length > 1 ? 's' : ''}
+          </button>
+        </div>
+      )}
       
       <div className="flex gap-2">
         <button
@@ -210,30 +304,43 @@ const ImageCarousel = ({
           className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors text-sm font-medium disabled:opacity-50"
         >
           <Upload size={16} />
-          Add Image
+          Add Images
         </button>
-        {images.length > 0 && images[currentIndex]?.id && (
-          <button
-            onClick={() => onDelete(images[currentIndex].id!)}
-            disabled={busy}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-error/10 text-error hover:bg-error/20 transition-colors text-sm font-medium disabled:opacity-50"
-          >
-            <Trash2 size={16} />
-            Delete Image
-          </button>
+        {allImages.length > 0 && currentImage && (
+          isPendingImage ? (
+            <button
+              onClick={() => onRemovePendingImage(currentImage.pendingIndex)}
+              disabled={busy}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-error/10 text-error hover:bg-error/20 transition-colors text-sm font-medium disabled:opacity-50"
+            >
+              <Trash2 size={16} />
+              Remove
+            </button>
+          ) : currentImage.id ? (
+            <button
+              onClick={() => onDelete(currentImage.id!)}
+              disabled={busy}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-error/10 text-error hover:bg-error/20 transition-colors text-sm font-medium disabled:opacity-50"
+            >
+              <Trash2 size={16} />
+              Delete Image
+            </button>
+          ) : null
         )}
         <input
           ref={fileInputRef}
           type="file"
           accept="image/*"
+          multiple
           className="hidden"
           onChange={handleFileChange}
         />
       </div>
       
-      {images.length > 1 && (
+      {allImages.length > 1 && (
         <p className="text-xs text-secondary-50 text-center">
-          Image {currentIndex + 1} of {images.length}
+          Image {currentIndex + 1} of {allImages.length}
+          {pendingImages.length > 0 && ` (${pendingImages.length} pending)`}
         </p>
       )}
     </div>
@@ -643,22 +750,13 @@ export const KanbanBoardPage = () => {
       );
       return;
     }
+    
+    // Validation is now handled by the form component
     const trimmedName = form.property_name.trim();
-    if (!trimmedName) {
-      enqueueSnackbar("Property name is required", { variant: "warning" });
-      return;
-    }
     const street = form.address.street_1.trim();
     const city = form.address.city.trim();
     const state = form.address.state.trim();
     const zip = form.address.zipcode.trim();
-    if (!street || !city || !state || !zip) {
-      enqueueSnackbar(
-        "Street, city, state, and zip are required for a property address",
-        { variant: "warning" }
-      );
-      return;
-    }
 
     let createdProperty: PropertyCard | null = null;
 
@@ -707,7 +805,17 @@ export const KanbanBoardPage = () => {
 
   const handleUpdateProperty = async (
     property: PropertyCard,
-    updates: { property_name?: string; notes?: string; mls_number?: string }
+    updates: { 
+      property_name?: string; 
+      notes?: string; 
+      mls_number?: string;
+      address?: {
+        street_1?: string;
+        city?: string;
+        state?: string;
+        zipcode?: string;
+      };
+    }
   ) => {
     if (!property.address_id) {
       enqueueSnackbar("Cannot update property without an address", {
@@ -716,23 +824,51 @@ export const KanbanBoardPage = () => {
       return;
     }
 
-    const payload = { ...updates };
-    if (payload.property_name !== undefined) {
-      payload.property_name = payload.property_name.trim();
+    const propertyPayload: { property_name?: string; notes?: string; mls_number?: string } = {};
+    if (updates.property_name !== undefined) {
+      propertyPayload.property_name = updates.property_name.trim();
     }
-    if (payload.notes !== undefined) {
-      payload.notes = payload.notes.trim();
+    if (updates.notes !== undefined) {
+      propertyPayload.notes = updates.notes.trim();
     }
-    if (payload.mls_number !== undefined) {
-      payload.mls_number = payload.mls_number.trim();
+    if (updates.mls_number !== undefined) {
+      propertyPayload.mls_number = updates.mls_number.trim();
     }
 
     await withBusy("Updating property...", async () => {
-      const { err } = await put(
-        `/api/addresses/${property.address_id}/properties/${property.property_id}`,
-        payload
-      );
-      if (err) throw new Error(err);
+      // Update address if provided
+      if (updates.address) {
+        const addressPayload: { street_1?: string; city?: string; state?: string; zipcode?: string } = {};
+        if (updates.address.street_1 !== undefined) {
+          addressPayload.street_1 = updates.address.street_1.trim();
+        }
+        if (updates.address.city !== undefined) {
+          addressPayload.city = updates.address.city.trim();
+        }
+        if (updates.address.state !== undefined) {
+          addressPayload.state = updates.address.state.trim();
+        }
+        if (updates.address.zipcode !== undefined) {
+          addressPayload.zipcode = updates.address.zipcode.trim();
+        }
+        
+        if (Object.keys(addressPayload).length > 0) {
+          const { err: addressErr } = await put(
+            `/api/addresses/${property.address_id}`,
+            addressPayload
+          );
+          if (addressErr) throw new Error(addressErr);
+        }
+      }
+
+      // Update property
+      if (Object.keys(propertyPayload).length > 0) {
+        const { err } = await put(
+          `/api/addresses/${property.address_id}/properties/${property.property_id}`,
+          propertyPayload
+        );
+        if (err) throw new Error(err);
+      }
     }, activeBoardId);
   };
 
@@ -1150,7 +1286,7 @@ export const KanbanBoardPage = () => {
       return (
         <button
           onClick={() => setIsAdding(true)}
-          className="min-w-[280px] h-fit px-4 py-3 rounded-xl bg-secondary-50/20 hover:bg-secondary-50/30 text-secondary-50 text-sm font-medium transition-colors flex items-center gap-2"
+          className="min-w-[320px] h-fit px-4 py-3 rounded-xl bg-secondary-50/20 hover:bg-secondary-50/30 text-secondary-50 text-base font-medium transition-colors flex items-center gap-2"
         >
           <Plus size={18} />
           Add another list
@@ -1159,7 +1295,7 @@ export const KanbanBoardPage = () => {
     }
 
     return (
-      <div className="min-w-[280px] rounded-xl bg-secondary-50/20 p-3">
+      <div className="min-w-[320px] rounded-xl bg-secondary-50/20 p-4">
         <form onSubmit={handleSubmit} className="space-y-2">
           <input
             autoFocus
@@ -1287,7 +1423,7 @@ export const KanbanBoardPage = () => {
     return (
       <div 
         className={clsx(
-          "rounded-xl p-3 space-y-3 min-w-[280px] max-w-[280px] h-fit flex flex-col transition-all",
+          "rounded-xl p-4 space-y-4 min-w-[320px] max-w-[320px] h-fit flex flex-col transition-all",
           dragOverStepId === step.board_step_id 
             ? "bg-accent/20" 
             : "bg-secondary-50/20"
@@ -1667,12 +1803,33 @@ const PropertyComposerForm = ({
   onImageChange: (file: File | null) => void;
   onSubmit: () => void;
 }) => {
-  const hasAllAddressFields =
-    !!form.address.street_1.trim() &&
-    !!form.address.city.trim() &&
-    !!form.address.state.trim() &&
-    !!form.address.zipcode.trim();
-  const hasRequiredFields = !!form.property_name.trim() && hasAllAddressFields;
+  const [showErrors, setShowErrors] = useState(false);
+
+  // Validation checks
+  const isPropertyNameEmpty = !form.property_name.trim();
+  const isStreet1Empty = !form.address.street_1.trim();
+  const isCityEmpty = !form.address.city.trim();
+  const isStateEmpty = !form.address.state.trim();
+  const isZipEmpty = !form.address.zipcode.trim();
+  
+  const hasAllRequiredFields = !isPropertyNameEmpty && !isStreet1Empty && !isCityEmpty && !isStateEmpty && !isZipEmpty;
+
+  const handleSubmit = () => {
+    if (!hasAllRequiredFields) {
+      setShowErrors(true);
+      return;
+    }
+    setShowErrors(false);
+    onSubmit();
+  };
+
+  // Helper for input class with error state
+  const getInputClass = (hasError: boolean) => clsx(
+    "w-full px-3 py-2 rounded border text-sm text-secondary focus:outline-none transition-colors",
+    showErrors && hasError
+      ? "border-red-500 bg-red-50 focus:border-red-500 focus:ring-2 focus:ring-red-200"
+      : "border-secondary-50 focus:border-accent"
+  );
 
   return (
     <div className="space-y-2">
@@ -1685,8 +1842,11 @@ const PropertyComposerForm = ({
           placeholder="Property name"
           value={form.property_name}
           onChange={(e) => onChange("property_name", e.target.value)}
-          className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+          className={getInputClass(isPropertyNameEmpty)}
         />
+        {showErrors && isPropertyNameEmpty && (
+          <p className="text-xs text-red-500 mt-1">Property name is required</p>
+        )}
       </div>
       <input
         type="text"
@@ -1712,8 +1872,11 @@ const PropertyComposerForm = ({
               placeholder="Street 1"
               value={form.address.street_1}
               onChange={(e) => onAddressChange("street_1", e.target.value)}
-              className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+              className={getInputClass(isStreet1Empty)}
             />
+            {showErrors && isStreet1Empty && (
+              <p className="text-xs text-red-500">Street is required</p>
+            )}
           </div>
           <input
             type="text"
@@ -1732,8 +1895,11 @@ const PropertyComposerForm = ({
                 placeholder="City"
                 value={form.address.city}
                 onChange={(e) => onAddressChange("city", e.target.value)}
-                className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+                className={getInputClass(isCityEmpty)}
               />
+              {showErrors && isCityEmpty && (
+                <p className="text-xs text-red-500">Required</p>
+              )}
             </div>
             <div className="space-y-1">
               <label className="text-[11px] font-semibold text-secondary">
@@ -1744,8 +1910,11 @@ const PropertyComposerForm = ({
                 placeholder="State"
                 value={form.address.state}
                 onChange={(e) => onAddressChange("state", e.target.value)}
-                className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+                className={getInputClass(isStateEmpty)}
               />
+              {showErrors && isStateEmpty && (
+                <p className="text-xs text-red-500">Required</p>
+              )}
             </div>
             <div className="space-y-1">
               <label className="text-[11px] font-semibold text-secondary">
@@ -1756,8 +1925,11 @@ const PropertyComposerForm = ({
                 placeholder="Zip"
                 value={form.address.zipcode}
                 onChange={(e) => onAddressChange("zipcode", e.target.value)}
-                className="w-full px-3 py-2 rounded border border-secondary-50 text-sm text-secondary focus:outline-none focus:border-accent"
+                className={getInputClass(isZipEmpty)}
               />
+              {showErrors && isZipEmpty && (
+                <p className="text-xs text-red-500">Required</p>
+              )}
             </div>
           </div>
         </div>
@@ -1792,15 +1964,15 @@ const PropertyComposerForm = ({
           </div>
         )}
       </div>
-      <p className="text-xs text-slate-500">
-        {hasRequiredFields
-          ? "All required fields provided."
-          : "Provide property name, street 1, city, state, and zip before saving."}
-      </p>
+      {showErrors && !hasAllRequiredFields && (
+        <p className="text-xs text-red-500 font-medium">
+          Please fill in all required fields marked with *
+        </p>
+      )}
       <button
         type="button"
         className="w-full rounded-lg bg-accent hover:bg-accent/90 text-white py-2 text-sm font-semibold transition-colors disabled:opacity-50"
-        onClick={onSubmit}
+        onClick={handleSubmit}
         disabled={disabled}
       >
         Create Property
@@ -1833,6 +2005,7 @@ const LeadCardView = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  const [pendingImages, setPendingImages] = useState<{ file: File; previewUrl: string }[]>([]);
   
   // Local form state - initialized from lead data
   const [formState, setFormState] = useState<LeadComposerState>({
@@ -1853,19 +2026,60 @@ const LeadCardView = ({
         license_num: lead.license_num ?? "",
         notes: lead.notes ?? "",
       });
+      setPendingImages([]);
+      setCurrentImageIndex(0);
     }
   }, [isModalOpen, lead]);
 
-  // Check if form has unsaved changes
+  // Cleanup preview URLs when component unmounts or pending images change
+  useEffect(() => {
+    return () => {
+      pendingImages.forEach(p => URL.revokeObjectURL(p.previewUrl));
+    };
+  }, [pendingImages]);
+
+  // Check if form has unsaved changes (include pending images)
   const hasUnsavedChanges = useMemo(() => {
     return (
       formState.business !== (lead.business ?? "") ||
       formState.person_type !== (lead.person_type ?? "") ||
       formState.website !== (lead.website ?? "") ||
       formState.license_num !== (lead.license_num ?? "") ||
-      formState.notes !== (lead.notes ?? "")
+      formState.notes !== (lead.notes ?? "") ||
+      pendingImages.length > 0
     );
-  }, [formState, lead]);
+  }, [formState, lead, pendingImages]);
+
+  const handleAddPendingImages = (files: File[]) => {
+    const newPending = files.map(file => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
+    setPendingImages(prev => [...prev, ...newPending]);
+  };
+
+  const handleRemovePendingImage = (index: number) => {
+    setPendingImages(prev => {
+      const removed = prev[index];
+      if (removed) URL.revokeObjectURL(removed.previewUrl);
+      const updated = prev.filter((_, i) => i !== index);
+      // Adjust current index if needed
+      const totalImages = galleryImages.length + updated.length;
+      if (currentImageIndex >= totalImages && totalImages > 0) {
+        setCurrentImageIndex(totalImages - 1);
+      }
+      return updated;
+    });
+  };
+
+  const handleSavePendingImages = async () => {
+    for (const pending of pendingImages) {
+      await onUploadGalleryImage(pending.file);
+    }
+    // Clear pending after upload
+    pendingImages.forEach(p => URL.revokeObjectURL(p.previewUrl));
+    setPendingImages([]);
+  };
 
   // Build images array from gallery images
   const galleryImages = useMemo(() => {
@@ -1908,7 +2122,7 @@ const LeadCardView = ({
 
   return (
     <>
-      {/* Compact Card Thumbnail */}
+      {/* Compact Card Thumbnail - Image + Name Only */}
       <div
         draggable
         onDragStart={(e) => {
@@ -1919,62 +2133,36 @@ const LeadCardView = ({
           );
         }}
         onClick={() => setIsModalOpen(true)}
-        className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+        className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer group border border-secondary-50/20 hover:border-accent/30"
       >
-        {thumbnailImage && (
+        {thumbnailImage ? (
           <div className="relative">
             <img
               src={thumbnailImage}
               alt={leadTitle}
-              className="w-full h-32 object-cover rounded-t-lg"
+              className="w-full h-40 object-cover rounded-t-xl"
             />
             {galleryImages.length > 1 && (
-              <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+              <span className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg">
                 {galleryImages.length} images
               </span>
             )}
           </div>
+        ) : (
+          <div className="w-full h-28 bg-gradient-to-br from-accent/10 to-accent/5 rounded-t-xl flex items-center justify-center">
+            <Image size={32} className="text-accent/40" />
+          </div>
         )}
-        <div className="p-3 space-y-1.5">
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Business</span>
-              <p className="font-medium text-secondary text-sm truncate">{leadTitle}</p>
-            </div>
-            <span className="text-[10px] font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">
+        <div className="p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-semibold text-secondary text-lg leading-tight line-clamp-2 flex-1">
+              {leadTitle}
+            </p>
+            <span className="text-xs font-bold text-accent bg-accent/10 px-2 py-1 rounded-lg shrink-0">
               LEAD
             </span>
           </div>
-          {lead.person_type && (
-            <div>
-              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Category</span>
-              <p className="text-xs text-secondary truncate">{lead.person_type}</p>
-            </div>
-          )}
-          {lead.website && (
-            <div>
-              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Website</span>
-              <p className="text-xs text-blue-600 truncate">{lead.website}</p>
-            </div>
-          )}
-          {lead.license_num && (
-            <div>
-              <span className="text-[9px] font-semibold text-secondary-50 uppercase">License #</span>
-              <p className="text-xs text-secondary truncate">{lead.license_num}</p>
-            </div>
-          )}
-          {lead.contact?.email && (
-            <div>
-              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Email</span>
-              <p className="text-xs text-secondary truncate">{lead.contact.email}</p>
-            </div>
-          )}
-          {lead.notes && (
-            <div>
-              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Notes</span>
-              <p className="text-xs text-secondary-50 line-clamp-2">{lead.notes}</p>
-            </div>
-          )}
+          <p className="text-sm text-secondary-50 mt-2">Click to view details</p>
         </div>
       </div>
 
@@ -2010,9 +2198,12 @@ const LeadCardView = ({
                 images={galleryImages}
                 currentIndex={currentImageIndex}
                 onIndexChange={setCurrentImageIndex}
-                onUpload={onUploadGalleryImage}
                 onDelete={onDeleteGalleryImage}
                 busy={busy}
+                pendingImages={pendingImages}
+                onAddPendingImages={handleAddPendingImages}
+                onRemovePendingImage={handleRemovePendingImage}
+                onSavePendingImages={handleSavePendingImages}
               />
 
               {/* Form Fields */}
@@ -2151,7 +2342,17 @@ const PropertyCardView = ({
   stepId: number;
   moveTargets: BoardStepCard[];
   busy: boolean;
-  onSave: (updates: { property_name: string; notes: string; mls_number: string }) => void;
+  onSave: (updates: { 
+    property_name: string; 
+    notes: string; 
+    mls_number: string;
+    address?: {
+      street_1: string;
+      city: string;
+      state: string;
+      zipcode: string;
+    };
+  }) => void;
   onDelete: () => void;
   onMove: (targetStepId: number) => void;
   onUploadGalleryImage: (file: File) => Promise<void> | void;
@@ -2160,13 +2361,27 @@ const PropertyCardView = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  const [showValidationErrors, setShowValidationErrors] = useState(false);
+  const [pendingImages, setPendingImages] = useState<{ file: File; previewUrl: string }[]>([]);
 
-  // Local form state
+  // Local form state including address
   const [formState, setFormState] = useState({
     property_name: property.property_name ?? "",
     notes: property.notes ?? "",
     mls_number: property.mls_number ?? "",
+    street_1: property.address?.street_1 ?? "",
+    city: property.address?.city ?? "",
+    state: property.address?.state ?? "",
+    zipcode: property.address?.zipcode ?? "",
   });
+
+  // Validation checks for required fields
+  const isPropertyNameEmpty = !formState.property_name.trim();
+  const isStreet1Empty = !formState.street_1.trim();
+  const isCityEmpty = !formState.city.trim();
+  const isStateEmpty = !formState.state.trim();
+  const isZipEmpty = !formState.zipcode.trim();
+  const hasAllRequiredFields = !isPropertyNameEmpty && !isStreet1Empty && !isCityEmpty && !isStateEmpty && !isZipEmpty;
 
   // Reset form when modal opens
   useEffect(() => {
@@ -2175,18 +2390,68 @@ const PropertyCardView = ({
         property_name: property.property_name ?? "",
         notes: property.notes ?? "",
         mls_number: property.mls_number ?? "",
+        street_1: property.address?.street_1 ?? "",
+        city: property.address?.city ?? "",
+        state: property.address?.state ?? "",
+        zipcode: property.address?.zipcode ?? "",
       });
+      setShowValidationErrors(false);
+      setPendingImages([]);
+      setCurrentImageIndex(0);
     }
   }, [isModalOpen, property]);
 
-  // Check if form has unsaved changes
+  // Cleanup preview URLs when component unmounts or pending images change
+  useEffect(() => {
+    return () => {
+      pendingImages.forEach(p => URL.revokeObjectURL(p.previewUrl));
+    };
+  }, [pendingImages]);
+
+  // Check if form has unsaved changes (include pending images)
   const hasUnsavedChanges = useMemo(() => {
     return (
       formState.property_name !== (property.property_name ?? "") ||
       formState.notes !== (property.notes ?? "") ||
-      formState.mls_number !== (property.mls_number ?? "")
+      formState.mls_number !== (property.mls_number ?? "") ||
+      formState.street_1 !== (property.address?.street_1 ?? "") ||
+      formState.city !== (property.address?.city ?? "") ||
+      formState.state !== (property.address?.state ?? "") ||
+      formState.zipcode !== (property.address?.zipcode ?? "") ||
+      pendingImages.length > 0
     );
-  }, [formState, property]);
+  }, [formState, property, pendingImages]);
+
+  const handleAddPendingImages = (files: File[]) => {
+    const newPending = files.map(file => ({
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
+    setPendingImages(prev => [...prev, ...newPending]);
+  };
+
+  const handleRemovePendingImage = (index: number) => {
+    setPendingImages(prev => {
+      const removed = prev[index];
+      if (removed) URL.revokeObjectURL(removed.previewUrl);
+      const updated = prev.filter((_, i) => i !== index);
+      // Adjust current index if needed
+      const totalImages = galleryImages.length + updated.length;
+      if (currentImageIndex >= totalImages && totalImages > 0) {
+        setCurrentImageIndex(totalImages - 1);
+      }
+      return updated;
+    });
+  };
+
+  const handleSavePendingImages = async () => {
+    for (const pending of pendingImages) {
+      await onUploadGalleryImage(pending.file);
+    }
+    // Clear pending after upload
+    pendingImages.forEach(p => URL.revokeObjectURL(p.previewUrl));
+    setPendingImages([]);
+  };
 
   // Build images array from gallery images
   const galleryImages = useMemo(() => {
@@ -2214,7 +2479,22 @@ const PropertyCardView = ({
   };
 
   const handleSave = () => {
-    onSave(formState);
+    if (!hasAllRequiredFields) {
+      setShowValidationErrors(true);
+      return;
+    }
+    setShowValidationErrors(false);
+    onSave({
+      property_name: formState.property_name,
+      notes: formState.notes,
+      mls_number: formState.mls_number,
+      address: {
+        street_1: formState.street_1,
+        city: formState.city,
+        state: formState.state,
+        zipcode: formState.zipcode,
+      },
+    });
   };
 
   const handleCloseModal = () => {
@@ -2232,7 +2512,7 @@ const PropertyCardView = ({
 
   return (
     <>
-      {/* Compact Card Thumbnail */}
+      {/* Compact Card Thumbnail - Image + Name Only */}
       <div
         draggable
         onDragStart={(e) => {
@@ -2243,50 +2523,36 @@ const PropertyCardView = ({
           );
         }}
         onClick={() => setIsModalOpen(true)}
-        className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
+        className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all cursor-pointer group border border-secondary-50/20 hover:border-accent/30"
       >
-        {thumbnailImage && (
+        {thumbnailImage ? (
           <div className="relative">
             <img
               src={thumbnailImage}
               alt={propertyTitle}
-              className="w-full h-32 object-cover rounded-t-lg"
+              className="w-full h-40 object-cover rounded-t-xl"
             />
             {galleryImages.length > 1 && (
-              <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
+              <span className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg">
                 {galleryImages.length} images
               </span>
             )}
           </div>
+        ) : (
+          <div className="w-full h-28 bg-gradient-to-br from-accent/10 to-accent/5 rounded-t-xl flex items-center justify-center">
+            <Image size={32} className="text-accent/40" />
+          </div>
         )}
-        <div className="p-3 space-y-1.5">
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Property Name</span>
-              <p className="font-medium text-secondary text-sm truncate">{propertyTitle}</p>
-            </div>
-            <span className="text-[10px] font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">
+        <div className="p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="font-semibold text-secondary text-lg leading-tight line-clamp-2 flex-1">
+              {propertyTitle}
+            </p>
+            <span className="text-xs font-bold text-accent bg-accent/10 px-2 py-1 rounded-lg shrink-0">
               PROPERTY
             </span>
           </div>
-          {addressLine && (
-            <div>
-              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Address</span>
-              <p className="text-xs text-secondary truncate">{addressLine}</p>
-            </div>
-          )}
-          {property.mls_number && (
-            <div>
-              <span className="text-[9px] font-semibold text-secondary-50 uppercase">MLS #</span>
-              <p className="text-xs text-accent">{property.mls_number}</p>
-            </div>
-          )}
-          {property.notes && (
-            <div>
-              <span className="text-[9px] font-semibold text-secondary-50 uppercase">Notes</span>
-              <p className="text-xs text-secondary-50 line-clamp-2">{property.notes}</p>
-            </div>
-          )}
+          <p className="text-sm text-secondary-50 mt-2">Click to view details</p>
         </div>
       </div>
 
@@ -2322,9 +2588,12 @@ const PropertyCardView = ({
                 images={galleryImages}
                 currentIndex={currentImageIndex}
                 onIndexChange={setCurrentImageIndex}
-                onUpload={onUploadGalleryImage}
                 onDelete={onDeleteGalleryImage}
                 busy={busy}
+                pendingImages={pendingImages}
+                onAddPendingImages={handleAddPendingImages}
+                onRemovePendingImage={handleRemovePendingImage}
+                onSavePendingImages={handleSavePendingImages}
               />
 
               {/* Form Fields */}
@@ -2334,6 +2603,9 @@ const PropertyCardView = ({
                   value={formState.property_name}
                   onChange={(v) => updateField("property_name", v)}
                   placeholder="Enter property name"
+                  required
+                  error={showValidationErrors && isPropertyNameEmpty}
+                  errorMessage="Property name is required"
                 />
 
                 <FormField
@@ -2351,15 +2623,55 @@ const PropertyCardView = ({
                   multiline
                 />
 
-                {property.address && (
-                  <div>
-                    <span className="text-[10px] font-semibold text-secondary-50 uppercase block mb-1">Address (read-only)</span>
-                    <p className="text-sm text-secondary px-3 py-2 bg-secondary-50/10 rounded-lg">
-                      {property.address.street_1}
-                      <br />
-                      {property.address.city}, {property.address.state} {property.address.zipcode}
-                    </p>
+                {/* Address Fields */}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-semibold text-secondary-50 uppercase block">Address</label>
+                  
+                  <FormField
+                    label="Street"
+                    value={formState.street_1}
+                    onChange={(v) => updateField("street_1", v)}
+                    placeholder="Enter street address"
+                    required
+                    error={showValidationErrors && isStreet1Empty}
+                    errorMessage="Street is required"
+                  />
+
+                  <div className="grid grid-cols-3 gap-3">
+                    <FormField
+                      label="City"
+                      value={formState.city}
+                      onChange={(v) => updateField("city", v)}
+                      placeholder="City"
+                      required
+                      error={showValidationErrors && isCityEmpty}
+                      errorMessage="Required"
+                    />
+                    <FormField
+                      label="State"
+                      value={formState.state}
+                      onChange={(v) => updateField("state", v)}
+                      placeholder="State"
+                      required
+                      error={showValidationErrors && isStateEmpty}
+                      errorMessage="Required"
+                    />
+                    <FormField
+                      label="Zip"
+                      value={formState.zipcode}
+                      onChange={(v) => updateField("zipcode", v)}
+                      placeholder="Zip"
+                      required
+                      error={showValidationErrors && isZipEmpty}
+                      errorMessage="Required"
+                    />
                   </div>
+                </div>
+
+                {showValidationErrors && !hasAllRequiredFields && (
+                  <p className="text-xs text-red-500 font-medium">
+                    Please fill in all required fields marked with *
+                  </p>
                 )}
               </div>
 
