@@ -863,15 +863,6 @@ export const KanbanBoardPage = () => {
 
     return (
       <div className="flex items-center gap-4 px-6 py-3 bg-background border-b border-secondary-50/30">
-        {!sidebarOpen && (
-          <button
-            onClick={() => setSidebarOpen(true)}
-            title="Open sidebar"
-            className="p-2 rounded-lg hover:bg-secondary-50/20 text-secondary transition-colors"
-          >
-            <ChevronRight size={20} />
-          </button>
-        )}
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-secondary truncate">{activeBoard.board_name}</h1>
           <p className="text-xs text-secondary-50">Owner: {ownedByCurrent ? "You" : ownerName}</p>
@@ -1261,6 +1252,19 @@ export const KanbanBoardPage = () => {
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Sidebar Toggle (always visible when closed) */}
+        {!sidebarOpen && (
+          <div className="flex-shrink-0 px-4 py-2 border-b border-secondary-50/30 bg-background">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              title="Open sidebar"
+              className="p-2 rounded-lg hover:bg-secondary-50/20 text-secondary transition-colors"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </div>
+        )}
+
         {/* Error Message */}
         {error && (
           <div className="bg-error text-white px-6 py-4 text-sm font-medium">
