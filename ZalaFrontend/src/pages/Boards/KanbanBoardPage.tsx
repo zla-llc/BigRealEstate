@@ -9,7 +9,14 @@ import type {
   LeadCard,
   PropertyCard,
 } from "../../interfaces";
-import { Plus, Trash2, Check, X, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Check,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 // Import extracted components
 import {
@@ -48,8 +55,6 @@ const createDefaultPropertyForm = (): PropertyComposerState => ({
   },
 });
 
-
-
 export const KanbanBoardPage = () => {
   const { get, post, put, del } = useFetch();
   const { enqueueSnackbar } = useSnackbar();
@@ -61,13 +66,17 @@ export const KanbanBoardPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [boardTypeOverrides, setBoardTypeOverrides] = useState<Record<number, "lead" | "property">>(() => {
+  const [boardTypeOverrides, setBoardTypeOverrides] = useState<
+    Record<number, "lead" | "property">
+  >(() => {
     if (typeof window === "undefined") {
       return {};
     }
     try {
       const stored = window.localStorage.getItem(BOARD_TYPE_STORAGE_KEY);
-      return stored ? (JSON.parse(stored) as Record<number, "lead" | "property">) : {};
+      return stored
+        ? (JSON.parse(stored) as Record<number, "lead" | "property">)
+        : {};
     } catch {
       return {};
     }
@@ -130,7 +139,9 @@ export const KanbanBoardPage = () => {
     }
     return {
       hasLeads: activeBoard.board_steps.some((step) => step.leads.length > 0),
-      hasProperties: activeBoard.board_steps.some((step) => step.properties.length > 0),
+      hasProperties: activeBoard.board_steps.some(
+        (step) => step.properties.length > 0
+      ),
     };
   }, [activeBoard]);
 
@@ -235,11 +246,13 @@ export const KanbanBoardPage = () => {
       }
 
       const defaults = ["To Do", "In Progress", "Review", "Done", "Backlog"];
-      const sampleSteps = (steps &&
-        steps
-          .slice(0, 5)
-          .map((s) => s.trim())
-          .filter((s) => s.length > 0)) || defaults;
+      const sampleSteps =
+        (steps &&
+          steps
+            .slice(0, 5)
+            .map((s) => s.trim())
+            .filter((s) => s.length > 0)) ||
+        defaults;
 
       for (let i = 0; i < sampleSteps.length; i++) {
         await post(`/api/board-steps`, {
@@ -261,17 +274,28 @@ export const KanbanBoardPage = () => {
     if (typeof payload.board_name === "string") {
       payload.board_name = payload.board_name.trim();
     }
-    await withBusy("Updating board...", async () => {
-      const { err } = await put<KanbanBoard>(`/api/boards/${boardId}`, payload);
-      if (err) throw new Error(err);
-    }, boardId);
+    await withBusy(
+      "Updating board...",
+      async () => {
+        const { err } = await put<KanbanBoard>(
+          `/api/boards/${boardId}`,
+          payload
+        );
+        if (err) throw new Error(err);
+      },
+      boardId
+    );
   };
 
   const handleDeleteBoard = async (boardId: number) => {
-    await withBusy("Deleting board...", async () => {
-      const { err } = await del(`/api/boards/${boardId}`);
-      if (err) throw new Error(err);
-    }, boardId === activeBoardId ? null : activeBoardId);
+    await withBusy(
+      "Deleting board...",
+      async () => {
+        const { err } = await del(`/api/boards/${boardId}`);
+        if (err) throw new Error(err);
+      },
+      boardId === activeBoardId ? null : activeBoardId
+    );
   };
 
   const handleCreateStep = async (boardId: number, stepName: string) => {
@@ -286,21 +310,29 @@ export const KanbanBoardPage = () => {
         ? Math.max(...board.board_steps.map((s) => s.board_column)) + 1
         : 1;
 
-    await withBusy("Creating step...", async () => {
-      const { err } = await post(`/api/board-steps`, {
-        board_id: boardId,
-        board_column: nextColumn,
-        step_name: trimmedName,
-      });
-      if (err) throw new Error(err);
-    }, boardId);
+    await withBusy(
+      "Creating step...",
+      async () => {
+        const { err } = await post(`/api/board-steps`, {
+          board_id: boardId,
+          board_column: nextColumn,
+          step_name: trimmedName,
+        });
+        if (err) throw new Error(err);
+      },
+      boardId
+    );
   };
 
   const handleDeleteStep = async (boardId: number, stepId: number) => {
-    await withBusy("Deleting step...", async () => {
-      const { err } = await del(`/api/board-steps/${stepId}`);
-      if (err) throw new Error(err);
-    }, boardId);
+    await withBusy(
+      "Deleting step...",
+      async () => {
+        const { err } = await del(`/api/board-steps/${stepId}`);
+        if (err) throw new Error(err);
+      },
+      boardId
+    );
   };
 
   const handleCreateLead = async (
@@ -322,33 +354,40 @@ export const KanbanBoardPage = () => {
     }
     let createdLeadId: number | null = null;
 
-    await withBusy("Creating lead...", async () => {
-      const payload: LeadComposerState = {
-        business: form.business?.trim() ?? "",
-        person_type: form.person_type?.trim() ?? "",
-        website: form.website?.trim() ?? "",
-        license_num: form.license_num?.trim() ?? "",
-        notes: form.notes?.trim() ?? "",
-      };
-      const { data, err } = await post<LeadCard>(`/api/leads`, payload);
-      if (err || !data) throw new Error(err ?? "Unable to create lead");
-      createdLeadId = data.lead_id;
+    await withBusy(
+      "Creating lead...",
+      async () => {
+        const payload: LeadComposerState = {
+          business: form.business?.trim() ?? "",
+          person_type: form.person_type?.trim() ?? "",
+          website: form.website?.trim() ?? "",
+          license_num: form.license_num?.trim() ?? "",
+          notes: form.notes?.trim() ?? "",
+        };
+        const { data, err } = await post<LeadCard>(`/api/leads`, payload);
+        if (err || !data) throw new Error(err ?? "Unable to create lead");
+        createdLeadId = data.lead_id;
 
-      const newLeadIds = [...(step.leads ?? []).map((lead) => lead.lead_id)];
-      newLeadIds.push(data.lead_id);
+        const newLeadIds = [...(step.leads ?? []).map((lead) => lead.lead_id)];
+        newLeadIds.push(data.lead_id);
 
-      const { err: stepErr } = await put(`/api/board-steps/${stepId}`, {
-        lead_ids: newLeadIds,
-      });
-      if (stepErr) throw new Error(stepErr);
-    }, step.board_id);
+        const { err: stepErr } = await put(`/api/board-steps/${stepId}`, {
+          lead_ids: newLeadIds,
+        });
+        if (stepErr) throw new Error(stepErr);
+      },
+      step.board_id
+    );
 
     if (imageFile && createdLeadId) {
       await handleUploadLeadImage(createdLeadId, imageFile);
     }
   };
 
-  const handleUpdateLead = async (leadId: number, updates: LeadComposerState) => {
+  const handleUpdateLead = async (
+    leadId: number,
+    updates: LeadComposerState
+  ) => {
     const payload: LeadComposerState = {
       business: updates.business?.trim() ?? "",
       person_type: updates.person_type?.trim() ?? "",
@@ -356,10 +395,14 @@ export const KanbanBoardPage = () => {
       license_num: updates.license_num?.trim() ?? "",
       notes: updates.notes?.trim() ?? "",
     };
-    await withBusy("Updating lead...", async () => {
-      const { err } = await put(`/api/leads/${leadId}`, payload);
-      if (err) throw new Error(err);
-    }, activeBoardId);
+    await withBusy(
+      "Updating lead...",
+      async () => {
+        const { err } = await put(`/api/leads/${leadId}`, payload);
+        if (err) throw new Error(err);
+      },
+      activeBoardId
+    );
   };
 
   const handleDeleteLead = async (leadId: number, stepId: number) => {
@@ -369,19 +412,23 @@ export const KanbanBoardPage = () => {
       return;
     }
 
-    await withBusy("Deleting lead...", async () => {
-      const remainingIds = step.leads
-        .filter((lead) => lead.lead_id !== leadId)
-        .map((lead) => lead.lead_id);
+    await withBusy(
+      "Deleting lead...",
+      async () => {
+        const remainingIds = step.leads
+          .filter((lead) => lead.lead_id !== leadId)
+          .map((lead) => lead.lead_id);
 
-      const { err: stepErr } = await put(`/api/board-steps/${stepId}`, {
-        lead_ids: remainingIds,
-      });
-      if (stepErr) throw new Error(stepErr);
+        const { err: stepErr } = await put(`/api/board-steps/${stepId}`, {
+          lead_ids: remainingIds,
+        });
+        if (stepErr) throw new Error(stepErr);
 
-      const { err } = await del(`/api/leads/${leadId}`);
-      if (err) throw new Error(err);
-    }, step.board_id);
+        const { err } = await del(`/api/leads/${leadId}`);
+        if (err) throw new Error(err);
+      },
+      step.board_id
+    );
   };
 
   const handleMoveLead = async (
@@ -397,24 +444,28 @@ export const KanbanBoardPage = () => {
       return;
     }
 
-    await withBusy("Moving lead...", async () => {
-      const remainingIds = fromStep.leads
-        .filter((lead) => lead.lead_id !== leadId)
-        .map((lead) => lead.lead_id);
-      const destIds = Array.from(
-        new Set([...toStep.leads.map((lead) => lead.lead_id), leadId])
-      );
+    await withBusy(
+      "Moving lead...",
+      async () => {
+        const remainingIds = fromStep.leads
+          .filter((lead) => lead.lead_id !== leadId)
+          .map((lead) => lead.lead_id);
+        const destIds = Array.from(
+          new Set([...toStep.leads.map((lead) => lead.lead_id), leadId])
+        );
 
-      const { err: fromErr } = await put(`/api/board-steps/${fromStepId}`, {
-        lead_ids: remainingIds,
-      });
-      if (fromErr) throw new Error(fromErr);
+        const { err: fromErr } = await put(`/api/board-steps/${fromStepId}`, {
+          lead_ids: remainingIds,
+        });
+        if (fromErr) throw new Error(fromErr);
 
-      const { err: toErr } = await put(`/api/board-steps/${toStepId}`, {
-        lead_ids: destIds,
-      });
-      if (toErr) throw new Error(toErr);
-    }, fromStep.board_id);
+        const { err: toErr } = await put(`/api/board-steps/${toStepId}`, {
+          lead_ids: destIds,
+        });
+        if (toErr) throw new Error(toErr);
+      },
+      fromStep.board_id
+    );
   };
 
   const handleCreateProperty = async (
@@ -434,7 +485,7 @@ export const KanbanBoardPage = () => {
       );
       return;
     }
-    
+
     const trimmedName = form.property_name.trim();
     const street = form.address.street_1.trim();
     const city = form.address.city.trim();
@@ -443,43 +494,47 @@ export const KanbanBoardPage = () => {
 
     let createdProperty: PropertyCard | null = null;
 
-    await withBusy("Creating property...", async () => {
-      const { data: address, err: addressErr } = await post<AddressResponse>(
-        `/api/addresses`,
-        {
-          street_1: street,
-          street_2: form.address.street_2.trim(),
-          city,
-          state,
-          zipcode: zip,
-        }
-      );
-      if (addressErr || !address)
-        throw new Error(addressErr ?? "Unable to create address");
+    await withBusy(
+      "Creating property...",
+      async () => {
+        const { data: address, err: addressErr } = await post<AddressResponse>(
+          `/api/addresses`,
+          {
+            street_1: street,
+            street_2: form.address.street_2.trim(),
+            city,
+            state,
+            zipcode: zip,
+          }
+        );
+        if (addressErr || !address)
+          throw new Error(addressErr ?? "Unable to create address");
 
-      const { data: property, err: propertyErr } = await post<PropertyCard>(
-        `/api/addresses/${address.address_id}/properties`,
-        {
-          property_name: trimmedName,
-          notes: form.notes?.trim() ?? "",
-          mls_number: form.mls_number?.trim() ?? "",
-        }
-      );
+        const { data: property, err: propertyErr } = await post<PropertyCard>(
+          `/api/addresses/${address.address_id}/properties`,
+          {
+            property_name: trimmedName,
+            notes: form.notes?.trim() ?? "",
+            mls_number: form.mls_number?.trim() ?? "",
+          }
+        );
 
-      if (propertyErr || !property)
-        throw new Error(propertyErr ?? "Unable to create property");
-      createdProperty = property;
+        if (propertyErr || !property)
+          throw new Error(propertyErr ?? "Unable to create property");
+        createdProperty = property;
 
-      const propertyIds = [
-        ...(step.properties ?? []).map((prop) => prop.property_id),
-        property.property_id,
-      ];
+        const propertyIds = [
+          ...(step.properties ?? []).map((prop) => prop.property_id),
+          property.property_id,
+        ];
 
-      const { err: stepErr } = await put(`/api/board-steps/${stepId}`, {
-        property_ids: propertyIds,
-      });
-      if (stepErr) throw new Error(stepErr);
-    }, step.board_id);
+        const { err: stepErr } = await put(`/api/board-steps/${stepId}`, {
+          property_ids: propertyIds,
+        });
+        if (stepErr) throw new Error(stepErr);
+      },
+      step.board_id
+    );
 
     if (imageFile && createdProperty) {
       await handleUploadPropertyImage(createdProperty, imageFile);
@@ -488,9 +543,9 @@ export const KanbanBoardPage = () => {
 
   const handleUpdateProperty = async (
     property: PropertyCard,
-    updates: { 
-      property_name?: string; 
-      notes?: string; 
+    updates: {
+      property_name?: string;
+      notes?: string;
       mls_number?: string;
       address?: {
         street_1?: string;
@@ -507,7 +562,11 @@ export const KanbanBoardPage = () => {
       return;
     }
 
-    const propertyPayload: { property_name?: string; notes?: string; mls_number?: string } = {};
+    const propertyPayload: {
+      property_name?: string;
+      notes?: string;
+      mls_number?: string;
+    } = {};
     if (updates.property_name !== undefined) {
       propertyPayload.property_name = updates.property_name.trim();
     }
@@ -518,39 +577,48 @@ export const KanbanBoardPage = () => {
       propertyPayload.mls_number = updates.mls_number.trim();
     }
 
-    await withBusy("Updating property...", async () => {
-      if (updates.address) {
-        const addressPayload: { street_1?: string; city?: string; state?: string; zipcode?: string } = {};
-        if (updates.address.street_1 !== undefined) {
-          addressPayload.street_1 = updates.address.street_1.trim();
-        }
-        if (updates.address.city !== undefined) {
-          addressPayload.city = updates.address.city.trim();
-        }
-        if (updates.address.state !== undefined) {
-          addressPayload.state = updates.address.state.trim();
-        }
-        if (updates.address.zipcode !== undefined) {
-          addressPayload.zipcode = updates.address.zipcode.trim();
-        }
-        
-        if (Object.keys(addressPayload).length > 0) {
-          const { err: addressErr } = await put(
-            `/api/addresses/${property.address_id}`,
-            addressPayload
-          );
-          if (addressErr) throw new Error(addressErr);
-        }
-      }
+    await withBusy(
+      "Updating property...",
+      async () => {
+        if (updates.address) {
+          const addressPayload: {
+            street_1?: string;
+            city?: string;
+            state?: string;
+            zipcode?: string;
+          } = {};
+          if (updates.address.street_1 !== undefined) {
+            addressPayload.street_1 = updates.address.street_1.trim();
+          }
+          if (updates.address.city !== undefined) {
+            addressPayload.city = updates.address.city.trim();
+          }
+          if (updates.address.state !== undefined) {
+            addressPayload.state = updates.address.state.trim();
+          }
+          if (updates.address.zipcode !== undefined) {
+            addressPayload.zipcode = updates.address.zipcode.trim();
+          }
 
-      if (Object.keys(propertyPayload).length > 0) {
-        const { err } = await put(
-          `/api/addresses/${property.address_id}/properties/${property.property_id}`,
-          propertyPayload
-        );
-        if (err) throw new Error(err);
-      }
-    }, activeBoardId);
+          if (Object.keys(addressPayload).length > 0) {
+            const { err: addressErr } = await put(
+              `/api/addresses/${property.address_id}`,
+              addressPayload
+            );
+            if (addressErr) throw new Error(addressErr);
+          }
+        }
+
+        if (Object.keys(propertyPayload).length > 0) {
+          const { err } = await put(
+            `/api/addresses/${property.address_id}/properties/${property.property_id}`,
+            propertyPayload
+          );
+          if (err) throw new Error(err);
+        }
+      },
+      activeBoardId
+    );
   };
 
   const handleDeleteProperty = async (
@@ -568,21 +636,25 @@ export const KanbanBoardPage = () => {
       return;
     }
 
-    await withBusy("Deleting property...", async () => {
-      const remainingIds = step.properties
-        .filter((prop) => prop.property_id !== property.property_id)
-        .map((prop) => prop.property_id);
+    await withBusy(
+      "Deleting property...",
+      async () => {
+        const remainingIds = step.properties
+          .filter((prop) => prop.property_id !== property.property_id)
+          .map((prop) => prop.property_id);
 
-      const { err: stepErr } = await put(`/api/board-steps/${stepId}`, {
-        property_ids: remainingIds,
-      });
-      if (stepErr) throw new Error(stepErr);
+        const { err: stepErr } = await put(`/api/board-steps/${stepId}`, {
+          property_ids: remainingIds,
+        });
+        if (stepErr) throw new Error(stepErr);
 
-      const { err } = await del(
-        `/api/addresses/${property.address_id}/properties/${property.property_id}`
-      );
-      if (err) throw new Error(err);
-    }, step.board_id);
+        const { err } = await del(
+          `/api/addresses/${property.address_id}/properties/${property.property_id}`
+        );
+        if (err) throw new Error(err);
+      },
+      step.board_id
+    );
   };
 
   const handleMoveProperty = async (
@@ -598,36 +670,46 @@ export const KanbanBoardPage = () => {
       return;
     }
 
-    await withBusy("Moving property...", async () => {
-      const remainingIds = fromStep.properties
-        .filter((prop) => prop.property_id !== propertyId)
-        .map((prop) => prop.property_id);
-      const destIds = Array.from(
-        new Set([
-          ...toStep.properties.map((prop) => prop.property_id),
-          propertyId,
-        ])
-      );
+    await withBusy(
+      "Moving property...",
+      async () => {
+        const remainingIds = fromStep.properties
+          .filter((prop) => prop.property_id !== propertyId)
+          .map((prop) => prop.property_id);
+        const destIds = Array.from(
+          new Set([
+            ...toStep.properties.map((prop) => prop.property_id),
+            propertyId,
+          ])
+        );
 
-      const { err: fromErr } = await put(`/api/board-steps/${fromStepId}`, {
-        property_ids: remainingIds,
-      });
-      if (fromErr) throw new Error(fromErr);
+        const { err: fromErr } = await put(`/api/board-steps/${fromStepId}`, {
+          property_ids: remainingIds,
+        });
+        if (fromErr) throw new Error(fromErr);
 
-      const { err: toErr } = await put(`/api/board-steps/${toStepId}`, {
-        property_ids: destIds,
-      });
-      if (toErr) throw new Error(toErr);
-    }, fromStep.board_id);
+        const { err: toErr } = await put(`/api/board-steps/${toStepId}`, {
+          property_ids: destIds,
+        });
+        if (toErr) throw new Error(toErr);
+      },
+      fromStep.board_id
+    );
   };
 
   const handleUploadLeadImage = async (leadId: number, file: File) => {
-    await withBusy("Uploading lead image...", async () => {
-      const formData = new FormData();
-      formData.append("file", file);
-      const { err } = await post(`/api/leads/${leadId}/image`, formData, { isFormData: true });
-      if (err) throw new Error(err);
-    }, activeBoardId);
+    await withBusy(
+      "Uploading lead image...",
+      async () => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const { err } = await post(`/api/leads/${leadId}/image`, formData, {
+          isFormData: true,
+        });
+        if (err) throw new Error(err);
+      },
+      activeBoardId
+    );
   };
 
   const resolvePropertyAddressId = (property: PropertyCard): number | null => {
@@ -635,78 +717,118 @@ export const KanbanBoardPage = () => {
     return property.address?.address_id ?? null;
   };
 
-  const handleUploadPropertyImage = async (property: PropertyCard, file: File) => {
+  const handleUploadPropertyImage = async (
+    property: PropertyCard,
+    file: File
+  ) => {
     const addressId = resolvePropertyAddressId(property);
     if (!addressId) {
-      enqueueSnackbar("Property must have an address before uploading an image", {
-        variant: "warning",
-      });
+      enqueueSnackbar(
+        "Property must have an address before uploading an image",
+        {
+          variant: "warning",
+        }
+      );
       return;
     }
 
-    await withBusy("Uploading property image...", async () => {
-      const formData = new FormData();
-      formData.append("file", file);
-      const { err } = await post(
-        `/api/addresses/${addressId}/properties/${property.property_id}/image`,
-        formData,
-        { isFormData: true }
-      );
-      if (err) throw new Error(err);
-    }, activeBoardId);
+    await withBusy(
+      "Uploading property image...",
+      async () => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const { err } = await post(
+          `/api/addresses/${addressId}/properties/${property.property_id}/image`,
+          formData,
+          { isFormData: true }
+        );
+        if (err) throw new Error(err);
+      },
+      activeBoardId
+    );
   };
 
   // Gallery image handlers for multiple images
   const handleUploadLeadGalleryImage = async (leadId: number, file: File) => {
-    await withBusy("Uploading image...", async () => {
-      const formData = new FormData();
-      formData.append("file", file);
-      const { err } = await post(`/api/leads/${leadId}/images`, formData, { isFormData: true });
-      if (err) throw new Error(err);
-    }, activeBoardId);
+    await withBusy(
+      "Uploading image...",
+      async () => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const { err } = await post(`/api/leads/${leadId}/images`, formData, {
+          isFormData: true,
+        });
+        if (err) throw new Error(err);
+      },
+      activeBoardId
+    );
   };
 
-  const handleDeleteLeadGalleryImage = async (leadId: number, imageId: number) => {
-    await withBusy("Deleting image...", async () => {
-      const { err } = await del(`/api/leads/${leadId}/images/${imageId}`);
-      if (err) throw new Error(err);
-    }, activeBoardId);
+  const handleDeleteLeadGalleryImage = async (
+    leadId: number,
+    imageId: number
+  ) => {
+    await withBusy(
+      "Deleting image...",
+      async () => {
+        const { err } = await del(`/api/leads/${leadId}/images/${imageId}`);
+        if (err) throw new Error(err);
+      },
+      activeBoardId
+    );
   };
 
-  const handleUploadPropertyGalleryImage = async (property: PropertyCard, file: File) => {
+  const handleUploadPropertyGalleryImage = async (
+    property: PropertyCard,
+    file: File
+  ) => {
     const addressId = resolvePropertyAddressId(property);
     if (!addressId) {
-      enqueueSnackbar("Property must have an address before uploading an image", {
-        variant: "warning",
-      });
+      enqueueSnackbar(
+        "Property must have an address before uploading an image",
+        {
+          variant: "warning",
+        }
+      );
       return;
     }
 
-    await withBusy("Uploading image...", async () => {
-      const formData = new FormData();
-      formData.append("file", file);
-      const { err } = await post(
-        `/api/addresses/${addressId}/properties/${property.property_id}/images`,
-        formData,
-        { isFormData: true }
-      );
-      if (err) throw new Error(err);
-    }, activeBoardId);
+    await withBusy(
+      "Uploading image...",
+      async () => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const { err } = await post(
+          `/api/addresses/${addressId}/properties/${property.property_id}/images`,
+          formData,
+          { isFormData: true }
+        );
+        if (err) throw new Error(err);
+      },
+      activeBoardId
+    );
   };
 
-  const handleDeletePropertyGalleryImage = async (property: PropertyCard, imageId: number) => {
+  const handleDeletePropertyGalleryImage = async (
+    property: PropertyCard,
+    imageId: number
+  ) => {
     const addressId = resolvePropertyAddressId(property);
     if (!addressId) {
       enqueueSnackbar("Property must have an address", { variant: "warning" });
       return;
     }
 
-    await withBusy("Deleting image...", async () => {
-      const { err } = await del(
-        `/api/addresses/${addressId}/properties/${property.property_id}/images/${imageId}`
-      );
-      if (err) throw new Error(err);
-    }, activeBoardId);
+    await withBusy(
+      "Deleting image...",
+      async () => {
+        const { err } = await del(
+          `/api/addresses/${addressId}/properties/${property.property_id}/images/${imageId}`
+        );
+        if (err) throw new Error(err);
+      },
+      activeBoardId
+    );
   };
 
   const handleRenameStep = async (
@@ -716,13 +838,17 @@ export const KanbanBoardPage = () => {
   ) => {
     const trimmedName = newName.trim();
     if (!trimmedName) return;
-    
-    await withBusy("Updating step...", async () => {
-      const { err } = await put(`/api/board-steps/${stepId}`, {
-        step_name: trimmedName,
-      });
-      if (err) throw new Error(err);
-    }, boardId);
+
+    await withBusy(
+      "Updating step...",
+      async () => {
+        const { err } = await put(`/api/board-steps/${stepId}`, {
+          step_name: trimmedName,
+        });
+        if (err) throw new Error(err);
+      },
+      boardId
+    );
   };
 
   // ========== LOCAL COMPONENTS ==========
@@ -753,76 +879,71 @@ export const KanbanBoardPage = () => {
           </button>
         </div>
         <div className="flex-1 flex flex-col p-4 space-y-4 overflow-hidden">
+          <div className="space-y-1 overflow-auto flex-1">
+            {boards.map((board) => {
+              const isActive = activeBoardId === board.board_id;
+              const ownerId = board.user?.user_id ?? board.user_id ?? null;
+              const isMine =
+                currentUser?.userId && ownerId
+                  ? ownerId === currentUser.userId
+                  : false;
+              const ownerLabel = board.user?.username
+                ? isMine
+                  ? "You"
+                  : board.user.username
+                : ownerId
+                ? isMine
+                  ? "You"
+                  : "Team member"
+                : "Unassigned";
 
-        <div className="space-y-1 overflow-auto flex-1">
-          {boards.map((board) => {
-            const isActive = activeBoardId === board.board_id;
-            const ownerId = board.user?.user_id ?? board.user_id ?? null;
-            const isMine =
-              currentUser?.userId && ownerId
-                ? ownerId === currentUser.userId
-                : false;
-            const ownerLabel = board.user?.username
-              ? isMine
-                ? "You"
-                : board.user.username
-              : ownerId
-              ? isMine
-                ? "You"
-                : "Team member"
-              : "Unassigned";
-
-            return (
-              <div
-                key={board.board_id}
-                className={clsx(
-                  "flex items-center justify-between rounded-lg px-3 py-2 cursor-pointer transition-all duration-200",
-                  isActive
-                    ? "bg-accent text-white shadow-md"
-                    : "hover:bg-secondary-50/20 text-secondary"
-                )}
-                onClick={() => setActiveBoardId(board.board_id)}
-              >
-                <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-semibold truncate">
-                    {board.board_name}
-                  </span>
-                  <span
-                    className={clsx(
-                      "text-[11px]",
-                      isActive ? "text-white/80" : "text-secondary-50"
-                    )}
-                  >
-                    {ownerLabel}
-                  </span>
-                </div>
-
-                <button
-                  className="ml-2 p-1.5 hover:bg-white/20 rounded transition-colors opacity-0 group-hover:opacity-100"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    handleDeleteBoard(board.board_id);
-                  }}
+              return (
+                <div
+                  key={board.board_id}
+                  className={clsx(
+                    "flex items-center justify-between rounded-lg px-3 py-2 cursor-pointer transition-all duration-200",
+                    isActive
+                      ? "bg-accent text-white shadow-md"
+                      : "hover:bg-secondary-50/20 text-secondary"
+                  )}
+                  onClick={() => setActiveBoardId(board.board_id)}
                 >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            );
-          })}
-          {boards.length === 0 && (
-            <p className="text-sm text-secondary-50 text-center py-8">
-              No boards yet
-            </p>
-          )}
-        </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-semibold truncate">
+                      {board.board_name}
+                    </span>
+                    <span
+                      className={clsx(
+                        "text-[11px]",
+                        isActive ? "text-white/80" : "text-secondary-50"
+                      )}
+                    >
+                      {ownerLabel}
+                    </span>
+                  </div>
+
+                  <button
+                    className="ml-2 p-1.5 hover:bg-white/20 rounded transition-colors opacity-0 group-hover:opacity-100"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleDeleteBoard(board.board_id);
+                    }}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              );
+            })}
+            {boards.length === 0 && (
+              <p className="text-sm text-secondary-50 text-center py-8">
+                No boards yet
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="border-t border-secondary-50/30 p-4">
-          <form
-            className="flex gap-2"
-            onSubmit={onSubmit}
-            autoComplete="off"
-          >
+          <form className="flex gap-2" onSubmit={onSubmit} autoComplete="off">
             <input
               type="text"
               placeholder="+ Add board"
@@ -858,21 +979,29 @@ export const KanbanBoardPage = () => {
         ? "You"
         : "Team member"
       : "Unassigned";
-    const boardHasCards = boardComposition.hasLeads || boardComposition.hasProperties;
-    const boardTypeLabel = activeBoardType === "property" ? "Properties" : "Leads";
+    const boardHasCards =
+      boardComposition.hasLeads || boardComposition.hasProperties;
+    const boardTypeLabel =
+      activeBoardType === "property" ? "Properties" : "Leads";
 
     return (
       <div className="flex items-center gap-4 px-6 py-3 bg-background border-b border-secondary-50/30">
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold text-secondary truncate">{activeBoard.board_name}</h1>
-          <p className="text-xs text-secondary-50">Owner: {ownedByCurrent ? "You" : ownerName}</p>
+          <h1 className="text-xl font-bold text-secondary truncate">
+            {activeBoard.board_name}
+          </h1>
+          <p className="text-xs text-secondary-50">
+            Owner: {ownedByCurrent ? "You" : ownerName}
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 bg-secondary-50/10 rounded-lg px-3 py-1.5">
             <span className="text-xs text-secondary-50">Type:</span>
             {boardHasCards ? (
-              <span className="text-xs font-semibold text-secondary">{boardTypeLabel}</span>
+              <span className="text-xs font-semibold text-secondary">
+                {boardTypeLabel}
+              </span>
             ) : (
               <>
                 {(["lead", "property"] as const).map((type) => (
@@ -993,10 +1122,13 @@ export const KanbanBoardPage = () => {
     const [leadForm, setLeadForm] = useState<LeadComposerState>(
       createDefaultLeadForm()
     );
-    const [propertyForm, setPropertyForm] =
-      useState<PropertyComposerState>(createDefaultPropertyForm());
+    const [propertyForm, setPropertyForm] = useState<PropertyComposerState>(
+      createDefaultPropertyForm()
+    );
     const [leadImageFile, setLeadImageFile] = useState<File | null>(null);
-    const [propertyImageFile, setPropertyImageFile] = useState<File | null>(null);
+    const [propertyImageFile, setPropertyImageFile] = useState<File | null>(
+      null
+    );
     const [dragOverStepId, setDragOverStepId] = useState<number | null>(null);
 
     const resolvedBoardType = boardType ?? "lead";
@@ -1037,7 +1169,7 @@ export const KanbanBoardPage = () => {
     const handleDrop = (e: React.DragEvent) => {
       e.preventDefault();
       setDragOverStepId(null);
-      
+
       const data = e.dataTransfer.getData("card");
       if (!data) return;
 
@@ -1069,11 +1201,11 @@ export const KanbanBoardPage = () => {
     };
 
     return (
-      <div 
+      <div
         className={clsx(
           "rounded-xl p-4 space-y-4 min-w-[320px] max-w-[320px] h-fit flex flex-col transition-all",
-          dragOverStepId === step.board_step_id 
-            ? "bg-accent/20" 
+          dragOverStepId === step.board_step_id
+            ? "bg-accent/20"
             : "bg-secondary-50/20"
         )}
         onDragOver={handleDragOver}
@@ -1118,7 +1250,7 @@ export const KanbanBoardPage = () => {
                 </button>
               </div>
             ) : (
-              <h3 
+              <h3
                 onClick={() => setIsEditingTitle(true)}
                 className="text-sm font-semibold text-secondary truncate cursor-pointer hover:text-accent transition-colors py-1"
               >
@@ -1145,12 +1277,18 @@ export const KanbanBoardPage = () => {
               moveTargets={moveTargets}
               busy={!!busy}
               onSave={(updates) => handleUpdateLead(lead.lead_id, updates)}
-              onDelete={() => handleDeleteLead(lead.lead_id, step.board_step_id)}
+              onDelete={() =>
+                handleDeleteLead(lead.lead_id, step.board_step_id)
+              }
               onMove={(targetStepId) =>
                 handleMoveLead(lead.lead_id, step.board_step_id, targetStepId)
               }
-              onUploadGalleryImage={(file) => handleUploadLeadGalleryImage(lead.lead_id, file)}
-              onDeleteGalleryImage={(imageId) => handleDeleteLeadGalleryImage(lead.lead_id, imageId)}
+              onUploadGalleryImage={(file) =>
+                handleUploadLeadGalleryImage(lead.lead_id, file)
+              }
+              onDeleteGalleryImage={(imageId) =>
+                handleDeleteLeadGalleryImage(lead.lead_id, imageId)
+              }
             />
           ))}
 
@@ -1161,9 +1299,7 @@ export const KanbanBoardPage = () => {
               stepId={step.board_step_id}
               moveTargets={moveTargets}
               busy={!!busy}
-              onSave={(updates) =>
-                handleUpdateProperty(property, updates)
-              }
+              onSave={(updates) => handleUpdateProperty(property, updates)}
               onDelete={() =>
                 handleDeleteProperty(property, step.board_step_id)
               }
@@ -1174,8 +1310,12 @@ export const KanbanBoardPage = () => {
                   targetStepId
                 )
               }
-              onUploadGalleryImage={(file) => handleUploadPropertyGalleryImage(property, file)}
-              onDeleteGalleryImage={(imageId) => handleDeletePropertyGalleryImage(property, imageId)}
+              onUploadGalleryImage={(file) =>
+                handleUploadPropertyGalleryImage(property, file)
+              }
+              onDeleteGalleryImage={(imageId) =>
+                handleDeletePropertyGalleryImage(property, imageId)
+              }
             />
           ))}
         </div>
@@ -1243,10 +1383,12 @@ export const KanbanBoardPage = () => {
   return (
     <div className="flex flex-1 bg-background overflow-hidden">
       {/* Sidebar */}
-      <div className={clsx(
-        "flex-shrink-0 h-full overflow-auto border-r border-secondary-50/30 bg-background transition-all duration-300 flex flex-col",
-        sidebarOpen ? "w-72" : "w-0"
-      )}>
+      <div
+        className={clsx(
+          "flex-shrink-0 h-full overflow-auto border-r border-secondary-50/30 bg-background transition-all duration-300 flex flex-col",
+          sidebarOpen ? "w-72" : "w-0"
+        )}
+      >
         <BoardList />
       </div>
 
@@ -1294,8 +1436,12 @@ export const KanbanBoardPage = () => {
           <div className="flex flex-1 items-center justify-center">
             <div className="text-center">
               <div className="text-6xl mb-4">📋</div>
-              <h2 className="text-2xl font-bold text-secondary mb-2">No Board Selected</h2>
-              <p className="text-secondary-50">Create a board to get started with your project management.</p>
+              <h2 className="text-2xl font-bold text-secondary mb-2">
+                No Board Selected
+              </h2>
+              <p className="text-secondary-50">
+                Create a board to get started with your project management.
+              </p>
             </div>
           </div>
         )}

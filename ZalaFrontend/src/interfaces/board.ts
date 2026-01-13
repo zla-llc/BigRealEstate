@@ -1,4 +1,4 @@
-import type { AContact } from "./contact";
+import type { AContact } from "./Contact";
 
 export type BoardSummary = {
   board_id: number;

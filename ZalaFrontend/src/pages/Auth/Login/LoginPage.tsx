@@ -44,6 +44,7 @@ export const LoginPage = () => {
           />
 
           <TextInput
+            secure
             label="Password"
             value={password}
             setValue={setPassword}

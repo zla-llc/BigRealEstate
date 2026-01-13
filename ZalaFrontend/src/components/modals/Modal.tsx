@@ -26,10 +26,7 @@ export const Modal = ({
           className="full bg-secondary-50 z-10 fixed top-0 left-0 p-[60px]"
         >
           <div className="full relative">
-            <div
-              onClick={onClose}
-              className="absolute-fill z-[12] pointer-events-auto flex items-center justify-center"
-            >
+            <div className="absolute-fill z-[12] pointer-events-auto flex items-center justify-center">
               <div
                 onClick={(e) => {
                   e.stopPropagation();

@@ -4,6 +4,7 @@ export enum IconButtonVariant {
   Primary = "Primary",
   Secondary = "Secondary",
   Accent = "Accent",
+  Destructive = "",
   White = "White",
   Clear = "Clear",
 }
@@ -17,6 +18,7 @@ export const getIconButtonBgColor = (variant: IconButtonVariant) => {
     case IconButtonVariant.Accent:
       return "bg-[var(--color-accent)]";
     case IconButtonVariant.White:
+    case IconButtonVariant.Destructive:
       return "bg-[var(--color-white)]";
     case IconButtonVariant.Clear:
     default:
@@ -29,6 +31,8 @@ export const getIconButtonColor = (variant: IconButtonVariant) => {
     case IconButtonVariant.Secondary:
     case IconButtonVariant.Accent:
       return COLORS.white;
+    case IconButtonVariant.Destructive:
+      return COLORS.error;
     case IconButtonVariant.Primary:
     case IconButtonVariant.Clear:
     case IconButtonVariant.White:

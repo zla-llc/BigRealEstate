@@ -1,13 +1,7 @@
 import { CampaignContactMethod, CampaignTab } from "../../../../interfaces";
-import { Icons } from "../../../../components";
+import { Icons, LeadTitleValue } from "../../../../components";
 import { useFolderIcons } from "../../hooks";
-import {
-  Folder,
-  LeadButtons,
-  LeadFolder,
-  LeadTitleValue,
-  ContactMethod,
-} from "../layout";
+import { Folder, LeadButtons, LeadFolder, ContactMethod } from "../layout";
 import type { CampaignFolderChildProps } from "./types";
 import { useCampaignStore } from "../../../../stores";
 

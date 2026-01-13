@@ -1,5 +1,4 @@
 import { useAppHeader } from "../../hooks";
-import { SideNavControlVariant } from "../../stores";
 import { IconButton, IconButtonVariant } from "../buttons";
 import { Icons } from "../icons";
 import { TextInput } from "../inputs";
@@ -7,11 +6,12 @@ import { TextInput } from "../inputs";
 export const AppHeader = () => {
   const {
     query,
+    sideNavIcon,
     setQuery,
-    openSideNav,
     toLeadSearchPage,
-    toBoardsPage,
     onSearchClick,
+    onSidenavBtn,
+    toBoardsV2Page,
   } = useAppHeader();
 
   return (
@@ -38,17 +38,9 @@ export const AppHeader = () => {
       </div>
 
       <div className="flex flex-row space-x-4">
-        <IconButton
-          name={Icons.Notes}
-          onClick={toBoardsPage}
-          variant={IconButtonVariant.Primary}
-        />
-        <IconButton name={Icons.Chart} />
+        <IconButton name={Icons.Kanban} onClick={toBoardsV2Page} />
         <IconButton name={Icons.User} />
-        <IconButton
-          name={Icons.Menu}
-          onClick={() => openSideNav(SideNavControlVariant.None)}
-        />
+        <IconButton name={sideNavIcon} onClick={onSidenavBtn} />
       </div>
     </div>
   );

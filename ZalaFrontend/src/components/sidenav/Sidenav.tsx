@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { SideNavControlVariant, useSideNavControlStore } from "../../stores";
 import { SearchLeadFilterSidenav } from "./SearchLeadFilterSidenav";
 import { UserSidenav } from "./UserSidenav";
+import { BoardSettingsSidenav } from "./BoardSettingsSidenav";
 
 export const Sidenav = () => {
   const { isOpen, variant } = useSideNavControlStore();
@@ -9,6 +10,8 @@ export const Sidenav = () => {
   const Component =
     variant === SideNavControlVariant.LeadFilters
       ? SearchLeadFilterSidenav
+      : variant === SideNavControlVariant.BoardSettings
+      ? BoardSettingsSidenav
       : UserSidenav;
 
   return (

@@ -1,12 +1,13 @@
 import { useRef, useState } from "react";
-import type { ICampaign, ILead } from "../../../interfaces";
 import { useLocation } from "react-router";
-import { Normalizer, stringify } from "../../../utils";
-import { useApi, useTimeoutEffect } from "../../../hooks";
-import { useAuthStore } from "../../../stores";
+import type { ICampaign, ILead } from "../../interfaces";
+import { useAuthStore } from "../../stores";
+import { stringify, Normalizer } from "../../utils";
+import { useTimeoutEffect } from "../utils";
+import { useApi } from "./useApi";
 
 export const useGetCampaignLeads = (
-  campaign: ICampaign
+  campaign?: ICampaign
 ): [
   ILead[],
   boolean,
@@ -26,6 +27,8 @@ export const useGetCampaignLeads = (
 
   useTimeoutEffect(
     () => {
+      if (!campaign) return;
+
       const stateLeads = state
         ? state["leads"]
           ? (state["leads"] as ILead[])
@@ -41,11 +44,13 @@ export const useGetCampaignLeads = (
         getLeads();
       }
     },
-    [stringify(state), campaign.campaignId],
+    [stringify(state), campaign?.campaignId],
     250
   );
 
   const getLeads = async () => {
+    if (!campaign) return;
+
     if (campaign.campaignId === -1 || campaign.leads.length === 0 || !user)
       return;
 

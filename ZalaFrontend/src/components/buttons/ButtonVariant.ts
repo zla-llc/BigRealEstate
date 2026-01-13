@@ -4,6 +4,7 @@ export enum ButtonVariant {
   Primary = "Primary",
   Secondary = "Secondary",
   Tertiary = "Tertiary",
+  Destructive = "Destructive",
 }
 
 export const getButtonBgColor = (variant: ButtonVariant) => {
@@ -12,6 +13,8 @@ export const getButtonBgColor = (variant: ButtonVariant) => {
       return "bg-accent";
     case ButtonVariant.Tertiary:
       return "bg-secondary";
+    case ButtonVariant.Destructive:
+      return "bg-error";
     case ButtonVariant.Secondary:
     default:
       return "bg-white";
@@ -24,6 +27,8 @@ export const getButtonBgColorHex = (variant: ButtonVariant) => {
       return COLORS.accent;
     case ButtonVariant.Tertiary:
       return COLORS.secondary;
+    case ButtonVariant.Destructive:
+      return COLORS.error;
     case ButtonVariant.Secondary:
     default:
       return COLORS.white;
@@ -34,6 +39,7 @@ export const getButtonTextColor = (variant: ButtonVariant) => {
   switch (variant) {
     case ButtonVariant.Primary:
     case ButtonVariant.Tertiary:
+    case ButtonVariant.Destructive:
       return "text-white";
     case ButtonVariant.Secondary:
     default:
@@ -45,6 +51,7 @@ export const getButtonTextColorHex = (variant: ButtonVariant) => {
   switch (variant) {
     case ButtonVariant.Primary:
     case ButtonVariant.Tertiary:
+    case ButtonVariant.Destructive:
       return COLORS.white;
     case ButtonVariant.Secondary:
     default:
