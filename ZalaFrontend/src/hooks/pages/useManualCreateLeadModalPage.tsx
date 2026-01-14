@@ -349,6 +349,14 @@ export const useManualCreateLeadModalPage = ({
     parentOnConfirm(newLeadIds);
   };
 
+  const onRemoveLeadFromStep = () => {
+    parentOnConfirm(
+      selectedBoardItemIds.filter(
+        (boardItemId) => boardItemId !== editingBoardItem?.leadId
+      )
+    );
+  };
+
   return {
     MAX_FILE_LIMIT,
 
@@ -379,5 +387,6 @@ export const useManualCreateLeadModalPage = ({
     setAddressFormState,
 
     onConfirm,
+    onRemoveLeadFromStep,
   };
 };

@@ -37,6 +37,7 @@ export const ManualCreateProperty = ({
     removeUnit,
     selectedBoardItemIds,
     onConfirm,
+    onRemovePropertyFromStep,
   } = useManualCreateProperty({ onConfirm: parentOnConfirm });
 
   return (
@@ -45,6 +46,7 @@ export const ManualCreateProperty = ({
         title={editingBoardItem ? "Edit Property" : "Add Property"}
         subtitle={editingBoardItem && <span />}
         onCloseBtn={onBackBtn}
+        onTrashBtn={editingBoardItem ? onRemovePropertyFromStep : undefined}
       />
 
       <ManualCreateModalContainer>

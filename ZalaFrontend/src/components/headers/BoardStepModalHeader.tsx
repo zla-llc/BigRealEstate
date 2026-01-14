@@ -3,12 +3,14 @@ import { capitalize } from "../../utils";
 import { useBoardSettingsStore, useBoardStore } from "../../stores";
 import type { Actions } from "./types";
 import { Icons } from "../icons";
+import { IconButtonVariant } from "../buttons";
 
 type BoardStepModalHeaderProps = {
   title?: string;
   subtitle?: React.ReactNode;
   onBackBtn?: () => void;
   onCloseBtn?: () => void;
+  onTrashBtn?: () => void;
 };
 
 export const BoardStepModalHeader = ({
@@ -16,6 +18,7 @@ export const BoardStepModalHeader = ({
   subtitle,
   onBackBtn,
   onCloseBtn,
+  onTrashBtn,
 }: BoardStepModalHeaderProps) => {
   const { boardType } = useBoardSettingsStore();
   const { step } = useBoardStore();
@@ -33,6 +36,17 @@ export const BoardStepModalHeader = ({
           side: "left",
           type: "iconBtn",
           iconBtnProps: { name: Icons.Close, onClick: onCloseBtn },
+        }
+      : null,
+    onTrashBtn
+      ? {
+          side: "right",
+          type: "iconBtn",
+          iconBtnProps: {
+            name: Icons.Trash,
+            onClick: onTrashBtn,
+            variant: IconButtonVariant.Destructive,
+          },
         }
       : null,
   ];

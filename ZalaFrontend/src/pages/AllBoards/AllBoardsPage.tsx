@@ -4,9 +4,8 @@ import {
   BoardModal,
   Button,
   ButtonVariant,
-  EditablePageHeader,
-  IconButtonVariant,
   Icons,
+  ModalHeader,
 } from "../../components";
 import { CSSVars } from "../../config";
 import { AnimatePresence, motion } from "motion/react";
@@ -68,22 +67,14 @@ export const AllBoardsPage = () => {
   return (
     <div ref={scope} className="full relative overflow-hidden ">
       <div id="grid-container" className="">
-        <div className="w-full">
-          <EditablePageHeader
-            value="My Boards"
-            centerText
-            setValue={() => {}}
-            editable={false}
+        <div className="w-full pt-[15px] px-[60px]">
+          <ModalHeader
+            title="My Boards"
             actions={[
               {
-                type: "iconBtn",
                 side: "right",
-                iconBtnProps: {
-                  name: Icons.Add,
-                  variant: IconButtonVariant.Secondary,
-                  scale: CSSVars.icons.scale.normal,
-                  onClick: onAddNewBoardBtn,
-                },
+                type: "iconBtn",
+                iconBtnProps: { name: Icons.Add, onClick: onAddNewBoardBtn },
               },
             ]}
           />

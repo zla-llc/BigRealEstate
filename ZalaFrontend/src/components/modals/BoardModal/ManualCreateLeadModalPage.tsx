@@ -49,6 +49,7 @@ export const ManualCreateLeadModalPage = ({
     setAddressFormState,
 
     onConfirm,
+    onRemoveLeadFromStep,
   } = useManualCreateLeadModalPage({ parentOnConfirm });
 
   const rowSectionClassName =
@@ -61,6 +62,7 @@ export const ManualCreateLeadModalPage = ({
         subtitle={<span />}
         onCloseBtn={editingBoardItem && onBackBtn}
         onBackBtn={!editingBoardItem ? onBackBtn : undefined}
+        onTrashBtn={editingBoardItem ? onRemoveLeadFromStep : undefined}
       />
 
       {!editingBoardItem && <CreateLeadsSelectedHeader />}

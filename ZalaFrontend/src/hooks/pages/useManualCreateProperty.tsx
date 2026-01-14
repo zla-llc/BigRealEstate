@@ -433,6 +433,14 @@ export const useManualCreateProperty = ({
     parentOnConfirm(newPropertyIds);
   };
 
+  const onRemovePropertyFromStep = () => {
+    parentOnConfirm(
+      selectedBoardItemIds.filter(
+        (boardItemId) => boardItemId !== editingBoardItem?.propertyId
+      )
+    );
+  };
+
   return {
     editingBoardItem,
     selectedImageIndex,
@@ -457,5 +465,6 @@ export const useManualCreateProperty = ({
     removeUnit,
     selectedBoardItemIds,
     onConfirm,
+    onRemovePropertyFromStep,
   };
 };
