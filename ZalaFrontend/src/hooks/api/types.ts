@@ -160,3 +160,22 @@ export type CreatePropertyImageProps = CreateImageProps & {
   propertyId: number;
   addressId: number;
 };
+
+// SMTP Types
+export type SMTPSendRequest = {
+  to_email: string;
+  name: string;
+  subject: string;
+  body: string;
+};
+
+export type SMTPSendResponse = {
+  success: boolean;
+  message: string;
+};
+
+export type SMTPConfigResponse = {
+  configured: boolean;
+  host: string | null;
+  port: number;
+};

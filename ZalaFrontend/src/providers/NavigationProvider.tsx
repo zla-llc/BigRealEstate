@@ -10,6 +10,7 @@ import {
   CampaignEmailDemoPage,
   PastCampaignsPage,
   AllBoardsPage,
+  SMTPTestPage,
 } from "../pages";
 import { RootLayout } from "../layouts";
 import { useAuthStore } from "../stores";
@@ -46,6 +47,7 @@ export const NavigationProvider = () => {
           <Route path="/demos">
             <Route path="campaign" element={<CampaignEmailDemoPage />} />
             <Route path="email" element={<TestEmailPage />} />
+            <Route path="smtp" element={<SMTPTestPage />} />
           </Route>
 
           <Route path="404" element={<NotFoundPage />} />

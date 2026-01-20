@@ -276,6 +276,74 @@ Each service requires a developer account to generate and manage API credentials
    BRAVE_API_KEY=<your_brave_api_key>
    ```
 
+#### 📧 SMTP Configuration (for Email Notifications)
+
+SMTP is used to send notification emails (e.g., team invites). We recommend using Gmail SMTP.
+
+##### Setup Steps
+
+1. **Enable 2-Step Verification** on your Google account:
+   - Go to: https://myaccount.google.com/signinoptions/two-step-verification
+   - Click "Get started" and follow the prompts
+   - Complete the setup with your phone
+
+2. **Create an App Password** (required after enabling 2-Step Verification):
+   - Go to: https://myaccount.google.com/apppasswords
+   - Select app: "Mail"
+   - Select device: "Windows Computer" (or "Other")
+   - Click "Generate"
+   - Copy the 16-character password (e.g., `abcd efgh ijkl mnop`)
+
+3. **Add SMTP settings to your `.env` file:**
+
+   ```
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USERNAME=your-email@gmail.com
+   SMTP_PASSWORD=abcdefghijklmnop
+   SMTP_USE_TLS=true
+   SMTP_FROM_EMAIL=your-email@gmail.com
+   SMTP_FROM_NAME=Zala
+   ```
+
+   | Variable | Description |
+   |----------|-------------|
+   | `SMTP_HOST` | Gmail's SMTP server (`smtp.gmail.com`) |
+   | `SMTP_PORT` | Port for TLS (`587`) |
+   | `SMTP_USERNAME` | Your Gmail address |
+   | `SMTP_PASSWORD` | The 16-character App Password (no spaces) |
+   | `SMTP_FROM_EMAIL` | The "From" address (same as username) |
+   | `SMTP_FROM_NAME` | Display name in emails (e.g., "Zala") |
+
+##### API Endpoint
+
+**POST `/api/smtp/send`** — Send an email
+
+Request body:
+```json
+{
+  "to_email": "recipient@example.com",
+  "name": "John",
+  "subject": "You're Invited!",
+  "body": "You've been invited to join a team on Zala."
+}
+```
+
+The email will be formatted as:
+```
+Hi John,
+
+You've been invited to join a team on Zala.
+
+— Zala
+```
+
+##### Troubleshooting
+
+- **"App passwords not available"**: You must enable 2-Step Verification first
+- **Authentication failed**: Make sure you're using the App Password, not your regular Gmail password
+- **Test the setup**: Use the "SMTP Email Test" page in the frontend profile menu
+
 #### 🧩 Database Variables
 
 Use your PostgreSQL credentials to connect to your local or hosted database.

@@ -24,6 +24,7 @@ from app.routes import (
     campaign_leads,
     campaign_emails,
     google_mail,
+    smtp,
 )
 from app.services.file_storage import get_upload_root
 
@@ -77,3 +78,6 @@ app.include_router(users.router, prefix="/api", include_in_schema=True)
 app.include_router(contacts.router, prefix="/api", include_in_schema=True)
 
 app.include_router(csv_intake.router, prefix="/api", include_in_schema=True)
+
+# SMTP Email routes
+app.include_router(smtp.router, prefix="/api", include_in_schema=True)

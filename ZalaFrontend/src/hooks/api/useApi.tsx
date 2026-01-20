@@ -21,6 +21,9 @@ import type {
   ListCampaignsParams,
   CreateCampaignProps,
   UpdateCampaignLeadProps,
+  SMTPSendRequest,
+  SMTPSendResponse,
+  SMTPConfigResponse,
 } from "./types";
 import { useFetch } from "./useFetch";
 import { useState } from "react";
@@ -283,6 +286,18 @@ export const useApi = () => {
     );
   };
 
+  // SMTP Email functions
+  const smtpGetConfig = async () => {
+    return await get<SMTPConfigResponse>(`/api/smtp/config`, getSignal("smtpGetConfig"));
+  };
+
+  const smtpSendEmail = async (request: SMTPSendRequest) => {
+    return await post<SMTPSendResponse>(`/api/smtp/send`, request, {
+      isFormData: false,
+      signal: getSignal("smtpSendEmail"),
+    });
+  };
+
   return {
     ...boardsApiRoutes,
     ...leadsContactsAddressApi,
@@ -306,5 +321,7 @@ export const useApi = () => {
     updateCampaign,
     setSignal,
     updateCampaignLead,
+    smtpGetConfig,
+    smtpSendEmail,
   };
 };
