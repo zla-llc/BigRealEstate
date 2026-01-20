@@ -7,3 +7,4 @@ export * from "./Loading";
 export * from "./TestEmail";
 export * from "./CampaignEmailDemo";
 export * from "./PastCampaigns";
+export * from "./AllBoards";

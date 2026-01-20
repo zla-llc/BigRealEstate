@@ -1,6 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
 import { Image, X, Move, Save, Trash2, AlertTriangle } from "lucide-react";
-import type { LeadCard, BoardStepCard, LeadComposerState, PendingImage } from "./types";
+import type {
+  LeadCard,
+  BoardStepCard,
+  LeadComposerState,
+  PendingImage,
+} from "./types";
 import { ImageCarousel } from "./ImageCarousel";
 import { FormField } from "./FormField";
 import { resolveAssetUrl } from "./utils";
@@ -193,7 +198,9 @@ export const LeadCardView = ({
               LEAD
             </span>
           </div>
-          <p className="text-sm text-secondary-50 mt-2">Click to view details</p>
+          <p className="text-sm text-secondary-50 mt-2">
+            Click to view details
+          </p>
         </div>
       </div>
 
@@ -294,7 +301,7 @@ export const LeadCardView = ({
               {/* Actions */}
               <div className="flex flex-wrap gap-2 pt-4 border-t border-secondary-50/30">
                 {moveTargets.length > 1 && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 bg-green">
                     <Move size={14} className="text-secondary-50" />
                     <select
                       className="border border-secondary-50 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-accent bg-white"

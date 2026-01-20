@@ -1,6 +1,6 @@
 import { useFolderIcons } from "../../hooks";
 import { CampaignTab } from "../../../../interfaces";
-import { Icons } from "../../../../components";
+import { Icons, LeadNotesSection } from "../../../../components";
 import { Folder, LeadButtons, LeadFolder } from "../layout";
 import type { CampaignFolderChildProps } from "./types";
 import { useCampaignPageStore } from "../../../../stores";
@@ -44,14 +44,11 @@ export const NotesFolder = ({
                   Notes: {lead.contact.firstName} {lead.contact.lastName}
                 </p>
                 <div className="w-full h-full flex grow-1 pb-[15px]">
-                  <div className="w-full">
-                    <textarea
-                      className="text-area-style w-full max-h-full overflow-scroll pt-[15px]"
-                      placeholder={`Notes on ${lead.contact.firstName} ${lead.contact.lastName}`}
-                      value={notes}
-                      onChange={({ target: { value } }) => setNotes(value)}
-                    />
-                  </div>
+                  <LeadNotesSection
+                    lead={lead}
+                    notes={notes}
+                    setNotes={setNotes}
+                  />
                 </div>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import { useSnack } from "./useSnack";
 
-type OnErrorOptions = {
+export type OnErrorOptions = {
   msg?: string;
   showSnack?: boolean;
 };

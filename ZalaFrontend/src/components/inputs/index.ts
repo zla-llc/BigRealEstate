@@ -2,3 +2,8 @@ export * from "./TextInput";
 export * from "./Select";
 export * from "./RichTextEditor";
 export * from "./CheckboxInput";
+export * from "./SwitchInput";
+export * from "./ImageInput";
+export * from "./ImageCaroselInput";
+export * from "./AddressInput";
+export * from "./types";

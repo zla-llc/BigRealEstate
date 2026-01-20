@@ -4,6 +4,8 @@ import { IMAGES_ARR } from "../../assets";
 import { Button } from "../buttons";
 import { Icons } from "../icons";
 import { ButtonVariant } from "../buttons/ButtonVariant";
+import { CardVariant } from "./types";
+import { useHover } from "../../hooks";
 
 type LeadCardButton = {
   text: string;
@@ -13,27 +15,39 @@ type LeadCardButton = {
 
 export type LeadCardProps = {
   lead: ILead;
+  variant?: CardVariant;
   sourceResult?: ISourceResult<unknown>;
   i: number;
   active?: boolean;
   button?: LeadCardButton;
+  onClick?: () => void;
   onTitleClick?: () => void;
 };
 
 export const LeadCard = ({
   lead,
-  sourceResult,
+  variant = CardVariant.Primary,
+  // sourceResult,
   button,
   active,
   i,
+  onClick,
   onTitleClick,
 }: LeadCardProps) => {
+  const [isHovered, hoverProps] = useHover();
+  const isSecondVariant = variant === CardVariant.Secondary;
   return (
     <div
+      {...hoverProps}
       className={clsx(
         "card-base box-shadow flex flex-row p-[15px]",
-        active ? "border-4 border-accent" : ""
+        active ? "border-4 border-accent" : "",
+        isSecondVariant ? "bg-white!" : "",
+        onClick && isHovered
+          ? "-translate-y-[5px] transition-[translate] duration-75 cursor-pointer"
+          : ""
       )}
+      onClick={onClick}
     >
       <div className="w-[40%] mr-[15px]">
         <img

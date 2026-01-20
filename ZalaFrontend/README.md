@@ -139,7 +139,11 @@ ZalaFrontend/
 ## 👥 Author
 
 **Zala Development Team**
-For inquiries, visit [colintondreau.com](https://colintondreau.com) or contact [colin.d.m.tondreau@gmail.com](mailto:colin.d.m.tondreau@gmail.com).
+Niccolls Evsseef
+Robert Huang
+Andrew Moulton
+Jonathan Zhu
+Colin Tondreau
 
 ---
 
@@ -147,5 +151,3 @@ For inquiries, visit [colintondreau.com](https://colintondreau.com) or contact [
 
 This project is licensed under the **MIT License**.
 See the `LICENSE` file for more details.
-
-

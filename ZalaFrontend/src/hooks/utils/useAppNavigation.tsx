@@ -24,6 +24,8 @@ export const useAppNavigation = () => {
 
   const toPastCampaigns = () => navigate("/campaigns");
 
+  const toBoardsV2Page = () => navigate("/boards/v2");
+
   return {
     location,
     navigate,
@@ -37,5 +39,6 @@ export const useAppNavigation = () => {
     toEmailTestPage,
     toPastCampaigns,
     toCampaignEmailTestPage,
+    toBoardsV2Page,
   };
 };

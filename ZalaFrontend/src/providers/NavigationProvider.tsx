@@ -9,6 +9,7 @@ import {
   TestEmailPage,
   CampaignEmailDemoPage,
   PastCampaignsPage,
+  AllBoardsPage,
 } from "../pages";
 import { RootLayout } from "../layouts";
 import { useAuthStore } from "../stores";
@@ -34,6 +35,7 @@ export const NavigationProvider = () => {
           {!user && <Route path="*" element={<NavToLogin />} />}
 
           <Route index path="/" element={<LeadSearchPage />} />
+          <Route path="/boards/v2" element={<AllBoardsPage />} />
           <Route path="/boards" element={<KanbanBoardPage />} />
 
           <Route path="/campaigns">

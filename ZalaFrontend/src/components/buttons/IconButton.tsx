@@ -13,7 +13,7 @@ import {
   getButtonTextColorHex,
 } from "./ButtonVariant";
 
-type IconButtonProps = {
+export type IconButtonProps = {
   name: Icons;
   variant?: IconButtonVariant;
 
@@ -27,7 +27,7 @@ type IconButtonProps = {
     color?: ButtonVariant;
   };
 
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 };
 
 export const IconButton = ({
@@ -62,24 +62,30 @@ export const IconButton = ({
       }}
     >
       <div
-        style={{ borderRadius, scale }}
         className={clsx(
-          "p-2.5 relative overflow-hidden transition-[scale] duration-75 active:scale-[.9]",
-          onClick ? "cursor-pointer" : "",
-          shadow ? "box-shadow-sm" : "",
-          getBgColor(variant)
+          onClick ? "transition-[scale] duration-75 active:scale-[.9]" : ""
         )}
       >
-        <Icon name={name} color={getColor(variant)} size={size} />
         <div
-          onClick={onClick}
+          style={{ borderRadius, scale }}
           className={clsx(
-            "absolute z-1 top-0 left-0 bottom-0 right-0",
-            onClick && !disableOpacity
-              ? "bg-[var(--color-secondary)] opacity-0 hover:opacity-25"
-              : ""
+            "p-2.5 relative overflow-hidden",
+            onClick ? "cursor-pointer" : "",
+            shadow ? "box-shadow-sm" : "",
+            getBgColor(variant)
           )}
-        ></div>
+        >
+          <Icon name={name} color={getColor(variant)} size={size} />
+          <div
+            onClick={onClick}
+            className={clsx(
+              "absolute z-1 top-0 left-0 bottom-0 right-0",
+              onClick && !disableOpacity
+                ? "bg-[var(--color-secondary)] opacity-0 hover:opacity-25"
+                : ""
+            )}
+          ></div>
+        </div>
       </div>
     </Badge>
   );

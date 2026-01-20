@@ -12,7 +12,7 @@ export const AppLayout = () => {
         <Sidenav />
         <div
           onClick={isOpen ? closeSideNav : undefined}
-          className="flex flex-1 flex-row overflow-y-scroll"
+          className={"flex flex-1 flex-row overflow-y-scroll"}
         >
           <Outlet />
         </div>
