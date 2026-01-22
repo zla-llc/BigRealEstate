@@ -21,6 +21,13 @@ import TextsmsIcon from "@mui/icons-material/Textsms";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LockIcon from "@mui/icons-material/Lock";
+import ViewKanbanIcon from "@mui/icons-material/ViewKanban";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
+import SettingsIcon from "@mui/icons-material/Settings";
+import UploadIcon from "@mui/icons-material/Upload";
+import EditIcon from "@mui/icons-material/Edit";
 
 export const getMaterialIcon = (iconName: Icons) => {
   switch (iconName) {
@@ -50,6 +57,8 @@ export const getMaterialIcon = (iconName: Icons) => {
       return (props: SvgIconProps) => <HighlightOffIcon {...props} />;
     case Icons.Arrow:
       return (props: SvgIconProps) => <ArrowBackIcon {...props} />;
+    case Icons.Back:
+      return (props: SvgIconProps) => <ArrowBackIcon {...props} />;
     case Icons.CheckboxOutline:
       return (props: SvgIconProps) => <CheckBoxOutlineBlankIcon {...props} />;
     case Icons.CheckboxChecked:
@@ -64,6 +73,20 @@ export const getMaterialIcon = (iconName: Icons) => {
       return (props: SvgIconProps) => <ChevronRightIcon {...props} />;
     case Icons.Lock:
       return (props: SvgIconProps) => <LockIcon {...props} />;
+    case Icons.Kanban:
+      return (props: SvgIconProps) => <ViewKanbanIcon {...props} />;
+    case Icons.Add:
+      return (props: SvgIconProps) => <AddIcon {...props} />;
+    case Icons.Trash:
+      return (props: SvgIconProps) => <DeleteForeverIcon {...props} />;
+    case Icons.AddBox:
+      return (props: SvgIconProps) => <LibraryAddIcon {...props} />;
+    case Icons.Settings:
+      return (props: SvgIconProps) => <SettingsIcon {...props} />;
+    case Icons.Upload:
+      return (props: SvgIconProps) => <UploadIcon {...props} />;
+    case Icons.Edit:
+      return (props: SvgIconProps) => <EditIcon {...props} />;
     default:
       return null;
   }

@@ -16,6 +16,9 @@ type TextInputProps = {
 
   label?: string;
   placeholder?: string;
+  secure?: boolean;
+  type?: React.InputHTMLAttributes<HTMLInputElement>["type"];
+  optional?: boolean;
 
   onKeyPressProps?: UseOnKeyPressProps;
   errorMsg?: string;
@@ -23,6 +26,9 @@ type TextInputProps = {
 
 export const TextInput = ({
   label,
+  secure,
+  type,
+  optional,
   placeholder,
   value,
   setValue,
@@ -49,7 +55,11 @@ export const TextInput = ({
         className={clsx(
           "flex flex-row relative rounded-[15px] border-2 box-shadow-sm",
           "bg-white focus-within:border-accent",
-          errorMsg ? "border-error" : "border-secondary"
+          errorMsg
+            ? "border-error"
+            : optional
+            ? "border-secondary-50"
+            : "border-secondary"
         )}
       >
         <input
@@ -57,9 +67,10 @@ export const TextInput = ({
           className={clsx(
             "peer flex-1 outline-none text-xl rounded-[15px]",
             "px-2.5 cursor-text",
-            "focus:outline-none"
+            "focus:outline-none",
+            optional ? "text-secondary-50" : "text-secondary"
           )}
-          type="text"
+          type={secure ? "password" : type ?? "text"}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
@@ -69,7 +80,7 @@ export const TextInput = ({
         <div
           className={clsx(
             "flex items-center justify-end py-2 pr-2.5",
-            icon ? "" : "opacity-0"
+            icon ? "" : "opacity-0 w-0"
           )}
         >
           <IconButton
@@ -83,6 +94,7 @@ export const TextInput = ({
 
         {label && (
           <Label
+            optional={optional}
             label={label}
             active={value && value.length > 0 ? true : false}
           />

@@ -16,6 +16,9 @@ export type ButtonProps = {
   disabled?: boolean;
   variant?: ButtonVariant;
   activeVariant?: ButtonVariant;
+  bold?: boolean;
+  border?: boolean;
+  borderLight?: boolean;
   onClick?: () => void;
 };
 
@@ -24,6 +27,9 @@ export const Button = ({
   icon,
   variant: initialVariant = ButtonVariant.Primary,
   disabled,
+  bold,
+  border = true,
+  borderLight = false,
   activeVariant,
   onClick,
 }: ButtonProps) => {
@@ -49,7 +55,13 @@ export const Button = ({
         "text-sm w-full flex flex-row items-center justify-center relative group",
         "rounded-[7.5px] py-[10px] space-x-[15px]",
         "transition-[scale] duration-75 active:scale-[.95]",
-        "hover:font-bold",
+        border ? "border-2" : "",
+        isActive
+          ? borderLight
+            ? "border-white"
+            : "border-secondary"
+          : "border-transparent",
+        bold ? "font-bold" : "hover:font-bold",
         disabled ? "cursor-not-allowed" : "cursor-pointer",
         disabled ? disabledColors.bg : getBgColor(variant),
         disabled ? disabledColors.text : getTextColor(variant)

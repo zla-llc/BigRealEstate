@@ -19,15 +19,15 @@ INSERT INTO users (user_id, contact_id, username, role, profile_pic, xp, created
     (2, 2, 'user1', 'user', '', 13, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ;
 
-INSERT INTO leads (lead_id, created_by, contact_id, address_id, person_type, business, website, license_num, notes)
+INSERT INTO leads (lead_id, created_by, contact_id, address_id, person_type, business, website, license_num, notes, image_url)
     VALUES
-    (1, 1, 3, 3, 'Agent', 'American Campus LLC', 'americancampus.com', 'ABC123456', 'some notes')
+    (1, 1, 3, 3, 'Agent', 'American Campus LLC', 'americancampus.com', 'ABC123456', 'some notes', NULL)
 ;
 
-INSERT INTO properties (property_id, property_name, address_id, mls_number)
+INSERT INTO properties (property_id, property_name, address_id, mls_number, image_url)
     VALUES
-    (1, 'Park Point 600', 4, 'MLS12345'),
-    (2, 'RIT CAMPUS', 1, 'MLS2312345')
+    (1, 'Park Point 600', 4, 'MLS12345', NULL),
+    (2, 'RIT CAMPUS', 1, 'MLS2312345', NULL)
 ;
 
 INSERT INTO units (unit_id, property_id, apt_num, bedrooms, bath, sqft, notes)

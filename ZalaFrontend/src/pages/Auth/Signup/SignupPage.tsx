@@ -106,6 +106,7 @@ export const SignupPage = () => {
           <div className="w-full flex flex-row space-x-[15px]">
             <div className="flex-1 space-y-[15px]">
               <TextInput
+                secure
                 label="Password"
                 value={password}
                 setValue={setPassword}
@@ -117,6 +118,7 @@ export const SignupPage = () => {
             </div>
             <div className="flex-1">
               <TextInput
+                secure
                 label="Repeat password"
                 value={rePassword}
                 setValue={setRePassword}

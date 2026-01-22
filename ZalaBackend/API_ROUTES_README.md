@@ -90,11 +90,13 @@ Routes are prefixed with `/api/addresses/{address_id}/properties`.
 
 | Method | Path | Purpose | Body / Query | Response |
 | --- | --- | --- | --- | --- |
-| POST | `/api/addresses/{address_id}/properties/` | Create property for address | JSON: `property_name` (required), optional `mls_number`, `notes` | `PropertyPublic` |
+| POST | `/api/addresses/{address_id}/properties/` | Create property for address | JSON: `property_name` (required), optional `mls_number`, `notes`, `image_url` | `PropertyPublic` |
 | GET | `/api/addresses/{address_id}/properties/` | List properties for address | Query: `skip`, `limit` | `List[PropertyPublic]` |
 | GET | `/api/addresses/{address_id}/properties/{property_id}` | Get property | Path `address_id`, `property_id` | `PropertyPublic` |
-| PUT | `/api/addresses/{address_id}/properties/{property_id}` | Update property | JSON: any of `property_name`, `mls_number`, `notes`, `lead_id` | `PropertyPublic` |
+| PUT | `/api/addresses/{address_id}/properties/{property_id}` | Update property | JSON: any of `property_name`, `mls_number`, `notes`, `lead_id`, `image_url` | `PropertyPublic` |
 | DELETE | `/api/addresses/{address_id}/properties/{property_id}` | Delete property | Path `address_id`, `property_id` | 204 No Content |
+| POST | `/api/addresses/{address_id}/properties/{property_id}/image` | Upload/replace property card image | `multipart/form-data` with file field `file` (image only) | `PropertyPublic` |
+| DELETE | `/api/addresses/{address_id}/properties/{property_id}/image` | Remove stored property image | Path `address_id`, `property_id` | `PropertyPublic` |
 
 ---
 
@@ -116,11 +118,13 @@ Routes are prefixed with `/api/properties/{property_id}/units`.
 
 | Method | Path | Purpose | Body / Query | Response |
 | --- | --- | --- | --- | --- |
-| POST | `/api/leads/` | Create lead | JSON: optional `person_type`, `business`, `website`, `license_num`, `notes` | `LeadPublic` |
+| POST | `/api/leads/` | Create lead | JSON: optional `person_type`, `business`, `website`, `license_num`, `notes`, `image_url` | `LeadPublic` |
 | GET | `/api/leads/` | List leads | Query: `skip`, `limit` | `List[LeadPublic]` (includes nested relationships) |
 | GET | `/api/leads/{lead_id}` | Get lead | Path `lead_id` | `LeadPublic` |
 | PUT | `/api/leads/{lead_id}` | Update lead | JSON: same fields as create | `LeadPublic` |
 | DELETE | `/api/leads/{lead_id}` | Delete lead | Path `lead_id` | 204 No Content |
+| POST | `/api/leads/{lead_id}/image` | Upload/replace lead card image | `multipart/form-data` with image file `file` | `LeadPublic` |
+| DELETE | `/api/leads/{lead_id}/image` | Remove stored lead image | Path `lead_id` | `LeadPublic` |
 
 ### Lead Linking Shortcuts
 

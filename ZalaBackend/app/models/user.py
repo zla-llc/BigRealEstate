@@ -38,6 +38,7 @@ class User(Base):
     )
 
     campaigns: Mapped[List["Campaign"]] = relationship("Campaign", back_populates="user")
+    boards: Mapped[List["Board"]] = relationship("Board", back_populates="user")
 
     @property
     def gmail_connected(self) -> bool:

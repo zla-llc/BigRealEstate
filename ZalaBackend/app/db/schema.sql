@@ -1,12 +1,18 @@
 -- drop types
 DROP TYPE IF EXISTS user_role;
 -- drop tables
+DROP TABLE IF EXISTS board_step_properties;
+DROP TABLE IF EXISTS board_step_leads;
 DROP TABLE IF EXISTS lead_properties;
+DROP TABLE IF EXISTS board_steps;
+DROP TABLE IF EXISTS boards;
 DROP TABLE IF EXISTS user_properties;
 DROP TABLE IF EXISTS user_authentication;
 DROP TABLE IF EXISTS units;
 DROP TABLE IF EXISTS properties;
+DROP TABLE IF EXISTS property_images;
 DROP TABLE IF EXISTS leads;
+DROP TABLE IF EXISTS lead_images;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS contacts;
 DROP TABLE IF EXISTS addresses;
@@ -43,6 +49,19 @@ CREATE TABLE users (
     updated_at      TIMESTAMPTZ
 );
 
+CREATE TABLE boards (
+    board_id        SERIAL PRIMARY KEY,
+    board_name      TEXT NOT NULL,
+    user_id         INTEGER REFERENCES users(user_id) ON DELETE SET NULL
+);
+
+CREATE TABLE board_steps (
+    board_step_id   SERIAL PRIMARY KEY,
+    board_id        INTEGER NOT NULL REFERENCES boards(board_id) ON DELETE CASCADE,
+    board_column    INTEGER NOT NULL,
+    step_name       TEXT
+);
+
 CREATE TABLE leads (
     lead_id         SERIAL PRIMARY KEY,
     created_by      INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
@@ -52,7 +71,17 @@ CREATE TABLE leads (
     business        TEXT,
     website         TEXT,
     license_num     TEXT,
-    notes           TEXT
+    notes           TEXT,
+    image_url       TEXT
+);
+
+CREATE TABLE lead_images (
+    lead_image_id   SERIAL PRIMARY KEY,
+    lead_id         INTEGER NOT NULL REFERENCES leads(lead_id) ON DELETE CASCADE,
+    image_url       TEXT NOT NULL,
+    caption         TEXT,
+    sort_order      INTEGER NOT NULL DEFAULT 0,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE user_authentication (
@@ -63,6 +92,10 @@ CREATE TABLE user_authentication (
     provider_email  TEXT
 );
 
+CREATE TABLE board_step_leads (
+    board_step_id   INTEGER REFERENCES board_steps(board_step_id) ON DELETE CASCADE,
+    lead_id         INTEGER REFERENCES leads(lead_id) ON DELETE CASCADE,
+    PRIMARY KEY (board_step_id, lead_id)
 CREATE TABLE user_google_credentials (
     user_id                     INTEGER PRIMARY KEY REFERENCES users(user_id) ON DELETE CASCADE,
     access_token_encrypted      TEXT,
@@ -80,7 +113,23 @@ CREATE TABLE properties (
     address_id      INTEGER REFERENCES addresses(address_id),
     mls_number      TEXT UNIQUE,
     lead_id         INTEGER REFERENCES leads(lead_id),
-    notes           TEXT
+    notes           TEXT,
+    image_url       TEXT
+);
+
+CREATE TABLE property_images (
+    property_image_id SERIAL PRIMARY KEY,
+    property_id     INTEGER NOT NULL REFERENCES properties(property_id) ON DELETE CASCADE,
+    image_url       TEXT NOT NULL,
+    caption         TEXT,
+    sort_order      INTEGER NOT NULL DEFAULT 0,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE board_step_properties (
+    board_step_id   INTEGER REFERENCES board_steps(board_step_id) ON DELETE CASCADE,
+    property_id     INTEGER REFERENCES properties(property_id) ON DELETE CASCADE,
+    PRIMARY KEY (board_step_id, property_id)
 );
 
 CREATE TABLE units (

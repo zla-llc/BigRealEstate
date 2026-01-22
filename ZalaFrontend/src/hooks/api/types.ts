@@ -1,4 +1,10 @@
-import type { AContact, ILead } from "../../interfaces";
+import type { AContact, IContact, ILead } from "../../interfaces";
+
+export type APIHookProps = {
+  signal: AbortSignal;
+  getSignal: (val: string) => AbortSignal;
+  idsToQueryString: (ids: (string | number)[], prefix?: string) => string;
+};
 
 export type APIResponse<T> = {
   data: T | null;
@@ -16,6 +22,11 @@ export type SearchLeadsResponse = {
 };
 
 export type CreateContactProps = Omit<AContact, "contact_id">;
+
+export type EditContactProps = {
+  newContact: Partial<IContact> & { contactId: number };
+  ogContact: IContact;
+};
 
 export type CreateUserProps = {
   username: string;
@@ -99,12 +110,9 @@ export type CreateLeadProps = {
 };
 
 export type UpdateLeadProps = {
-  leadId: number;
-  userId: number;
-  buisness: string;
-  website: string;
-  licenseNumber: string;
-  notes: string;
+  createdById: number;
+  newLead: Partial<ILead> & { leadId: number };
+  ogLead: ILead;
 };
 
 export type UpdateCampaignLeadProps = {
@@ -112,4 +120,43 @@ export type UpdateCampaignLeadProps = {
   leadId: number;
   userId: number;
   contactMethods: string[];
+};
+
+export type CreateBoardProps = {
+  boardName: string;
+  userId: number;
+};
+
+export type CreateBoardStepProps = {
+  boardId: number;
+  boardColumn: number;
+  stepName: string;
+};
+
+export type UpdateBoardProps = CreateBoardProps & {
+  boardId: number;
+};
+
+export type CreateManualLeadProps = {
+  business: string;
+  personType: string;
+  website: string;
+  licenseNum: string;
+  notes: string;
+};
+
+type CreateImageProps = {
+  file: File;
+  gallery?: boolean;
+  sortOrder?: string;
+  caption?: string;
+};
+
+export type CreateLeadImageProps = CreateImageProps & {
+  leadId: number;
+};
+
+export type CreatePropertyImageProps = CreateImageProps & {
+  propertyId: number;
+  addressId: number;
 };

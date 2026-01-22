@@ -1,0 +1,75 @@
+import type { AContact } from "./Contact";
+
+export type BoardSummary = {
+  board_id: number;
+  board_name: string;
+  user_id?: number | null;
+  user?: {
+    user_id: number;
+    username?: string | null;
+    profile_pic?: string | null;
+  } | null;
+};
+
+export type CardImage = {
+  lead_image_id?: number;
+  property_image_id?: number;
+  image_url: string;
+  caption?: string | null;
+  sort_order?: number | null;
+};
+
+export type LeadCard = {
+  lead_id: number;
+  person_type?: string | null;
+  business?: string | null;
+  website?: string | null;
+  license_num?: string | null;
+  notes?: string | null;
+  image_url?: string | null;
+  images?: CardImage[];
+  created_by?: number | null;
+  created_by_user?: {
+    user_id: number;
+    username?: string | null;
+  } | null;
+  contact?: AContact | null;
+  address?: {
+    address_id?: number | null;
+    street_1?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zipcode?: string | null;
+  } | null;
+};
+
+export type PropertyCard = {
+  property_id: number;
+  property_name: string;
+  mls_number?: string | null;
+  notes?: string | null;
+  address_id?: number | null;
+  image_url?: string | null;
+  images?: CardImage[];
+  address?: {
+    address_id?: number | null;
+    street_1?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zipcode?: string | null;
+  } | null;
+};
+
+export type BoardStepCard = {
+  board_step_id: number;
+  board_id: number;
+  board_column: number;
+  step_name: string;
+  board?: BoardSummary;
+  leads: LeadCard[];
+  properties: PropertyCard[];
+};
+
+export type KanbanBoard = BoardSummary & {
+  board_steps: BoardStepCard[];
+};

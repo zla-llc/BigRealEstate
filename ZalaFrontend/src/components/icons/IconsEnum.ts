@@ -19,4 +19,12 @@ export enum Icons {
   Txt = "Txt",
   Skip = "Skip",
   Lock = "Lock",
+  Kanban = "Kanban",
+  Add = "Add",
+  Back = "Back",
+  Trash = "Trash",
+  AddBox = "AddBox",
+  Settings = "Settings",
+  Upload = "Upload",
+  Edit = "Edit",
 }

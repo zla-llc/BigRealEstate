@@ -157,18 +157,15 @@ export const useCampaignPageAPI = ({
       return;
 
     const res = await updateLead({
-      userId: user!.userId,
-      buisness: viewingLead.buisness,
-      leadId: viewingLead.leadId,
-      licenseNumber: viewingLead.licenseNum,
-      notes,
-      website: viewingLead.website,
+      createdById: user!.userId,
+      newLead: { ...viewingLead, notes },
+      ogLead: viewingLead,
     });
 
     if (res.err || !res.data)
       return apiResponseError("updating a lead", res.err);
 
-    const apiLead = Normalizer.APINormalizer.lead(res.data);
+    const apiLead = Normalizer.APINormalizer.lead(res.data.lead);
 
     setLeads(
       produce((draft) => {
