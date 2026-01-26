@@ -19,3 +19,13 @@ class Team(Base):
     properties: Mapped[List["Property"]] = relationship(back_populates="team")
     boards: Mapped[List["Board"]] = relationship(back_populates="team")
     invitations: Mapped[List["TeamInvitation"]] = relationship(back_populates="team", cascade="all, delete-orphan")
+
+    @property
+    def admin_users(self):
+        """Returns a list of User objects who are admins"""
+        return [link.user for link in self.member_links if link.role == "admin"]
+
+    @property
+    def member_users(self):
+        """Returns a list of User objects who are regular members"""
+        return [link.user for link in self.member_links if link.role == "member"]
