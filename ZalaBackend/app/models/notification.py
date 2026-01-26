@@ -14,6 +14,7 @@ class Notification(Base):
     title: Mapped[Optional[str]] = mapped_column(String(255))
     message: Mapped[Optional[str]] = mapped_column(Text)
     viewed: Mapped[bool] = mapped_column(Boolean, default=False)
+    invitation_id: Mapped[int] = mapped_column(ForeignKey("team_invitations.invitation_id"), nullable=True)
     recipient_id: Mapped[int] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"))
     sender_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("users.user_id", ondelete="SET NULL", nullable=True))  # None = system
@@ -28,4 +29,9 @@ class Notification(Base):
         "User",
         foreign_keys=[sender_id],
         back_populates="notifications_sent"
+    )
+    team_invitation: Mapped["TeamInvitation"] = relationship(
+        "TeamInvitation",
+        back_populates="notification",
+        uselist=False
     )
