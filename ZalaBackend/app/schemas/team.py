@@ -5,11 +5,23 @@ from pydantic import BaseModel, Field, ConfigDict
 # Import the specific schemas we need
 from app.schemas.user import UserSummary
 from app.schemas.team_invitation import TeamInvitationPublic
+from app.schemas.property import PropertyPublic
+from app.schemas.board import BoardPublic
 
 
 class TeamRole(str, Enum):
     ADMIN = "admin"
     MEMBER = "member"
+
+
+class TeamSummary(BaseModel):
+    """Lightweight summary of a Team for embedding in other resources."""
+    team_id: int
+    team_name: str
+    xp: int
+
+    class Config:
+        from_attributes = True
 
 
 class TeamBase(BaseModel):
@@ -39,17 +51,43 @@ class TeamMemberPublic(BaseModel):
 
 
 class TeamPublic(TeamBase):
-    """Schema for Team"""
+    """Schema for Team incl. properties and boards"""
     team_id: int
     created_at: datetime
     updated_at: Optional[datetime] = None
     member_links: List[TeamMemberPublic] = Field(default=[], alias="members")
     # ^ json obj will show "members" but pydantic will pull "member_links" from user_teams
-    invitations: List[TeamInvitationPublic] = []
+    properties: List[PropertyPublic] = []
+    boards: List[BoardPublic] = []
 
     class Config:
-        from_attributes = True,
+        from_attributes = True
         populate_by_name = True
+
+
+class TeamAdminsPublic(TeamBase):
+    """Schema for returning ONLY admin users."""
+    team_id: int
+    # alias="admin_users" pulls data from the model property @admin_users
+    admins: List[UserSummary] = Field(default=[], alias="admin_users")
+
+    class Config:
+        from_attributes = True
+
+
+class TeamMembersOnlyPublic(TeamBase):
+    """Schema for returning ONLY regular members."""
+    team_id: int
+    # alias="member_users" pulls data from the model property @member_users
+    members: List[UserSummary] = Field(default=[], alias="member_users")
+
+    class Config:
+        from_attributes = True
+
+
+class TeamPublicWithInvitations(TeamPublic):
+    """Schema for Team with invitations MEANT FOR ADMINS ONLY"""
+    invitations: List[TeamInvitationPublic] = []
 
 
 class TeamLeaderboardEntry(BaseModel):
