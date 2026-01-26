@@ -177,7 +177,7 @@ VITE_GOOGLE_SCOPES="openid email profile https://www.googleapis.com/auth/gmail.s
 
 1. Visit [Google Cloud Console](https://console.cloud.google.com/).
 2. Create or select an existing project.
-3. Enable the **Geocoding API**, **Places API**, and **Maps JavaScript API**.
+3. Enable the **Gmail API**, **Geocoding API**, **Geolocation API**, **Places API**, **Places API (new)**, and **Maps JavaScript API**.
 4. Go to **APIs & Services → Credentials → Create Credentials → API Key**.
 5. Copy the key and add it to your `.env` file:
 
@@ -244,9 +244,9 @@ Each service requires a developer account to generate and manage API credentials
 1. Visit [RapidAPI](https://rapidapi.com) and log in or create an account.
 2. Navigate to the **"My Apps"** section from your dashboard.
 3. Select an existing application or create a new one.
-   Need to subscribe https://rapidapi.com/ntd119/api/zillow-com4/playground/apiendpoint_85a30d86-7f81-4503-b49e-0c6ffe1f5f97
-4. Copy your personal API key.
-5. Add it to your `.env` file as:
+4. Open the search menu and subscribe to "zillow.com Realtime Scraper"
+5. Go to console and find the zillow API. Copy your personal API key.
+6. Add it to your `.env` file as:
 
    ```
    RAPIDAPI_KEY=<your_rapid_api_key>
@@ -256,7 +256,7 @@ Each service requires a developer account to generate and manage API credentials
 
 1. Go to [OpenAI API Keys](https://platform.openai.com/account/api-keys).
 2. Sign in with your OpenAI account.
-3. Click **“Create new secret key.”**
+3. Click **“Create new secret key.”** on the API keys page.
 4. Copy the key immediately (it won’t be shown again).
 5. Add it to your `.env` file as:
 
@@ -391,13 +391,13 @@ The Gmail integration now requires full OAuth consent with the `https://www.goog
 
    This key is used to encrypt Google access and refresh tokens at rest.
 
-2. Update your OAuth consent screen to include Gmail scopes and allow the `postmessage` redirect URI.
+2. Go to OAuth Consent Screen and select Data Access. Update it to include Gmail scopes and allow the `postmessage` redirect URI.
 
 3. Sign in via Google from the login/signup pages on the application. The server exchanges the authorization code, stores encrypted refresh tokens, and the returned `UserPublic` now exposes a `gmail_connected` flag so the UI can reflect status.
 
 4. Open `/email-test` in the frontend to send a sample email. The page calls `POST /api/google-mail/send`, which relays the message through Gmail with the stored credentials.
 
-If Gmail stops working for a user, have them re-run Google sign-in so a new refresh token is issued.
+If Gmail stops working for a user, have them re-run Google sign-in so a new refresh token is issued. If the email fails to send due to an authentication scope error, go back to the APIs page and click on the Gmail API, then check if there's a service account under the credentials tab and if so disable or delete it.
 
 > **Note:** The Gmail API must be enabled for the same Google Cloud project that owns your OAuth client. Visit https://console.cloud.google.com/apis/api/gmail.googleapis.com/overview?project=<your_project_id> and click **Enable** (or re-enable) before testing email sends, otherwise Google will return `SERVICE_DISABLED / accessNotConfigured`.
 > **Account linking rule:** Connecting Gmail to an existing Zala account requires using the exact same email address during Google sign-in. If the emails do not match, the backend will reject the link so the wrong Google account cannot be attached.
