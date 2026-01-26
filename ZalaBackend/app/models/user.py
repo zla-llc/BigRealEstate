@@ -44,12 +44,19 @@ class User(Base):
 
     notifications_received: Mapped[List["Notification"]] = relationship(
         "Notification",
-        foreign_keys="[Notification.recipient_id]",
         back_populates="recipient"
     )
     notifications_sent: Mapped[List["Notification"]] = relationship(
         "Notification",
-        foreign_keys="[Notification.sender_id]",
+        back_populates="sender"
+    )
+
+    invitations_received: Mapped[List["TeamInvitation"]] = relationship(
+        "TeamInvitation",
+        back_populates="recipient"
+    )
+    invitations_sent: Mapped[List["TeamInvitation"]] = relationship(
+        "TeamInvitation",
         back_populates="sender"
     )
 
