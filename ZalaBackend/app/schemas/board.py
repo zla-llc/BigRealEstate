@@ -38,6 +38,7 @@ class BoardPublic(BoardBase):
     board_id: int
     user: Optional[UserPublic] = None
     board_steps: List[BoardStepPublic] = Field(default_factory=list)
+    team: Optional[TeamSummary]
 
     class Config:
         from_attributes = True
