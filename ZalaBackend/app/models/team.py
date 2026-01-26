@@ -10,7 +10,7 @@ class Team(Base):
     __tablename__ = "teams"
 
     team_id: Mapped[int] = mapped_column(primary_key=True)
-    team_name: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    team_name: Mapped[str] = mapped_column(String(75), unique=True, nullable=False)
     xp: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(onupdate=func.now(), nullable=True)
