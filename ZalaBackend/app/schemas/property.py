@@ -44,6 +44,7 @@ class PropertyPublic(PropertyBase):
     address: Optional[AddressPublic] = None
     units: List[UnitPublic] = []
     images: List[PropertyImagePublic] = Field(default_factory=list)
+    team: Optional[TeamSummary]
 
     class Config:
         from_attributes = True
