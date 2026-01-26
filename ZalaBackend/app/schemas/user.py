@@ -5,6 +5,8 @@ from typing import Optional, List
 from app.models.contact import Contact
 from app.schemas.contact import ContactPublic, ContactBase, ContactCreate
 from app.schemas.summaries import LeadSummary
+from app.schemas.notification import NotificationPublic
+from app.schemas.team_invitation import TeamInvitationPublic
 
 
 class UserSummary(BaseModel):
@@ -91,3 +93,13 @@ class UserPublicWithLeadsAndProperties(UserPublic):
     """
     leads_created: List[LeadSummary] = []
     properties: List[int] = []
+
+
+class UserPublicWithNotifications(UserPublic):
+    notifications_received: List[NotificationPublic] = Field(default=[], alias="notifications_received")
+    notifications_sent: List[NotificationPublic] = Field(default=[], alias="notifications_sent")
+
+
+class UserPublicWithInvitations(UserPublic):
+    invitations_received: List[TeamInvitationPublic] = Field(default=[], alias="invitations_received")
+    invitations_sent: List[TeamInvitationPublic] = Field(default=[], alias="invitations_sent")
