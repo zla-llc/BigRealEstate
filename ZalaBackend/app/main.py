@@ -26,6 +26,7 @@ from app.routes import (
     google_mail,
     smtp,
     notifications,
+    websocket,
 )
 from app.services.file_storage import get_upload_root
 
@@ -85,3 +86,6 @@ app.include_router(smtp.router, prefix="/api", include_in_schema=True)
 
 # Notifications routes
 app.include_router(notifications.router, prefix="/api", include_in_schema=True)
+
+# WebSocket routes (no /api prefix for WebSocket)
+app.include_router(websocket.router, include_in_schema=True)

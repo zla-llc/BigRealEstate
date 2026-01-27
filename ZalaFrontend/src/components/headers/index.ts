@@ -6,3 +6,4 @@ export * from "./ModalHeader";
 export * from "./PageHeader";
 export * from "./LeadsSelectedHeader";
 export * from "./CreateLeadsSelectedHeader";
+export * from "./NotificationBell";

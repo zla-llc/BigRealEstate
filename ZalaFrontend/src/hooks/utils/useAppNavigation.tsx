@@ -24,6 +24,8 @@ export const useAppNavigation = () => {
 
   const toSMTPTestPage = () => navigate("/demos/smtp");
 
+  const toTeamInviteTestPage = () => navigate("/demos/team");
+
   const toPastCampaigns = () => navigate("/campaigns");
 
   const toBoardsV2Page = () => navigate("/boards/v2");
@@ -42,6 +44,7 @@ export const useAppNavigation = () => {
     toPastCampaigns,
     toCampaignEmailTestPage,
     toSMTPTestPage,
+    toTeamInviteTestPage,
     toBoardsV2Page,
   };
 };

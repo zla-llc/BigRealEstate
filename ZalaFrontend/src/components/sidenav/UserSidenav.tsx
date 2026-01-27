@@ -15,6 +15,7 @@ export const UserSidenav = () => {
     toCampaignEmailTestPage,
     toEmailTestPage,
     toSMTPTestPage,
+    toTeamInviteTestPage,
   } = useAppNavigation();
 
   const onLogout = () => (closeSideNav(), logout());
@@ -80,6 +81,11 @@ export const UserSidenav = () => {
             <MenuButton
               text="SMTP Email Test"
               onClick={() => (closeSideNav(), toSMTPTestPage())}
+            />
+
+            <MenuButton
+              text="Team Invite Test"
+              onClick={() => (closeSideNav(), toTeamInviteTestPage())}
             />
           </div>
         </div>

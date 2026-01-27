@@ -3,6 +3,7 @@ Team routes with invitation and notification functionality.
 """
 import os
 import smtplib
+import asyncio
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import List
@@ -15,6 +16,7 @@ from app.db.crud import team as team_crud
 from app.db.crud import team_invitation as invitation_crud
 from app.db.crud import notification as notification_crud
 from app.db.session import get_db
+from app.routes.websocket import send_notification_to_user, send_team_update
 
 router = APIRouter(prefix="/teams", tags=["Teams"])
 
@@ -128,12 +130,26 @@ def add_member(team_id: int, user_id: int, db: Session = Depends(get_db)):
     response_model=schemas.TeamPublic,
     summary="Remove user from member list",
 )
-def remove_member(team_id: int, user_id: int, db: Session = Depends(get_db)):
+async def remove_member(team_id: int, user_id: int, db: Session = Depends(get_db)):
     """Remove the user from the member list."""
 
     team = team_crud.remove_member(db, team_id, user_id)
     if not team:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+    
+    # Send WebSocket update for member removal
+    try:
+        await send_team_update(
+            team_id,
+            "member_removed",
+            {
+                "team_id": team_id,
+                "user_id": user_id
+            }
+        )
+    except Exception as e:
+        print(f"[WebSocket] Failed to send member_removed update: {e}")
+    
     return team
 
 
@@ -252,7 +268,7 @@ If you didn't expect this email, you can safely ignore it.
     status_code=status.HTTP_201_CREATED,
     summary="Invite someone to the team",
 )
-def invite_to_team(
+async def invite_to_team(
     team_id: int,
     sender_id: int,
     invitation_in: schemas.TeamInvitationCreate,
@@ -316,15 +332,34 @@ def invite_to_team(
     
     if recipient_user:
         # User exists → create in-app notification
-        notification_crud.create_notification(
+        notification = notification_crud.create_notification(
             db=db,
             recipient_id=recipient_user.user_id,
-            notification_type="team_invitation",
+            notification_type="team_invite",
             title=f"Team Invitation: {team.team_name}",
             message=f"{sender_name} has invited you to join the team '{team.team_name}'",
             sender_id=sender_id,
             invitation_id=invitation.invitation_id
         )
+        
+        # Send WebSocket notification for real-time update
+        try:
+            await send_notification_to_user(
+                recipient_user.user_id,
+                {
+                    "notification_id": notification.notification_id,
+                    "type": notification.type,
+                    "title": notification.title,
+                    "message": notification.message,
+                    "sender_id": notification.sender_id,
+                    "invitation_id": notification.invitation_id,
+                    "viewed": notification.viewed,
+                    "created_at": notification.created_at.isoformat() if notification.created_at else None
+                }
+            )
+        except Exception as e:
+            # WebSocket send failure shouldn't break the API
+            print(f"[WebSocket] Failed to send notification: {e}")
     else:
         # User doesn't exist → send email
         email_sent = _send_invitation_email(recipient_email, team.team_name, sender_name)
@@ -409,7 +444,7 @@ def get_user_pending_invitations(user_id: int, db: Session = Depends(get_db)):
     response_model=schemas.TeamInvitationPublic,
     summary="Accept or decline an invitation",
 )
-def respond_to_invitation(
+async def respond_to_invitation(
     invitation_id: int,
     user_id: int,
     response_in: schemas.TeamInvitationUpdate,
@@ -451,6 +486,34 @@ def respond_to_invitation(
     
     # Delete the notification for this invitation
     notification_crud.delete_notifications_by_invitation(db, invitation_id)
+    
+    # Send WebSocket update to team watchers
+    try:
+        # Send invitation status update
+        await send_team_update(
+            invitation.team_id,
+            "invitation_update",
+            {
+                "invitation_id": invitation.invitation_id,
+                "recipient_email": invitation.recipient_email,
+                "status": invitation.status,
+                "team_id": invitation.team_id
+            }
+        )
+        
+        # If accepted, also send member_joined event
+        if response_in.status:
+            await send_team_update(
+                invitation.team_id,
+                "member_joined",
+                {
+                    "team_id": invitation.team_id,
+                    "user_id": user_id,
+                    "email": invitation.recipient_email
+                }
+            )
+    except Exception as e:
+        print(f"[WebSocket] Failed to send team update: {e}")
     
     return schemas.TeamInvitationPublic(
         invitation_id=invitation.invitation_id,

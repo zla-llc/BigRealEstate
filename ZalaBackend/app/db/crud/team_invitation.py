@@ -191,13 +191,16 @@ def link_pending_invitations_to_user(db: Session, user_id: int, email: str) -> L
         # Update the invitation with the user's ID
         invitation.recipient_id = user_id
         
+        team_name = invitation.team.team_name if invitation.team else "a team"
+        
         # Create notification for each pending invitation
         notification_crud.create_notification(
             db=db,
             recipient_id=user_id,
+            notification_type="team_invite",
+            title=f"Team Invitation: {team_name}",
+            message=f"You have been invited to join the team '{team_name}'",
             sender_id=invitation.sender_id,
-            type="team_invite",
-            message=f"You have been invited to join the team '{invitation.team.team_name}'",
             invitation_id=invitation.invitation_id
         )
     

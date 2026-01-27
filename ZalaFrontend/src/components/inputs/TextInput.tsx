@@ -68,10 +68,11 @@ export const TextInput = ({
             "peer flex-1 outline-none text-xl rounded-[15px]",
             "px-2.5 cursor-text",
             "focus:outline-none",
+            "placeholder:text-secondary-50",
             optional ? "text-secondary-50" : "text-secondary"
           )}
           type={secure ? "password" : type ?? "text"}
-          placeholder={placeholder}
+          placeholder={label ? "" : placeholder}
           value={value}
           onChange={onChange}
           onKeyDown={onKeyPress}
