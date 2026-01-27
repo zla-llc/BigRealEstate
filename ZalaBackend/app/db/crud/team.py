@@ -27,6 +27,11 @@ def get_team_by_id(db: Session, team_id: int) -> Optional[Team]:
     )
 
 
+def get_team_with_members(db: Session, team_id: int) -> Optional[Team]:
+    """Return a single team by id with all members loaded. Alias for get_team_by_id."""
+    return get_team_by_id(db, team_id)
+
+
 def get_teams(db: Session, skip: int = 0, limit: int = 100) -> List[Team]:
     """Return a paginated list of teams."""
 
@@ -67,6 +72,7 @@ def create_team_with_admin(db: Session, team_in: schemas.TeamCreate, admin_user_
     
     payload = _prepare_team_payload(team_in.model_dump())
     team = Team(**payload)
+    team.created_by_user_id = admin_user_id  # Track who created the team
     db.add(team)
     db.flush()  # Get the team_id
     

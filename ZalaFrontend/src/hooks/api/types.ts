@@ -185,6 +185,7 @@ export type Team = {
   team_id: number;
   team_name: string;
   created_at: string;
+  created_by_user_id?: number;
 };
 
 export type TeamMember = {
@@ -220,6 +221,7 @@ export type Notification = {
   viewed: boolean;
   created_at: string;
   invitation_id?: number;
+  team_id?: number;
 };
 
 export type CreateTeamRequest = {

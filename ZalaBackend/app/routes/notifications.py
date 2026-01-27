@@ -30,9 +30,28 @@ def get_user_notifications(
     - **limit**: Max notifications to return
     - **unread_only**: If true, only return unread notifications
     """
-    return notification_crud.get_notifications_by_recipient(
+    notifications = notification_crud.get_notifications_by_recipient(
         db, user_id, skip=skip, limit=limit, unread_only=unread_only
     )
+    
+    # Convert to response with team_id
+    result = []
+    for notif in notifications:
+        notif_dict = {
+            "notification_id": notif.notification_id,
+            "type": notif.type,
+            "title": notif.title,
+            "message": notif.message,
+            "viewed": notif.viewed,
+            "recipient_id": notif.recipient_id,
+            "sender_id": notif.sender_id,
+            "invitation_id": notif.invitation_id,
+            "team_id": notif.team_invitation.team_id if notif.team_invitation else None,
+            "created_at": notif.created_at,
+        }
+        result.append(schemas.NotificationPublic(**notif_dict))
+    
+    return result
 
 
 @router.get("/user/{user_id}/unread-count")

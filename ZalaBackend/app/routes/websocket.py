@@ -249,3 +249,25 @@ async def send_team_update(team_id: int, update_type: str, data: dict) -> None:
         "data": data
     }
     await team_manager.broadcast_to_team(team_id, message)
+
+
+async def send_team_update_to_users(user_ids: list, update_type: str, data: dict) -> None:
+    """
+    Send a team update directly to specific users via their personal notification WebSocket.
+    This is useful for team-wide events like team deletion where users might not be
+    connected to the team's specific WebSocket channel.
+    
+    Args:
+        user_ids: List of user IDs to notify
+        update_type: Type of update (team_deleted, team_joined, etc.)
+        data: The update data
+    """
+    message = {
+        "type": update_type,
+        "data": data
+    }
+    for user_id in user_ids:
+        try:
+            await manager.send_personal_message(message, user_id)
+        except Exception as e:
+            print(f"[WebSocket] Failed to send {update_type} to user {user_id}: {e}")

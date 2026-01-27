@@ -16,7 +16,7 @@ from app.db.crud import team as team_crud
 from app.db.crud import team_invitation as invitation_crud
 from app.db.crud import notification as notification_crud
 from app.db.session import get_db
-from app.routes.websocket import send_notification_to_user, send_team_update
+from app.routes.websocket import send_notification_to_user, send_team_update, send_team_update_to_users
 
 router = APIRouter(prefix="/teams", tags=["Teams"])
 
@@ -92,6 +92,16 @@ def read_team(team_id: int, db: Session = Depends(get_db)):
     return team
 
 
+@router.get("/{team_id}/members", response_model=schemas.TeamPublic)
+def get_team_with_members(team_id: int, db: Session = Depends(get_db)):
+    """Retrieve a team with all its members."""
+
+    team = team_crud.get_team_with_members(db, team_id)
+    if not team:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+    return team
+
+
 @router.put("/{team_id}", response_model=schemas.TeamPublic)
 def update_team(team_id: int, team_in: schemas.TeamUpdate, db: Session = Depends(get_db)):
     """Update mutable team fields."""
@@ -103,7 +113,7 @@ def update_team(team_id: int, team_in: schemas.TeamUpdate, db: Session = Depends
 
 
 @router.delete("/{team_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_team(team_id: int, requester_id: int, db: Session = Depends(get_db)):
+async def delete_team(team_id: int, requester_id: int, db: Session = Depends(get_db)):
     """Delete a team. Only team admins can delete the team."""
     
     # Check team exists
@@ -118,8 +128,40 @@ def delete_team(team_id: int, requester_id: int, db: Session = Depends(get_db)):
             detail="Only team admins can delete the team"
         )
 
+    # Get all member user IDs before deleting (for WebSocket broadcast)
+    member_user_ids = [link.user_id for link in team.member_links]
+    team_name = team.team_name
+
     if not team_crud.delete_team(db, team_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+    
+    # Broadcast team_deleted to all members via BOTH channels:
+    # 1. Team-specific WebSocket (for those viewing the team)
+    # 2. Personal notification WebSocket (for those on the My Teams page)
+    try:
+        # Send to team channel
+        await send_team_update(
+            team_id,
+            "team_deleted",
+            {
+                "team_id": team_id,
+                "team_name": team_name,
+                "member_user_ids": member_user_ids
+            }
+        )
+        
+        # Send to each member's personal notification WebSocket
+        await send_team_update_to_users(
+            member_user_ids,
+            "team_deleted",
+            {
+                "team_id": team_id,
+                "team_name": team_name
+            }
+        )
+    except Exception as e:
+        print(f"[WebSocket] Failed to send team_deleted update: {e}")
+
     return None
 
 
@@ -548,6 +590,9 @@ async def respond_to_invitation(
             from app.db.crud import user as user_crud
             joined_user = user_crud.get_user_by_id(db, user_id)
             
+            # Get the team with members for the joining user
+            joined_team = team_crud.get_team_with_members(db, invitation.team_id)
+            
             await send_team_update(
                 invitation.team_id,
                 "member_joined",
@@ -560,6 +605,32 @@ async def respond_to_invitation(
                     "role": "member"
                 }
             )
+            
+            # Send team_joined to the user who accepted so their "My Teams" updates
+            if joined_team:
+                team_data = {
+                    "team_id": joined_team.team_id,
+                    "team_name": joined_team.team_name,
+                    "xp": joined_team.xp,
+                    "created_by_user_id": joined_team.created_by_user_id,
+                    "members": [
+                        {
+                            "user": {
+                                "user_id": link.user.user_id,
+                                "email": link.user.email,
+                                "username": link.user.username,
+                                "profile_pic": link.user.profile_pic
+                            },
+                            "role": link.role
+                        }
+                        for link in joined_team.member_links
+                    ]
+                }
+                await send_team_update_to_users(
+                    [user_id],
+                    "team_joined",
+                    team_data
+                )
     except Exception as e:
         print(f"[WebSocket] Failed to send team update: {e}")
     

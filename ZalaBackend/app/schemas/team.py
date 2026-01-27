@@ -53,6 +53,7 @@ class TeamMemberPublic(BaseModel):
 class TeamPublic(TeamBase):
     """Schema for Team incl. properties and boards"""
     team_id: int
+    created_by_user_id: Optional[int] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     member_links: List[TeamMemberPublic] = Field(default=[], alias="members")

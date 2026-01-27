@@ -10,3 +10,4 @@ export * from "./AddBoardStepLeadStore";
 export * from "./BoardModalControlStore";
 export * from "./BoardStore";
 export * from "./NotificationStore";
+export * from "./TeamsStore";

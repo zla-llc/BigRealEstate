@@ -31,6 +31,7 @@ class NotificationPublic(NotificationBase):
     recipient_id: int
     sender_id: Optional[int] = None
     invitation_id: Optional[int] = None
+    team_id: Optional[int] = None
     created_at: datetime
 
     class Config:

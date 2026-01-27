@@ -4,7 +4,7 @@ import { Icons, Icon } from "../../components/icons";
 import { IconButtonVariant } from "../../components/buttons";
 import { useApi } from "../../hooks";
 import { useSnack } from "../../hooks/utils";
-import { useAuthStore } from "../../stores";
+import { useAuthStore, useTeamsStore } from "../../stores";
 import { CONFIG } from "../../config";
 import type {
   TeamWithMembers,
@@ -16,11 +16,15 @@ export const TeamInviteTestPage = () => {
   const [successMsg, errorMsg] = useSnack();
   const user = useAuthStore((state) => state.user);
   
+  // Teams store - use as single source of truth
+  const teams = useTeamsStore((state) => state.teams);
+  const setTeams = useTeamsStore((state) => state.setTeams);
+  const removeTeam = useTeamsStore((state) => state.removeTeam);
+  
   // Ref to prevent infinite fetching
   const hasFetchedTeams = useRef(false);
 
   // State
-  const [teams, setTeams] = useState<TeamWithMembers[]>([]);
   const [selectedTeam, setSelectedTeam] = useState<TeamWithMembers | null>(null);
   const [invitations, setInvitations] = useState<TeamInvitation[]>([]);
   
@@ -202,6 +206,28 @@ export const TeamInviteTestPage = () => {
               };
             })
           );
+        }
+
+        if (message.type === "team_deleted") {
+          console.log("[TeamWS] Team deleted, removing from state...");
+          const deletedTeamId = message.data.team_id;
+          
+          // Clear selected team if it's the deleted one
+          setSelectedTeam((prev) => {
+            if (prev?.team_id === deletedTeamId) {
+              return null;
+            }
+            return prev;
+          });
+          
+          // Remove the team from teams list
+          setTeams((prev) => prev.filter((t) => t.team_id !== deletedTeamId));
+          
+          // Also remove from the global store
+          removeTeam(deletedTeamId);
+          
+          // Exit edit mode if active
+          setEditMode(false);
         }
       } catch (error) {
         console.error("[TeamWS] Failed to parse message:", error);
@@ -390,7 +416,21 @@ export const TeamInviteTestPage = () => {
     return member.user?.username || `User #${member.user?.user_id ?? "unknown"}`;
   };
 
-  // Check if current user is admin of the selected team
+  // Check if current user is the team creator (original admin)
+  // Falls back to admin check for teams created before created_by_user_id was added
+  const isCurrentUserCreator = (team: TeamWithMembers | null): boolean => {
+    if (!team || !user) return false;
+    // If created_by_user_id is set, check if current user is the creator
+    if (team.created_by_user_id) {
+      return team.created_by_user_id === user.userId;
+    }
+    // Fallback for old teams: treat any admin as having creator privileges
+    return team.members.some(
+      (m) => m.user.user_id === user.userId && m.role === "admin"
+    );
+  };
+
+  // Check if current user is any admin of the selected team
   const isCurrentUserAdmin = (team: TeamWithMembers | null): boolean => {
     if (!team || !user) return false;
     return team.members.some(
@@ -517,17 +557,20 @@ export const TeamInviteTestPage = () => {
                 Team Members - {selectedTeam.team_name}
               </p>
               <div className="flex items-center gap-2">
-                {editMode && isCurrentUserAdmin(selectedTeam) && (
+                {editMode && isCurrentUserCreator(selectedTeam) && (
                   <Button
                     text={deletingTeam ? "Deleting..." : "Delete Team"}
                     onClick={onDeleteTeam}
                     disabled={deletingTeam}
                   />
                 )}
-                <Button
-                  text={editMode ? "Done" : "Edit"}
-                  onClick={() => setEditMode(!editMode)}
-                />
+                {/* Only the creator can access Edit mode */}
+                {isCurrentUserCreator(selectedTeam) && (
+                  <Button
+                    text={editMode ? "Done" : "Edit"}
+                    onClick={() => setEditMode(!editMode)}
+                  />
+                )}
               </div>
             </div>
             {selectedTeam.members?.length === 0 ? (
@@ -595,8 +638,8 @@ export const TeamInviteTestPage = () => {
 
       {/* Right Column - Invitations */}
       <div className="flex flex-col w-1/2 gap-6">
-        {/* Invite to Team Card */}
-        {selectedTeam && (
+        {/* Invite to Team Card - Only visible to admins */}
+        {selectedTeam && isCurrentUserAdmin(selectedTeam) && (
           <div className="card-base box-shadow p-6 space-y-4">
             <div className="flex items-center gap-2">
               <Icon name={Icons.Mail} className="text-accent" />

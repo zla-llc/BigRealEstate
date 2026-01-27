@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { useAuthStore, useNotificationStore } from "../../stores";
+import { useAuthStore, useNotificationStore, useTeamsStore } from "../../stores";
 import { useApi, useAppNavigation } from "../../hooks";
 import { wsManager } from "../../utils";
 import { CONFIG } from "../../config";
 import { Icons, Icon } from "../icons";
-import type { Notification } from "../../hooks/api/types";
+import type { Notification, TeamWithMembers } from "../../hooks/api/types";
 
 export const NotificationBell = () => {
   const user = useAuthStore((state) => state.user);
@@ -15,6 +15,7 @@ export const NotificationBell = () => {
     addNotification,
     markAsRead,
   } = useNotificationStore();
+  const { addTeam, removeTeam } = useTeamsStore();
   const api = useApi();
   const { toTeamInviteTestPage } = useAppNavigation();
   
@@ -55,8 +56,22 @@ export const NotificationBell = () => {
       addNotification(message.data as Notification);
     });
 
+    // Listen for team_deleted events - remove team from My Teams in real-time
+    const unsubscribeTeamDeleted = wsManager.on<{ team_id: number; team_name: string }>("team_deleted", (message) => {
+      console.log("[NotificationBell] Team deleted:", message.data);
+      removeTeam(message.data.team_id);
+    });
+
+    // Listen for team_joined events - add team to My Teams when user accepts invitation
+    const unsubscribeTeamJoined = wsManager.on<TeamWithMembers>("team_joined", (message) => {
+      console.log("[NotificationBell] Team joined:", message.data);
+      addTeam(message.data);
+    });
+
     return () => {
       unsubscribe();
+      unsubscribeTeamDeleted();
+      unsubscribeTeamJoined();
       wsManager.disconnect();
       wsConnected.current = false;
     };
@@ -84,7 +99,8 @@ export const NotificationBell = () => {
   const onRespondToInvitation = async (
     invitationId: number,
     accept: boolean,
-    notificationId: number
+    notificationId: number,
+    _teamId?: number // teamId kept for backwards compatibility, WebSocket handles team addition now
   ) => {
     if (!user) return;
     
@@ -96,6 +112,10 @@ export const NotificationBell = () => {
 
     if (!response.err) {
       markAsRead(notificationId);
+      
+      // Note: If accepted, the backend sends a team_joined WebSocket event
+      // which will automatically add the team to the store
+      
       // Refresh notifications after accepting/declining
       const refreshResponse = await api.getNotifications(user.userId);
       if (refreshResponse.data) {
@@ -172,7 +192,8 @@ export const NotificationBell = () => {
                               onRespondToInvitation(
                                 notif.invitation_id!,
                                 true,
-                                notif.notification_id
+                                notif.notification_id,
+                                notif.team_id
                               )
                             }
                             className="px-2 py-1 text-xs font-medium rounded bg-green-500 text-white hover:bg-green-600"
@@ -184,7 +205,8 @@ export const NotificationBell = () => {
                               onRespondToInvitation(
                                 notif.invitation_id!,
                                 false,
-                                notif.notification_id
+                                notif.notification_id,
+                                notif.team_id
                               )
                             }
                             className="px-2 py-1 text-xs font-medium rounded bg-red-500 text-white hover:bg-red-600"

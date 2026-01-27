@@ -3,7 +3,7 @@ CRUD operations for Notification model.
 Handles in-app notifications for users.
 """
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.notification import Notification
 
@@ -12,6 +12,7 @@ def get_notification_by_id(db: Session, notification_id: int) -> Optional[Notifi
     """Get a single notification by ID."""
     return (
         db.query(Notification)
+        .options(joinedload(Notification.team_invitation))
         .filter(Notification.notification_id == notification_id)
         .first()
     )
@@ -27,6 +28,7 @@ def get_notifications_by_recipient(
     """Get notifications for a user."""
     query = (
         db.query(Notification)
+        .options(joinedload(Notification.team_invitation))
         .filter(Notification.recipient_id == recipient_id)
     )
     
