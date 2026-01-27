@@ -351,6 +351,13 @@ export const useApi = () => {
     );
   };
 
+  const cancelInvitation = async (invitationId: number, requesterId: number) => {
+    return await del<void>(
+      `/api/teams/invitations/${invitationId}?requester_id=${requesterId}`,
+      getSignal("cancelInvitation")
+    );
+  };
+
   const removeMemberFromTeam = async (teamId: number, userId: number) => {
     return await del<{ message: string }>(
       `/api/teams/${teamId}/members/${userId}`,
@@ -435,6 +442,7 @@ export const useApi = () => {
     inviteToTeam,
     getTeamInvitations,
     respondToInvitation,
+    cancelInvitation,
     removeMemberFromTeam,
     promoteToAdmin,
     demoteFromAdmin,

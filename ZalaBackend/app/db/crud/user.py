@@ -38,6 +38,7 @@ def get_user_by_email(db: Session, email: str):
     Get a single user by their email address
     SELECT * FROM users JOIN contacts WHERE contact.email = {email}
     """
+    from sqlalchemy import func
     return (
         db.query(User)
         .join(Contact)
@@ -47,7 +48,7 @@ def get_user_by_email(db: Session, email: str):
             joinedload(User.google_credentials),
             joinedload(User.authentication),
         )
-        .filter(Contact.email == email)
+        .filter(func.lower(Contact.email) == email.lower())
         .first()
     )
 
@@ -398,7 +399,9 @@ def create_user_with_contact(db: Session, user: schemas.UserSignup) -> User:
 
     # Link any pending team invitations sent to this email
     if contact_in.email:
-        team_invitation_crud.link_pending_invitations_to_user(db, db_user.user_id, contact_in.email)
+        print(f"[Signup] Checking for pending invitations for email: {contact_in.email}")
+        linked = team_invitation_crud.link_pending_invitations_to_user(db, db_user.user_id, contact_in.email)
+        print(f"[Signup] Linked {len(linked)} invitations")
 
     return db_user
 

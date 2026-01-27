@@ -141,6 +141,7 @@ export const TeamInviteTestPage = () => {
   const [promotingMember, setPromotingMember] = useState<number | null>(null);
   const [demotingMember, setDemotingMember] = useState<number | null>(null);
   const [deletingTeam, setDeletingTeam] = useState(false);
+  const [cancelingInvitation, setCancelingInvitation] = useState<number | null>(null);
   const [editMode, setEditMode] = useState(false);
 
   // Form state
@@ -584,6 +585,25 @@ export const TeamInviteTestPage = () => {
     setShowDeleteModal(false);
   };
 
+  // Cancel invitation handler
+  const onCancelInvitation = async (invitationId: number) => {
+    if (!user || !selectedTeam) return;
+
+    setCancelingInvitation(invitationId);
+    const response = await api.cancelInvitation(invitationId, user.userId);
+    setCancelingInvitation(null);
+
+    if (response.err) {
+      errorMsg(response.err);
+      return;
+    }
+
+    successMsg("Invitation canceled");
+    
+    // Remove from invitations list
+    setInvitations((prev) => prev.filter((inv) => inv.invitation_id !== invitationId));
+  };
+
   const getStatusBadge = (status: boolean | null) => {
     if (status === null) {
       return (
@@ -977,25 +997,40 @@ export const TeamInviteTestPage = () => {
                 <>
                   {invitations.length > 0 ? (
                     <div className="space-y-3">
-                      {invitations.map((inv) => (
-                        <div
-                          key={inv.invitation_id}
-                          className="flex items-center justify-between p-4 bg-white rounded-xl border border-secondary-10 hover:shadow-sm transition-shadow"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-secondary-10 flex items-center justify-center">
-                              <Icon name={Icons.Mail} size={20} className="text-secondary-50" />
+                      {invitations.map((inv) => {
+                        const isPending = inv.status === null;
+                        
+                        return (
+                          <div
+                            key={inv.invitation_id}
+                            className="flex items-center justify-between p-4 bg-white rounded-xl border border-secondary-10 hover:shadow-sm transition-shadow"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-full bg-secondary-10 flex items-center justify-center">
+                                <Icon name={Icons.Mail} size={20} className="text-secondary-50" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-secondary">{inv.recipient_email}</p>
+                                <p className="text-xs text-secondary-50">
+                                  Sent {new Date(inv.created_at).toLocaleDateString()}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-medium text-secondary">{inv.recipient_email}</p>
-                              <p className="text-xs text-secondary-50">
-                                Sent {new Date(inv.created_at).toLocaleDateString()}
-                              </p>
+                            <div className="flex items-center gap-3">
+                              {getStatusBadge(inv.status)}
+                              {isPending && (
+                                <button
+                                  onClick={() => onCancelInvitation(inv.invitation_id)}
+                                  disabled={cancelingInvitation === inv.invitation_id}
+                                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors disabled:opacity-50"
+                                >
+                                  {cancelingInvitation === inv.invitation_id ? "..." : "Cancel"}
+                                </button>
+                              )}
                             </div>
                           </div>
-                          {getStatusBadge(inv.status)}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="text-center py-12">

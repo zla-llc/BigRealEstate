@@ -123,11 +123,12 @@ def check_existing_invitation(
     recipient_email: str
 ) -> Optional[TeamInvitation]:
     """Check if there's already a pending invitation for this email and team."""
+    from sqlalchemy import func
     return (
         db.query(TeamInvitation)
         .filter(
             TeamInvitation.team_id == team_id,
-            TeamInvitation.recipient_email == recipient_email,
+            func.lower(TeamInvitation.recipient_email) == recipient_email.lower(),
             TeamInvitation.status.is_(None)  # Pending only
         )
         .first()
@@ -136,10 +137,11 @@ def check_existing_invitation(
 
 def get_user_by_email(db: Session, email: str) -> Optional[User]:
     """Get user by their contact email."""
+    from sqlalchemy import func
     return (
         db.query(User)
         .join(Contact)
-        .filter(Contact.email == email)
+        .filter(func.lower(Contact.email) == email.lower())
         .first()
     )
 
@@ -165,11 +167,12 @@ def is_user_admin_of_team(db: Session, team_id: int, user_id: int) -> bool:
 
 def get_pending_invitations_by_email(db: Session, email: str) -> List[TeamInvitation]:
     """Get all pending invitations for an email address (status = None)."""
+    from sqlalchemy import func
     return (
         db.query(TeamInvitation)
         .options(joinedload(TeamInvitation.team))
         .filter(
-            TeamInvitation.recipient_email == email,
+            func.lower(TeamInvitation.recipient_email) == email.lower(),
             TeamInvitation.status.is_(None)  # Pending only
         )
         .order_by(TeamInvitation.created_at.desc())
@@ -185,13 +188,16 @@ def link_pending_invitations_to_user(db: Session, user_id: int, email: str) -> L
     """
     from app.db.crud import notification as notification_crud
     
+    print(f"[TeamInvitation] Checking for pending invitations for email: {email}")
     pending_invitations = get_pending_invitations_by_email(db, email)
+    print(f"[TeamInvitation] Found {len(pending_invitations)} pending invitations")
     
     for invitation in pending_invitations:
         # Update the invitation with the user's ID
         invitation.recipient_id = user_id
         
         team_name = invitation.team.team_name if invitation.team else "a team"
+        print(f"[TeamInvitation] Creating notification for team: {team_name}")
         
         # Create notification for each pending invitation
         notification_crud.create_notification(
@@ -206,5 +212,6 @@ def link_pending_invitations_to_user(db: Session, user_id: int, email: str) -> L
     
     if pending_invitations:
         db.commit()
+        print(f"[TeamInvitation] Committed {len(pending_invitations)} invitations")
     
     return pending_invitations
