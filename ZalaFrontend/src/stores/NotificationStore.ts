@@ -7,6 +7,7 @@ type NotificationStore = {
   setNotifications: (notifications: Notification[]) => void;
   addNotification: (notification: Notification) => void;
   markAsRead: (notificationId: number) => void;
+  removeNotification: (notificationId: number) => void;
   clearAll: () => void;
 };
 
@@ -34,6 +35,16 @@ export const useNotificationStore = create<NotificationStore>()((set) => ({
       return {
         notifications,
         unreadCount: notifications.filter((n) => !n.viewed).length,
+      };
+    }),
+
+  removeNotification: (notificationId) =>
+    set((state) => {
+      const notification = state.notifications.find((n) => n.notification_id === notificationId);
+      const wasUnread = notification && !notification.viewed;
+      return {
+        notifications: state.notifications.filter((n) => n.notification_id !== notificationId),
+        unreadCount: wasUnread ? state.unreadCount - 1 : state.unreadCount,
       };
     }),
     

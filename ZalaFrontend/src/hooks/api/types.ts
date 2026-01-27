@@ -194,6 +194,8 @@ export type TeamMember = {
     user_id: number;
     username: string;
     profile_pic?: string;
+    first_name?: string;
+    last_name?: string;
   };
 };
 

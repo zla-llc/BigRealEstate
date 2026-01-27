@@ -3,7 +3,7 @@
  * Can be used for notifications, live updates, etc.
  */
 
-export type WebSocketEventType = "notification" | "team_update" | "invitation_update" | "member_joined" | "member_removed" | "member_left" | "team_deleted" | "team_joined" | "message" | "connection";
+export type WebSocketEventType = "notification" | "team_update" | "invitation_update" | "member_joined" | "member_removed" | "member_left" | "team_deleted" | "team_joined" | "member_kicked" | "message" | "connection";
 
 export type WebSocketMessage<T = unknown> = {
   type: WebSocketEventType;

@@ -389,10 +389,17 @@ export const useApi = () => {
   };
 
   const markNotificationRead = async (notificationId: number) => {
-    return await put<Notification>(
+    return await patch<Notification>(
       `/api/notifications/${notificationId}/read`,
       {},
       { isFormData: false, signal: getSignal("markNotificationRead") }
+    );
+  };
+
+  const deleteNotification = async (notificationId: number) => {
+    return await del<void>(
+      `/api/notifications/${notificationId}`,
+      getSignal("deleteNotification")
     );
   };
 
@@ -435,5 +442,6 @@ export const useApi = () => {
     // Notification APIs
     getNotifications,
     markNotificationRead,
+    deleteNotification,
   };
 };

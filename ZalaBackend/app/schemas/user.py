@@ -1,6 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Any
 
 from app.models.contact import Contact
 from app.schemas.contact import ContactPublic, ContactBase, ContactCreate
@@ -15,9 +15,27 @@ class UserSummary(BaseModel):
     username: str
     profile_pic: Optional[str] = None
     role: Optional[str] = "user"
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
 
     class Config:
         from_attributes = True
+    
+    @model_validator(mode='before')
+    @classmethod
+    def extract_contact_info(cls, data: Any) -> Any:
+        """Extract first_name and last_name from the nested contact relationship."""
+        if hasattr(data, 'contact') and data.contact:
+            # SQLAlchemy model with contact relationship
+            return {
+                'user_id': data.user_id,
+                'username': data.username,
+                'profile_pic': data.profile_pic,
+                'role': data.role,
+                'first_name': data.contact.first_name if data.contact else None,
+                'last_name': data.contact.last_name if data.contact else None,
+            }
+        return data
 
 
 class UserBase(BaseModel):

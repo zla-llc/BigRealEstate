@@ -193,12 +193,47 @@ async def remove_member(team_id: int, user_id: int, db: Session = Depends(get_db
     
     # Send WebSocket update for member removal
     try:
+        # Notify team channel (for people viewing the team)
         await send_team_update(
             team_id,
             "member_removed",
             {
                 "team_id": team_id,
                 "user_id": user_id
+            }
+        )
+        
+        # Notify the kicked user via their personal WebSocket so their "My Teams" updates
+        await send_team_update_to_users(
+            [user_id],
+            "member_kicked",
+            {
+                "team_id": team_id,
+                "team_name": team.team_name
+            }
+        )
+        
+        # Create a notification for the kicked user
+        kicked_notification = notification_crud.create_notification(
+            db,
+            recipient_id=user_id,
+            notification_type="team_removed",
+            title=f"Removed from {team.team_name}",
+            message=f"You have been removed from the team '{team.team_name}'",
+            sender_id=None  # System notification
+        )
+        
+        # Send the notification via WebSocket
+        await send_notification_to_user(
+            user_id,
+            {
+                "notification_id": kicked_notification.notification_id,
+                "type": kicked_notification.type,
+                "title": kicked_notification.title,
+                "message": kicked_notification.message,
+                "sender_id": kicked_notification.sender_id,
+                "viewed": kicked_notification.viewed,
+                "created_at": kicked_notification.created_at.isoformat()
             }
         )
     except Exception as e:
@@ -567,8 +602,8 @@ async def respond_to_invitation(
     if response_in.status:
         team_crud.add_member(db, invitation.team_id, user_id, role="member")
     
-    # Delete the notification for this invitation
-    notification_crud.delete_notifications_by_invitation(db, invitation_id)
+    # Update the notification to show accepted/declined status (keep it visible)
+    notification_crud.update_notification_for_response(db, invitation_id, response_in.status)
     
     # Send WebSocket update to team watchers
     try:
@@ -602,6 +637,8 @@ async def respond_to_invitation(
                     "email": invitation.recipient_email,
                     "username": joined_user.username if joined_user else invitation.recipient_email,
                     "profile_pic": joined_user.profile_pic if joined_user else None,
+                    "first_name": joined_user.contact.first_name if joined_user and joined_user.contact else None,
+                    "last_name": joined_user.contact.last_name if joined_user and joined_user.contact else None,
                     "role": "member"
                 }
             )
@@ -619,7 +656,9 @@ async def respond_to_invitation(
                                 "user_id": link.user.user_id,
                                 "email": link.user.authentication.provider_email if link.user.authentication else None,
                                 "username": link.user.username,
-                                "profile_pic": link.user.profile_pic
+                                "profile_pic": link.user.profile_pic,
+                                "first_name": link.user.contact.first_name if link.user.contact else None,
+                                "last_name": link.user.contact.last_name if link.user.contact else None
                             },
                             "role": link.role
                         }

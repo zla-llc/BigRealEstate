@@ -21,7 +21,11 @@ def get_team_by_id(db: Session, team_id: int) -> Optional[Team]:
 
     return (
         db.query(Team)
-        .options(joinedload(Team.member_links).joinedload(UserTeam.user))
+        .options(
+            joinedload(Team.member_links)
+            .joinedload(UserTeam.user)
+            .joinedload(User.contact)
+        )
         .filter(Team.team_id == team_id)
         .first()
     )
@@ -37,7 +41,11 @@ def get_teams(db: Session, skip: int = 0, limit: int = 100) -> List[Team]:
 
     return (
         db.query(Team)
-        .options(joinedload(Team.member_links).joinedload(UserTeam.user))
+        .options(
+            joinedload(Team.member_links)
+            .joinedload(UserTeam.user)
+            .joinedload(User.contact)
+        )
         .offset(skip)
         .limit(limit)
         .all()
@@ -50,7 +58,11 @@ def get_teams_by_user(db: Session, user_id: int) -> List[Team]:
     return (
         db.query(Team)
         .join(UserTeam)
-        .options(joinedload(Team.member_links).joinedload(UserTeam.user))
+        .options(
+            joinedload(Team.member_links)
+            .joinedload(UserTeam.user)
+            .joinedload(User.contact)
+        )
         .filter(UserTeam.user_id == user_id)
         .all()
     )

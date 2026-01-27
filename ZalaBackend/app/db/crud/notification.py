@@ -127,3 +127,27 @@ def delete_notifications_by_invitation(db: Session, invitation_id: int) -> int:
     )
     db.commit()
     return result
+
+
+def update_notification_for_response(db: Session, invitation_id: int, accepted: bool) -> Optional[Notification]:
+    """Update notification when invitation is responded to."""
+    notification = (
+        db.query(Notification)
+        .filter(Notification.invitation_id == invitation_id)
+        .first()
+    )
+    if not notification:
+        return None
+    
+    # Update the notification type and message based on response
+    status_text = "accepted" if accepted else "declined"
+    notification.type = f"team_invite_{status_text}"
+    notification.message = notification.message.replace(
+        "has invited you to join",
+        f"invited you to join - You {status_text}"
+    )
+    notification.viewed = True
+    
+    db.commit()
+    db.refresh(notification)
+    return notification
