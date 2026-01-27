@@ -48,7 +48,12 @@ class WebSocketManager {
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
           console.log("[WebSocket] Received:", message);
+          // Emit to listeners for this specific type
           this.emit(message.type, message.data);
+          // Also emit to catch-all "message" listeners
+          if (message.type !== "message") {
+            this.emit("message" as WebSocketEventType, message);
+          }
         } catch (error) {
           console.error("[WebSocket] Failed to parse message:", error);
         }
@@ -130,6 +135,7 @@ class WebSocketManager {
    */
   private emit<T>(type: WebSocketEventType, data: T): void {
     const listeners = this.listeners.get(type);
+    console.log(`[WebSocket] Emitting ${type}, listeners found:`, listeners?.size ?? 0);
     if (listeners) {
       listeners.forEach((listener) => {
         listener({ type, data } as WebSocketMessage);

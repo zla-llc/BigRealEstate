@@ -617,7 +617,7 @@ async def respond_to_invitation(
                         {
                             "user": {
                                 "user_id": link.user.user_id,
-                                "email": link.user.email,
+                                "email": link.user.authentication.provider_email if link.user.authentication else None,
                                 "username": link.user.username,
                                 "profile_pic": link.user.profile_pic
                             },

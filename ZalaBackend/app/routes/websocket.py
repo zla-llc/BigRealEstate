@@ -266,8 +266,10 @@ async def send_team_update_to_users(user_ids: list, update_type: str, data: dict
         "type": update_type,
         "data": data
     }
+    print(f"[WebSocket] Sending {update_type} to users {user_ids}")
     for user_id in user_ids:
         try:
-            await manager.send_personal_message(message, user_id)
+            success = await manager.send_personal_message(message, user_id)
+            print(f"[WebSocket] Sent {update_type} to user {user_id}: success={success}")
         except Exception as e:
             print(f"[WebSocket] Failed to send {update_type} to user {user_id}: {e}")
