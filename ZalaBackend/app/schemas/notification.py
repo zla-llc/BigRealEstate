@@ -1,7 +1,15 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_serializer
 from datetime import datetime
-from typing import Optional
-from app.schemas.user import UserSummary
+from typing import Optional, TYPE_CHECKING, Any
+
+
+class SenderSummary(BaseModel):
+    """Lightweight sender info to avoid circular imports"""
+    user_id: int
+    username: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
 
 
 class NotificationBase(BaseModel):
@@ -21,7 +29,8 @@ class NotificationPublic(NotificationBase):
     notification_id: int
     viewed: bool
     recipient_id: int
-    sender: Optional[UserSummary] = None
+    sender_id: Optional[int] = None
+    invitation_id: Optional[int] = None
     created_at: datetime
 
     class Config:
