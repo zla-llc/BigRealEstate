@@ -299,4 +299,91 @@ Notes:
 ```
 
 **Notification Types:**
-- `team_invitation` - Invitation to join a team (includes `invitation_id`)
+- `team_invite` - Invitation to join a team (includes `invitation_id`)
+- `team_invite_accepted` - User accepted a team invitation
+- `team_removed` - User was removed from a team
+
+---
+
+## Automatic Invitation Linking (New User Signup)
+
+When a new user signs up or has their contact linked, the system automatically:
+
+1. **Checks for pending invitations** sent to that email address (case-insensitive)
+2. **Links the invitation** to the new user by setting `recipient_id`
+3. **Creates a notification** so the user sees the team invite in their notification bell
+
+This happens automatically in two places:
+- `POST /api/users/` - When creating a user with a `contact_id`
+- `POST /api/users/{user_id}/contacts/{contact_id}` - When linking a contact to an existing user
+
+**Flow for inviting non-users:**
+1. Admin sends invitation to `newuser@example.com` (user doesn't exist yet)
+2. Invitation is created with `recipient_id = NULL`, `recipient_email = "newuser@example.com"`
+3. New user signs up with email `newuser@example.com`
+4. System finds the pending invitation, sets `recipient_id`, creates notification
+5. New user sees team invitation in notification bell immediately
+
+---
+
+## WebSocket Endpoints
+
+### Notifications WebSocket
+
+| Path | Purpose |
+| --- | --- |
+| `ws://host/ws/notifications/{user_id}` | Real-time notifications for a user |
+
+**Events sent to client:**
+```json
+{
+  "type": "new_notification",
+  "notification": { /* NotificationPublic object */ }
+}
+```
+
+### Team WebSocket
+
+| Path | Purpose |
+| --- | --- |
+| `ws://host/ws/team/{team_id}` | Real-time team updates |
+
+**Events sent to client:**
+- `member_added` - New member joined the team
+- `member_removed` - Member was removed from the team
+- `invitation_sent` - New invitation was sent
+- `invitation_cancelled` - Invitation was cancelled
+
+---
+
+## Frontend Notes
+
+### Team Management UI
+
+The team management page (`/team-settings`) includes:
+
+1. **Members Tab** - Shows all team members with their roles
+   - Displays member name as "First Last" (from contact)
+   - Shows role badges (Admin/Member)
+   - Admins can remove members (except themselves if only admin)
+
+2. **Invitations Tab** (Admin only) - Shows pending invitations
+   - Lists all pending invitations with recipient email
+   - Cancel button to revoke pending invitations
+   - Only visible to team admins
+
+### Notification Bell
+
+- Shows unread count badge
+- Dropdown displays up to 3 notifications initially
+- "View All" expands to show all notifications
+- "Mark as Read" on individual notifications (uses PATCH)
+- "Mark All as Read" button
+- Team invitations show Accept/Decline buttons
+
+### Display Names
+
+- Team members display as "First Last" from their linked contact
+- If no contact or names, falls back to username
+- "Created by" shows the actual creator's name (looked up from members list)
+
