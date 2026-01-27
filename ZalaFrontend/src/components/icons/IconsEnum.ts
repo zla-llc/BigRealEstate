@@ -27,4 +27,9 @@ export enum Icons {
   Settings = "Settings",
   Upload = "Upload",
   Edit = "Edit",
+  Notification = "Notification",
+  Email = "Email",
+  Group = "Group",
+  Check = "Check",
+  Pending = "Pending",
 }

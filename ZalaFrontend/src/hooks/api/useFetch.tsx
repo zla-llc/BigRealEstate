@@ -30,7 +30,7 @@ export const useFetch = () => {
 
   const fetchWithParams = async <T,>(
     apiEndpoint: string,
-    method: "POST" | "GET" | "PUT" | "DELETE",
+    method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH",
     body: unknown,
     { signal, isFormData }: RequestOptions = {}
   ): Promise<APIResponse<T>> => {
@@ -123,5 +123,13 @@ export const useFetch = () => {
     });
   };
 
-  return { get, post, put, del };
+  const patch = async <T,>(
+    apiEndpoint: string,
+    body: unknown,
+    options: RequestOptions = {}
+  ): Promise<APIResponse<T>> => {
+    return await fetchWithParams<T>(apiEndpoint, "PATCH", body, options);
+  };
+
+  return { get, post, put, del, patch };
 };

@@ -45,9 +45,23 @@ from .team import (
     TeamLeaderboardEntry,
     TeamUserXPEntry,
 )
+from .team_invitation import (
+    TeamInvitationBase,
+    TeamInvitationCreate,
+    TeamInvitationUpdate,
+    TeamInvitationPublic,
+)
+from .notification import (
+    NotificationBase,
+    NotificationUpdate,
+    NotificationPublic,
+)
+from .team import TeamSummary
 
 
 CampaignPublic.model_rebuild()
 LeadPublic.model_rebuild()
 CampaignLeadPublic.model_rebuild()
 CampaignLeadDetailedPublic.model_rebuild()
+PropertyPublic.model_rebuild()
+BoardPublic.model_rebuild()

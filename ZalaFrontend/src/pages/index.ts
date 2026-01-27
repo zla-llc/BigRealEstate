@@ -9,3 +9,4 @@ export * from "./CampaignEmailDemo";
 export * from "./PastCampaigns";
 export * from "./AllBoards";
 export * from "./SMTPTest";
+export * from "./TeamInviteTest";

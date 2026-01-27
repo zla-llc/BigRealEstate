@@ -215,3 +215,88 @@ Notes:
 - Use the linking endpoints instead of including relationship IDs in create payloads—this keeps flows simple and mirrors backend expectations.
 - Most GET endpoints support `skip`/`limit` pagination; keep them in query strings even if you default to `skip=0&limit=100`.
 
+---
+
+## Teams (`/api/teams`)
+
+| Method | Path | Purpose | Body / Query | Response |
+| --- | --- | --- | --- | --- |
+| POST | `/api/teams/` | Create team | JSON: `team_name` (required), optional `xp` | `TeamPublic` |
+| POST | `/api/teams/with-admin/{admin_user_id}` | Create team with admin | JSON: `team_name` (required), optional `xp`; Path: `admin_user_id` | `TeamPublic` (creator auto-added as admin) |
+| GET | `/api/teams/` | List all teams | Query: `skip`, `limit` | `List[TeamPublic]` |
+| GET | `/api/teams/{team_id}` | Get team details | Path: `team_id` | `TeamPublic` (includes members list) |
+| GET | `/api/teams/user/{user_id}` | Get teams for a user | Path: `user_id` | `List[TeamPublic]` |
+| PUT | `/api/teams/{team_id}` | Update team | JSON: any of `team_name`, `xp` | `TeamPublic` |
+| DELETE | `/api/teams/{team_id}` | Delete team | Path: `team_id` | 204 No Content |
+
+### Team Members
+
+| Method | Path | Purpose | Query | Response |
+| --- | --- | --- | --- | --- |
+| POST | `/api/teams/{team_id}/members/{user_id}` | Add member to team | Query: `role` (optional, default `member`) | `TeamPublic` |
+| DELETE | `/api/teams/{team_id}/members/{user_id}` | Remove member from team | Query: `requester_id` (required, must be admin) | 200 OK with message |
+
+**Notes:**
+- Only admins can remove members from a team
+- Admins cannot remove themselves if they are the only admin
+
+---
+
+## Team Invitations (`/api/teams/.../invitations`)
+
+### Sending Invitations (Admin)
+
+| Method | Path | Purpose | Body / Query | Response |
+| --- | --- | --- | --- | --- |
+| POST | `/api/teams/{team_id}/invitations` | Invite user to team | Query: `sender_id` (admin); JSON: `recipient_email` | `TeamInvitationPublic` |
+| GET | `/api/teams/{team_id}/invitations` | List team's invitations | Query: `requester_id` (must be admin) | `List[TeamInvitationPublic]` |
+| DELETE | `/api/teams/invitations/{invitation_id}` | Cancel invitation | Query: `requester_id` (must be admin) | 204 No Content |
+
+**Invitation Behavior:**
+- If `recipient_email` belongs to an existing user → creates in-app notification
+- If `recipient_email` is not in database → sends email invitation via SMTP
+- Returns 409 Conflict if a pending invitation already exists for that email/team
+
+### Receiving/Responding to Invitations (User)
+
+| Method | Path | Purpose | Body / Query | Response |
+| --- | --- | --- | --- | --- |
+| GET | `/api/teams/invitations/user/{user_id}` | Get user's pending invitations | Path: `user_id` | `List[TeamInvitationPublic]` |
+| PATCH | `/api/teams/invitations/{invitation_id}/respond` | Accept or decline invitation | Query: `user_id`; JSON: `status` (true=accept, false=decline) | `TeamInvitationPublic` |
+
+**Response Behavior:**
+- `status: true` → User is added to team as `member`, notification deleted
+- `status: false` → Invitation marked declined, notification deleted
+- Returns 403 if user is not the recipient
+- Returns 400 if invitation already responded to
+
+---
+
+## Notifications (`/api/notifications`)
+
+| Method | Path | Purpose | Query | Response |
+| --- | --- | --- | --- | --- |
+| GET | `/api/notifications/user/{user_id}` | Get user's notifications | Query: `skip`, `limit`, `unread_only` (bool) | `List[NotificationPublic]` |
+| GET | `/api/notifications/user/{user_id}/unread-count` | Get unread notification count | Path: `user_id` | `{ "user_id": int, "unread_count": int }` |
+| GET | `/api/notifications/{notification_id}` | Get single notification | Path: `notification_id` | `NotificationPublic` |
+| PATCH | `/api/notifications/{notification_id}/read` | Mark notification as read | Path: `notification_id` | `NotificationPublic` |
+| PATCH | `/api/notifications/user/{user_id}/read-all` | Mark all as read | Path: `user_id` | `{ "message": str, "updated_count": int }` |
+| DELETE | `/api/notifications/{notification_id}` | Delete notification | Path: `notification_id` | 204 No Content |
+
+**Notification Schema:**
+```json
+{
+  "notification_id": 1,
+  "type": "team_invitation",
+  "title": "Team Invitation: Team Name",
+  "message": "User has invited you to join the team 'Team Name'",
+  "viewed": false,
+  "recipient_id": 2,
+  "sender_id": 1,
+  "invitation_id": 3,
+  "created_at": "2026-01-26T12:00:00Z"
+}
+```
+
+**Notification Types:**
+- `team_invitation` - Invitation to join a team (includes `invitation_id`)

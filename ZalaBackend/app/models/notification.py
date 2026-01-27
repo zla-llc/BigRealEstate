@@ -10,14 +10,14 @@ class Notification(Base):
     __tablename__ = "notifications"
 
     notification_id: Mapped[int] = mapped_column(primary_key=True)
-    type: Mapped[Optional[str]] = mapped_column(String(50))
-    title: Mapped[Optional[str]] = mapped_column(String(255))
-    message: Mapped[Optional[str]] = mapped_column(Text)
+    type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    title: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    message: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     viewed: Mapped[bool] = mapped_column(Boolean, default=False)
-    invitation_id: Mapped[int] = mapped_column(ForeignKey("team_invitations.invitation_id"), nullable=True)
+    invitation_id: Mapped[Optional[int]] = mapped_column(ForeignKey("team_invitations.invitation_id"), nullable=True)
     recipient_id: Mapped[int] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"))
     sender_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("users.user_id", ondelete="SET NULL", nullable=True))  # None = system
+        ForeignKey("users.user_id", ondelete="SET NULL"), nullable=True)  # None = system
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     recipient: Mapped["User"] = relationship(
