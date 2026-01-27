@@ -103,8 +103,20 @@ def update_team(team_id: int, team_in: schemas.TeamUpdate, db: Session = Depends
 
 
 @router.delete("/{team_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_team(team_id: int, db: Session = Depends(get_db)):
-    """Delete a team."""
+def delete_team(team_id: int, requester_id: int, db: Session = Depends(get_db)):
+    """Delete a team. Only team admins can delete the team."""
+    
+    # Check team exists
+    team = team_crud.get_team_by_id(db, team_id)
+    if not team:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+    
+    # Check requester is admin of team
+    if not team_crud.is_user_admin(db, team_id, requester_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only team admins can delete the team"
+        )
 
     if not team_crud.delete_team(db, team_id):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
@@ -158,12 +170,27 @@ async def remove_member(team_id: int, user_id: int, db: Session = Depends(get_db
     response_model=schemas.TeamPublic,
     summary="Add user as admin",
 )
-def add_admin(team_id: int, user_id: int, db: Session = Depends(get_db)):
-    """Append the user to the admin list."""
+async def add_admin(team_id: int, user_id: int, db: Session = Depends(get_db)):
+    """Append the user to the admin list (promote member to admin)."""
 
     team = team_crud.add_admin(db, team_id, user_id)
     if not team:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+    
+    # Send WebSocket update for role change
+    try:
+        await send_team_update(
+            team_id,
+            "member_role_changed",
+            {
+                "team_id": team_id,
+                "user_id": user_id,
+                "new_role": "admin"
+            }
+        )
+    except Exception as e:
+        print(f"[WebSocket] Failed to send member_role_changed update: {e}")
+    
     return team
 
 
@@ -172,12 +199,26 @@ def add_admin(team_id: int, user_id: int, db: Session = Depends(get_db)):
     response_model=schemas.TeamPublic,
     summary="Remove user from admin list",
 )
-def remove_admin(team_id: int, user_id: int, db: Session = Depends(get_db)):
-    """Remove the user from the admin list."""
+async def remove_admin(team_id: int, user_id: int, db: Session = Depends(get_db)):
+    """Remove the user from the admin list (demote admin to member)."""
 
     team = team_crud.remove_admin(db, team_id, user_id)
     if not team:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+    
+    # Send WebSocket update for role change
+    try:
+        await send_team_update(
+            team_id,
+            "member_role_changed",
+            {
+                "team_id": team_id,
+                "user_id": user_id,
+                "new_role": "member"
+            }
+        )
+    except Exception as e:
+        print(f"[WebSocket] Failed to send member_role_changed update: {e}")
     return team
 
 
@@ -501,15 +542,22 @@ async def respond_to_invitation(
             }
         )
         
-        # If accepted, also send member_joined event
+        # If accepted, also send member_joined event with user details
         if response_in.status:
+            # Get user info to send in WebSocket
+            from app.db.crud import user as user_crud
+            joined_user = user_crud.get_user_by_id(db, user_id)
+            
             await send_team_update(
                 invitation.team_id,
                 "member_joined",
                 {
                     "team_id": invitation.team_id,
                     "user_id": user_id,
-                    "email": invitation.recipient_email
+                    "email": invitation.recipient_email,
+                    "username": joined_user.username if joined_user else invitation.recipient_email,
+                    "profile_pic": joined_user.profile_pic if joined_user else None,
+                    "role": "member"
                 }
             )
     except Exception as e:

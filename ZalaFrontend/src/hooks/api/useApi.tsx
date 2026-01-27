@@ -358,6 +358,28 @@ export const useApi = () => {
     );
   };
 
+  const promoteToAdmin = async (teamId: number, userId: number) => {
+    return await post<TeamWithMembers>(
+      `/api/teams/${teamId}/admins/${userId}`,
+      {},
+      { isFormData: false, signal: getSignal("promoteToAdmin") }
+    );
+  };
+
+  const demoteFromAdmin = async (teamId: number, userId: number) => {
+    return await del<TeamWithMembers>(
+      `/api/teams/${teamId}/admins/${userId}`,
+      getSignal("demoteFromAdmin")
+    );
+  };
+
+  const deleteTeam = async (teamId: number, requesterId: number) => {
+    return await del<void>(
+      `/api/teams/${teamId}?requester_id=${requesterId}`,
+      getSignal("deleteTeam")
+    );
+  };
+
   // Notification APIs
   const getNotifications = async (userId: number) => {
     return await get<Notification[]>(
@@ -407,6 +429,9 @@ export const useApi = () => {
     getTeamInvitations,
     respondToInvitation,
     removeMemberFromTeam,
+    promoteToAdmin,
+    demoteFromAdmin,
+    deleteTeam,
     // Notification APIs
     getNotifications,
     markNotificationRead,

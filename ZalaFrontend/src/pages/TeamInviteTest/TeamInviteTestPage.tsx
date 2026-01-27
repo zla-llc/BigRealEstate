@@ -29,6 +29,10 @@ export const TeamInviteTestPage = () => {
   const [loadingTeams, setLoadingTeams] = useState(false);
   const [sendingInvite, setSendingInvite] = useState(false);
   const [removingMember, setRemovingMember] = useState<number | null>(null);
+  const [promotingMember, setPromotingMember] = useState<number | null>(null);
+  const [demotingMember, setDemotingMember] = useState<number | null>(null);
+  const [deletingTeam, setDeletingTeam] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   // Form state
   const [newTeamName, setNewTeamName] = useState("");
@@ -51,19 +55,6 @@ export const TeamInviteTestPage = () => {
     const response = await api.getTeamInvitations(teamId, user.userId);
     if (response.data) {
       setInvitations(response.data);
-    }
-  };
-
-  // Refresh team members
-  const refreshTeamMembers = async (team: TeamWithMembers) => {
-    const response = await api.getTeamMembers(team.team_id);
-    if (response.data) {
-      setSelectedTeam(response.data);
-      setTeams((prev) =>
-        prev.map((t) =>
-          t.team_id === response.data!.team_id ? response.data! : t
-        )
-      );
     }
   };
 
@@ -114,48 +105,103 @@ export const TeamInviteTestPage = () => {
                 : inv
             )
           );
-          
-          // If accepted, refresh team members
-          if (updatedInvitation.status === true) {
-            api.getTeamMembers(currentTeamId).then((response) => {
-              if (response.data) {
-                setSelectedTeam(response.data);
-                setTeams((prev) =>
-                  prev.map((t) =>
-                    t.team_id === response.data!.team_id ? response.data! : t
-                  )
-                );
-              }
-            });
-          }
+          // Note: If accepted, the member_joined event will handle adding the new member
         }
 
         if (message.type === "member_joined") {
-          console.log("[TeamWS] Member joined, refreshing...");
-          api.getTeamMembers(currentTeamId).then((response) => {
-            if (response.data) {
-              setSelectedTeam(response.data);
-              setTeams((prev) =>
-                prev.map((t) =>
-                  t.team_id === response.data!.team_id ? response.data! : t
-                )
-              );
+          console.log("[TeamWS] Member joined, updating state...");
+          const { user_id, username, profile_pic, role } = message.data;
+          
+          const newMember = {
+            role: role || "member",
+            user: {
+              user_id,
+              username: username || `User #${user_id}`,
+              profile_pic: profile_pic || undefined,
+            },
+          };
+          
+          // Add new member to selectedTeam
+          setSelectedTeam((prev) => {
+            if (!prev) return prev;
+            // Check if member already exists to avoid duplicates
+            if (prev.members.some((m) => m.user.user_id === user_id)) {
+              return prev;
             }
+            return {
+              ...prev,
+              members: [...prev.members, newMember],
+            };
           });
+          
+          // Add new member to teams list
+          setTeams((prev) =>
+            prev.map((t) => {
+              if (t.team_id !== currentTeamId) return t;
+              // Check if member already exists
+              if (t.members.some((m) => m.user.user_id === user_id)) {
+                return t;
+              }
+              return {
+                ...t,
+                members: [...t.members, newMember],
+              };
+            })
+          );
         }
 
         if (message.type === "member_removed") {
-          console.log("[TeamWS] Member removed, refreshing...");
-          api.getTeamMembers(currentTeamId).then((response) => {
-            if (response.data) {
-              setSelectedTeam(response.data);
-              setTeams((prev) =>
-                prev.map((t) =>
-                  t.team_id === response.data!.team_id ? response.data! : t
-                )
-              );
-            }
+          console.log("[TeamWS] Member removed, updating state...");
+          const removedUserId = message.data.user_id;
+          
+          // Update selectedTeam by removing the member immediately
+          setSelectedTeam((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              members: prev.members.filter((m) => m.user.user_id !== removedUserId),
+            };
           });
+          
+          // Update teams list
+          setTeams((prev) =>
+            prev.map((t) => {
+              if (t.team_id !== currentTeamId) return t;
+              return {
+                ...t,
+                members: t.members.filter((m) => m.user.user_id !== removedUserId),
+              };
+            })
+          );
+        }
+
+        if (message.type === "member_role_changed") {
+          console.log("[TeamWS] Member role changed, updating state...");
+          const { user_id: changedUserId, new_role: newRole } = message.data;
+          
+          // Update selectedTeam by changing the member's role
+          setSelectedTeam((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              members: prev.members.map((m) =>
+                m.user.user_id === changedUserId ? { ...m, role: newRole } : m
+              ),
+            };
+          });
+          
+          // Update teams list
+          setTeams((prev) =>
+            prev.map((t) => {
+              if (t.team_id !== currentTeamId) return t;
+              return {
+                ...t,
+                members: t.members.map((m) =>
+                  m.user.user_id === changedUserId ? { ...m, role: newRole } : m
+                ),
+              };
+            })
+          );
         }
       } catch (error) {
         console.error("[TeamWS] Failed to parse message:", error);
@@ -242,13 +288,141 @@ export const TeamInviteTestPage = () => {
     }
 
     successMsg("Member removed from team");
-    refreshTeamMembers(selectedTeam);
+    
+    // Update UI immediately (WebSocket will also update, but this ensures immediate feedback)
+    setSelectedTeam((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        members: prev.members.filter((m) => m.user.user_id !== memberId),
+      };
+    });
+    setTeams((prev) =>
+      prev.map((t) => {
+        if (t.team_id !== selectedTeam.team_id) return t;
+        return {
+          ...t,
+          members: t.members.filter((m) => m.user.user_id !== memberId),
+        };
+      })
+    );
+  };
+
+  // Promote member to admin handler
+  const onPromoteToAdmin = async (memberId: number) => {
+    if (!user || !selectedTeam) return;
+
+    setPromotingMember(memberId);
+    const response = await api.promoteToAdmin(selectedTeam.team_id, memberId);
+    setPromotingMember(null);
+
+    if (response.err) {
+      errorMsg(response.err);
+      return;
+    }
+
+    successMsg("Member promoted to admin");
+    
+    // Update UI immediately
+    setSelectedTeam((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        members: prev.members.map((m) =>
+          m.user.user_id === memberId ? { ...m, role: "admin" } : m
+        ),
+      };
+    });
+    setTeams((prev) =>
+      prev.map((t) => {
+        if (t.team_id !== selectedTeam.team_id) return t;
+        return {
+          ...t,
+          members: t.members.map((m) =>
+            m.user.user_id === memberId ? { ...m, role: "admin" } : m
+          ),
+        };
+      })
+    );
+  };
+
+  // Demote admin to member handler
+  const onDemoteFromAdmin = async (memberId: number) => {
+    if (!user || !selectedTeam) return;
+
+    setDemotingMember(memberId);
+    const response = await api.demoteFromAdmin(selectedTeam.team_id, memberId);
+    setDemotingMember(null);
+
+    if (response.err) {
+      errorMsg(response.err);
+      return;
+    }
+
+    successMsg("Admin demoted to member");
+    
+    // Update UI immediately
+    setSelectedTeam((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        members: prev.members.map((m) =>
+          m.user.user_id === memberId ? { ...m, role: "member" } : m
+        ),
+      };
+    });
+    setTeams((prev) =>
+      prev.map((t) => {
+        if (t.team_id !== selectedTeam.team_id) return t;
+        return {
+          ...t,
+          members: t.members.map((m) =>
+            m.user.user_id === memberId ? { ...m, role: "member" } : m
+          ),
+        };
+      })
+    );
   };
 
   // Helper to get display name for member (handles nested user structure from backend)
   const getMemberDisplayName = (member: TeamWithMembers["members"][0]) => {
     // Backend returns { role, user: { user_id, username, profile_pic } }
     return member.user?.username || `User #${member.user?.user_id ?? "unknown"}`;
+  };
+
+  // Check if current user is admin of the selected team
+  const isCurrentUserAdmin = (team: TeamWithMembers | null): boolean => {
+    if (!team || !user) return false;
+    return team.members.some(
+      (m) => m.user.user_id === user.userId && m.role === "admin"
+    );
+  };
+
+  // Delete team handler
+  const onDeleteTeam = async () => {
+    if (!user || !selectedTeam) return;
+    
+    // Confirm deletion
+    if (!window.confirm(`Are you sure you want to delete the team "${selectedTeam.team_name}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingTeam(true);
+    const response = await api.deleteTeam(selectedTeam.team_id, user.userId);
+    setDeletingTeam(false);
+
+    if (response.err) {
+      errorMsg(response.err);
+      return;
+    }
+
+    successMsg(`Team "${selectedTeam.team_name}" deleted`);
+    
+    // Remove team from list and clear selection
+    setTeams((prev) => prev.filter((t) => t.team_id !== selectedTeam.team_id));
+    setSelectedTeam(null);
+    setInvitations([]);
+    setEditMode(false);
   };
 
   const getStatusBadge = (status: boolean | null) => {
@@ -338,9 +512,24 @@ export const TeamInviteTestPage = () => {
         {/* Team Members Card */}
         {selectedTeam && (
           <div className="card-base box-shadow p-6 space-y-4">
-            <p className="text-xl font-bold text-secondary">
-              Team Members - {selectedTeam.team_name}
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xl font-bold text-secondary">
+                Team Members - {selectedTeam.team_name}
+              </p>
+              <div className="flex items-center gap-2">
+                {editMode && isCurrentUserAdmin(selectedTeam) && (
+                  <Button
+                    text={deletingTeam ? "Deleting..." : "Delete Team"}
+                    onClick={onDeleteTeam}
+                    disabled={deletingTeam}
+                  />
+                )}
+                <Button
+                  text={editMode ? "Done" : "Edit"}
+                  onClick={() => setEditMode(!editMode)}
+                />
+              </div>
+            </div>
             {selectedTeam.members?.length === 0 ? (
               <p className="text-secondary-50 text-sm">No members yet.</p>
             ) : (
@@ -348,6 +537,8 @@ export const TeamInviteTestPage = () => {
                 {selectedTeam.members?.map((member) => {
                   const displayName = getMemberDisplayName(member);
                   const initials = displayName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "?";
+                  const isCurrentUser = member.user.user_id === user?.userId;
+                  const isAdmin = member.role === "admin";
                   
                   return (
                     <div
@@ -359,18 +550,39 @@ export const TeamInviteTestPage = () => {
                           {initials}
                         </div>
                         <div>
-                          <p className="font-medium text-secondary">{displayName}</p>
+                          <p className="font-medium text-secondary">
+                            {displayName}
+                            {isCurrentUser && <span className="text-xs text-secondary-50 ml-2">(You)</span>}
+                          </p>
                           <p className="text-xs text-secondary-50">
-                            {member.role === "admin" ? "👑 Admin" : "Member"}
+                            {isAdmin ? "👑 Admin" : "Member"}
                           </p>
                         </div>
                       </div>
-                      {member.role !== "admin" && removingMember !== member.user.user_id && (
-                        <IconButton
-                          name={Icons.Trash}
-                          onClick={() => onRemoveMember(member.user.user_id)}
-                          variant={IconButtonVariant.Destructive}
-                        />
+                      {editMode && !isCurrentUser && (
+                        <div className="flex items-center gap-2">
+                          {!isAdmin && (
+                            <Button
+                              text={promotingMember === member.user.user_id ? "..." : "Make Admin"}
+                              onClick={() => onPromoteToAdmin(member.user.user_id)}
+                              disabled={promotingMember === member.user.user_id}
+                            />
+                          )}
+                          {isAdmin && (
+                            <Button
+                              text={demotingMember === member.user.user_id ? "..." : "Demote"}
+                              onClick={() => onDemoteFromAdmin(member.user.user_id)}
+                              disabled={demotingMember === member.user.user_id}
+                            />
+                          )}
+                          {removingMember !== member.user.user_id && (
+                            <IconButton
+                              name={Icons.Trash}
+                              onClick={() => onRemoveMember(member.user.user_id)}
+                              variant={IconButtonVariant.Destructive}
+                            />
+                          )}
+                        </div>
                       )}
                     </div>
                   );
