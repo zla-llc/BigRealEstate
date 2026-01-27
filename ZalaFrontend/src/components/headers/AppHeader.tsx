@@ -17,12 +17,12 @@ export const AppHeader = () => {
   return (
     <div className="w-full z-10 flex flex-row items-center justify-between p-4 px-[100px] bg-[var(--color-primary)] box-shadow">
       <div>
-        <p
+        <button
           className="text-5xl font-bold cursor-pointer grenze"
           onClick={toLeadSearchPage}
         >
-          Zala
-        </p>
+          <img src="src\assets\images\zala_b.png" width={60}/>
+        </button>
       </div>
 
       <div className="flex-1 h-full px-10">

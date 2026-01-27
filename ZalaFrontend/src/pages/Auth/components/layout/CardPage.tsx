@@ -36,7 +36,7 @@ export const CardPage = ({
     <div className="flex flex-1 items-center justify-center py-[60px]">
       <div className="card-base box-shadow w-[75%] h-full p-[30px] space-y-[30px] flex flex-col items-center space">
         <div className="flex flex-col items-center space-y-[5px]">
-          <p className="text-5xl font-bold">Zala</p>
+          <img src="src\assets\images\zala_b.png" width={100}/>
           <p className="text-base text-secondary-50">
             {text.pre}
             <span className="text-xl font-bold text-secondary">
