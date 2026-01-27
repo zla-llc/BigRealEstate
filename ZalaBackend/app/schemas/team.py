@@ -3,7 +3,6 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
 
-# Import the specific schemas we need
 from app.schemas.user import UserSummary
 from app.schemas.team_invitation import TeamInvitationPublic
 from app.schemas.property import PropertyPublic
@@ -69,7 +68,7 @@ class TeamPublic(TeamBase):
 class TeamAdminsPublic(TeamBase):
     """Schema for returning ONLY admin users."""
     team_id: int
-    # alias="admin_users" pulls data from the model property @admin_users
+    # from the model property @admin_users
     admins: List[UserSummary] = Field(default=[], alias="admin_users")
 
     class Config:
@@ -79,7 +78,7 @@ class TeamAdminsPublic(TeamBase):
 class TeamMembersOnlyPublic(TeamBase):
     """Schema for returning ONLY regular members."""
     team_id: int
-    # alias="member_users" pulls data from the model property @member_users
+    # from the model property @member_users
     members: List[UserSummary] = Field(default=[], alias="member_users")
 
     class Config:
