@@ -12,6 +12,7 @@ export const AppHeader = () => {
     onSearchClick,
     onSidenavBtn,
     toBoardsV2Page,
+    toDashboard,
   } = useAppHeader();
 
   return (
@@ -39,7 +40,7 @@ export const AppHeader = () => {
 
       <div className="flex flex-row space-x-4">
         <IconButton name={Icons.Kanban} onClick={toBoardsV2Page} />
-        <IconButton name={Icons.User} />
+        <IconButton name={Icons.Dashboard} onClick={toDashboard} />
         <IconButton name={sideNavIcon} onClick={onSidenavBtn} />
       </div>
     </div>

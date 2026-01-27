@@ -15,3 +15,4 @@ export * from "./useErrorSnack";
 export * from "./useStepItems";
 export * from "./useSetKeyInObject";
 export * from "./useIsAddressValid";
+export * from "./useIsClamped";

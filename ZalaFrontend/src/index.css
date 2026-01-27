@@ -44,6 +44,10 @@ body {
   @apply bg-primary rounded-[15px];
 }
 
+.card-base-secondary {
+  @apply bg-white rounded-[15px] border-2 border-secondary;
+}
+
 .border-text-input {
   @apply outline-0 border-b-2 border-secondary-50 focus:border-accent;
 }

@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { useOnKeyPress, type UseOnKeyPressProps } from "../../hooks";
 import { Label } from "./Label";
 
-type TextInputProps = {
+export type TextInputProps = {
   value?: string;
   setValue?: (v: string) => void;
 
@@ -58,8 +58,8 @@ export const TextInput = ({
           errorMsg
             ? "border-error"
             : optional
-            ? "border-secondary-50"
-            : "border-secondary"
+              ? "border-secondary-50"
+              : "border-secondary",
         )}
       >
         <input
@@ -68,9 +68,9 @@ export const TextInput = ({
             "peer flex-1 outline-none text-xl rounded-[15px]",
             "px-2.5 cursor-text",
             "focus:outline-none",
-            optional ? "text-secondary-50" : "text-secondary"
+            optional ? "text-secondary-50" : "text-secondary",
           )}
-          type={secure ? "password" : type ?? "text"}
+          type={secure ? "password" : (type ?? "text")}
           placeholder={placeholder}
           value={value}
           onChange={onChange}
@@ -80,7 +80,7 @@ export const TextInput = ({
         <div
           className={clsx(
             "flex items-center justify-end py-2 pr-2.5",
-            icon ? "" : "opacity-0 w-0"
+            icon ? "" : "opacity-0 w-0",
           )}
         >
           <IconButton
