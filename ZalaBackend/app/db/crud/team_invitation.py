@@ -161,3 +161,47 @@ def is_user_admin_of_team(db: Session, team_id: int, user_id: int) -> bool:
         .first()
     )
     return user_team is not None and user_team.role == "admin"
+
+
+def get_pending_invitations_by_email(db: Session, email: str) -> List[TeamInvitation]:
+    """Get all pending invitations for an email address (status = None)."""
+    return (
+        db.query(TeamInvitation)
+        .options(joinedload(TeamInvitation.team))
+        .filter(
+            TeamInvitation.recipient_email == email,
+            TeamInvitation.status.is_(None)  # Pending only
+        )
+        .order_by(TeamInvitation.created_at.desc())
+        .all()
+    )
+
+
+def link_pending_invitations_to_user(db: Session, user_id: int, email: str) -> List[TeamInvitation]:
+    """
+    Link all pending invitations for an email to a new user.
+    Updates recipient_id on all pending invitations matching the email.
+    Returns the list of updated invitations.
+    """
+    from app.db.crud import notification as notification_crud
+    
+    pending_invitations = get_pending_invitations_by_email(db, email)
+    
+    for invitation in pending_invitations:
+        # Update the invitation with the user's ID
+        invitation.recipient_id = user_id
+        
+        # Create notification for each pending invitation
+        notification_crud.create_notification(
+            db=db,
+            recipient_id=user_id,
+            sender_id=invitation.sender_id,
+            type="team_invite",
+            message=f"You have been invited to join the team '{invitation.team.team_name}'",
+            invitation_id=invitation.invitation_id
+        )
+    
+    if pending_invitations:
+        db.commit()
+    
+    return pending_invitations
