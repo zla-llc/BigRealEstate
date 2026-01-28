@@ -41,6 +41,7 @@ def init_db():
         board,
         board_step,
         team,
+        team_invitation,
         property,
         contact,
         lead,
