@@ -14,6 +14,7 @@ from app import schemas
 from app.models.user_authentication import UserAuthentication
 from app.utils import security
 from app.db.crud import contact as contact_crud
+from app.db.crud import team_invitation as team_invitation_crud
 
 """GET FUNCTIONS"""
 
@@ -37,6 +38,7 @@ def get_user_by_email(db: Session, email: str):
     Get a single user by their email address
     SELECT * FROM users JOIN contacts WHERE contact.email = {email}
     """
+    from sqlalchemy import func
     return (
         db.query(User)
         .join(Contact)
@@ -46,7 +48,7 @@ def get_user_by_email(db: Session, email: str):
             joinedload(User.google_credentials),
             joinedload(User.authentication),
         )
-        .filter(Contact.email == email)
+        .filter(func.lower(Contact.email) == email.lower())
         .first()
     )
 
@@ -232,6 +234,12 @@ def _create_user_from_google_profile(db: Session, profile: dict) -> User:
 
     db.commit()
     db.refresh(db_user)
+    
+    # Link any pending team invitations sent to this email
+    email = profile.get("email")
+    if email:
+        team_invitation_crud.link_pending_invitations_to_user(db, db_user.user_id, email)
+    
     return db_user
 
 
@@ -388,6 +396,12 @@ def create_user_with_contact(db: Session, user: schemas.UserSignup) -> User:
     # ensure relationship resolved without extra DB hits later
     if db_user.contact is None:
         db_user.contact = db_contact
+
+    # Link any pending team invitations sent to this email
+    if contact_in.email:
+        print(f"[Signup] Checking for pending invitations for email: {contact_in.email}")
+        linked = team_invitation_crud.link_pending_invitations_to_user(db, db_user.user_id, contact_in.email)
+        print(f"[Signup] Linked {len(linked)} invitations")
 
     return db_user
 

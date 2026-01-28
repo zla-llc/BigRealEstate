@@ -26,6 +26,10 @@ def create_user(
     """
     Create a new user
     """
+    from app.db.crud import team_invitation as team_invitation_crud
+    
+    print(f"[CreateUser] Creating user with data: {user_in}")
+    
     user_by_username = user_crud.get_user_by_username(db, username=user_in.username)
     if user_by_username:  # check if exists already (username)
         raise HTTPException(
@@ -33,14 +37,34 @@ def create_user(
             detail="A user with this username already exists.",
         )
     # If client passed contact_id, ensure that contact exists
-    if getattr(user_in, "contact_id", None):
-        db_contact = contact_crud.get_contact_by_id(db, contact_id=user_in.contact_id)
+    db_contact = None
+    contact_id = getattr(user_in, "contact_id", None)
+    print(f"[CreateUser] contact_id from request: {contact_id}")
+    if contact_id:
+        db_contact = contact_crud.get_contact_by_id(db, contact_id=contact_id)
         if not db_contact:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid contact_id")
+        print(f"[CreateUser] Found contact with email: {db_contact.email}")
 
     new_user = user_crud.create_user(db=db, user=user_in)  # create user without creating a Contact
     if new_user is None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to create user (invalid contact_id?)")
+    
+    print(f"[CreateUser] Created user {new_user.user_id}, contact_id on user: {new_user.contact_id}")
+    
+    # If we didn't get contact from request, try to get it from the created user
+    if not db_contact and new_user.contact_id:
+        db_contact = contact_crud.get_contact_by_id(db, contact_id=new_user.contact_id)
+        print(f"[CreateUser] Got contact from user: {db_contact.email if db_contact else 'None'}")
+    
+    # Link any pending team invitations sent to this user's email
+    if db_contact and db_contact.email:
+        print(f"[CreateUser] Checking for pending invitations for email: {db_contact.email}")
+        linked = team_invitation_crud.link_pending_invitations_to_user(db, new_user.user_id, db_contact.email)
+        print(f"[CreateUser] Linked {len(linked)} invitations")
+    else:
+        print(f"[CreateUser] No contact email to check for invitations")
+    
     return new_user
 
 
@@ -146,9 +170,19 @@ def read_user_contact(user_id: int, db: Session = Depends(get_db)):
 @router.post("/{user_id}/contacts/{contact_id}", response_model=schemas.UserPublic, summary="Link Contact", tags=["User Contact Link"])
 def link_contact(user_id: int, contact_id: int, db: Session = Depends(get_db)):
     """Link an existing Contact to a User (attach contact_id to user)."""
+    from app.db.crud import team_invitation as team_invitation_crud
+    
     db_user = user_crud.link_contact_to_user(db=db, user_id=user_id, contact_id=contact_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User or Contact not found, or contact already linked")
+    
+    # Check for pending team invitations for this user's email
+    db_contact = contact_crud.get_contact_by_id(db, contact_id=contact_id)
+    if db_contact and db_contact.email:
+        print(f"[LinkContact] Checking for pending invitations for email: {db_contact.email}")
+        linked = team_invitation_crud.link_pending_invitations_to_user(db, user_id, db_contact.email)
+        print(f"[LinkContact] Linked {len(linked)} invitations")
+    
     return db_user
 
 

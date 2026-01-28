@@ -28,4 +28,9 @@ export enum Icons {
   Upload = "Upload",
   Edit = "Edit",
   Dashboard = "Dashboard",
+  Notification = "Notification",
+  Email = "Email",
+  Group = "Group",
+  Check = "Check",
+  Pending = "Pending",
 }

@@ -2,6 +2,7 @@ import { useAppHeader } from "../../hooks";
 import { IconButton, IconButtonVariant } from "../buttons";
 import { Icons } from "../icons";
 import { TextInput } from "../inputs";
+import { NotificationBell } from "./NotificationBell";
 
 export const AppHeader = () => {
   const {
@@ -38,7 +39,8 @@ export const AppHeader = () => {
         />
       </div>
 
-      <div className="flex flex-row space-x-4">
+      <div className="flex flex-row items-center space-x-4">
+        <NotificationBell />
         <IconButton name={Icons.Kanban} onClick={toBoardsV2Page} />
         <IconButton name={Icons.Dashboard} onClick={toDashboard} />
         <IconButton name={sideNavIcon} onClick={onSidenavBtn} />

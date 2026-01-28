@@ -21,6 +21,16 @@ import type {
   ListCampaignsParams,
   CreateCampaignProps,
   UpdateCampaignLeadProps,
+  SMTPSendRequest,
+  SMTPSendResponse,
+  SMTPConfigResponse,
+  Team,
+  TeamWithMembers,
+  TeamInvitation,
+  Notification,
+  CreateTeamRequest,
+  InviteToTeamRequest,
+  RespondToInvitationRequest,
 } from "./types";
 import { useFetch } from "./useFetch";
 import { useState } from "react";
@@ -31,7 +41,7 @@ import { usePropertyApi } from "./usePropertyApi";
 
 export const useApi = () => {
   const apiResponseError = useApiResponseError();
-  const { post, get, put, del } = useFetch();
+  const { post, get, put, del, patch } = useFetch();
   const [signal, setSignalState] = useState<AbortSignal>(
     new AbortController().signal
   );
@@ -283,6 +293,123 @@ export const useApi = () => {
     );
   };
 
+  // SMTP Email functions
+  const smtpGetConfig = async () => {
+    return await get<SMTPConfigResponse>(`/api/smtp/config`, getSignal("smtpGetConfig"));
+  };
+
+  const smtpSendEmail = async (request: SMTPSendRequest) => {
+    return await post<SMTPSendResponse>(`/api/smtp/send`, request, {
+      isFormData: false,
+      signal: getSignal("smtpSendEmail"),
+    });
+  };
+
+  // Team Management APIs
+  const createTeam = async ({ team_name, admin_user_id }: CreateTeamRequest) => {
+    return await post<TeamWithMembers>(
+      `/api/teams/with-admin/${admin_user_id}`,
+      { team_name },
+      { isFormData: false, signal: getSignal("createTeam") }
+    );
+  };
+
+  const getTeamsByUser = async (userId: number) => {
+    return await get<TeamWithMembers[]>(
+      `/api/teams/user/${userId}`,
+      getSignal("getTeamsByUser")
+    );
+  };
+
+  const getTeamMembers = async (teamId: number) => {
+    return await get<TeamWithMembers>(
+      `/api/teams/${teamId}/members`,
+      getSignal("getTeamMembers")
+    );
+  };
+
+  const inviteToTeam = async ({ team_id, sender_id, recipient_email }: InviteToTeamRequest) => {
+    return await post<TeamInvitation>(
+      `/api/teams/${team_id}/invitations?sender_id=${sender_id}`,
+      { recipient_email },
+      { isFormData: false, signal: getSignal("inviteToTeam") }
+    );
+  };
+
+  const getTeamInvitations = async (teamId: number, requesterId: number) => {
+    return await get<TeamInvitation[]>(
+      `/api/teams/${teamId}/invitations?requester_id=${requesterId}`,
+      getSignal("getTeamInvitations")
+    );
+  };
+
+  const respondToInvitation = async ({ invitation_id, accept, user_id }: RespondToInvitationRequest) => {
+    return await patch<{ message: string }>(
+      `/api/teams/invitations/${invitation_id}/respond?user_id=${user_id}`,
+      { status: accept },
+      { isFormData: false, signal: getSignal("respondToInvitation") }
+    );
+  };
+
+  const cancelInvitation = async (invitationId: number, requesterId: number) => {
+    return await del<void>(
+      `/api/teams/invitations/${invitationId}?requester_id=${requesterId}`,
+      getSignal("cancelInvitation")
+    );
+  };
+
+  const removeMemberFromTeam = async (teamId: number, userId: number) => {
+    return await del<{ message: string }>(
+      `/api/teams/${teamId}/members/${userId}`,
+      getSignal("removeMemberFromTeam")
+    );
+  };
+
+  const promoteToAdmin = async (teamId: number, userId: number) => {
+    return await post<TeamWithMembers>(
+      `/api/teams/${teamId}/admins/${userId}`,
+      {},
+      { isFormData: false, signal: getSignal("promoteToAdmin") }
+    );
+  };
+
+  const demoteFromAdmin = async (teamId: number, userId: number) => {
+    return await del<TeamWithMembers>(
+      `/api/teams/${teamId}/admins/${userId}`,
+      getSignal("demoteFromAdmin")
+    );
+  };
+
+  const deleteTeam = async (teamId: number, requesterId: number) => {
+    return await del<void>(
+      `/api/teams/${teamId}?requester_id=${requesterId}`,
+      getSignal("deleteTeam")
+    );
+  };
+
+  // Notification APIs
+  const getNotifications = async (userId: number) => {
+    return await get<Notification[]>(
+      `/api/notifications/user/${userId}`,
+      getSignal("getNotifications")
+    );
+  };
+
+  const markNotificationRead = async (notificationId: number) => {
+    return await patch<Notification>(
+      `/api/notifications/${notificationId}/read`,
+      {},
+      { isFormData: false, signal: getSignal("markNotificationRead") }
+    );
+  };
+
+  const deleteNotification = async (notificationId: number) => {
+    return await del<void>(
+      `/api/notifications/${notificationId}`,
+      getSignal("deleteNotification")
+    );
+  };
+
   return {
     ...boardsApiRoutes,
     ...leadsContactsAddressApi,
@@ -306,5 +433,23 @@ export const useApi = () => {
     updateCampaign,
     setSignal,
     updateCampaignLead,
+    smtpGetConfig,
+    smtpSendEmail,
+    // Team APIs
+    createTeam,
+    getTeamsByUser,
+    getTeamMembers,
+    inviteToTeam,
+    getTeamInvitations,
+    respondToInvitation,
+    cancelInvitation,
+    removeMemberFromTeam,
+    promoteToAdmin,
+    demoteFromAdmin,
+    deleteTeam,
+    // Notification APIs
+    getNotifications,
+    markNotificationRead,
+    deleteNotification,
   };
 };

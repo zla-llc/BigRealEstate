@@ -30,9 +30,11 @@ def _with_relationships(query):
         lead_loader.joinedload(Lead.contact),
         lead_loader.joinedload(Lead.address),
         lead_loader.selectinload(Lead.campaigns).joinedload(CampaignLead.campaign),
+        lead_loader.selectinload(Lead.images),
         property_loader.joinedload(Property.address),
         property_loader.selectinload(Property.units),
         property_loader.joinedload(Property.users),
+        property_loader.selectinload(Property.images),
     )
 
 

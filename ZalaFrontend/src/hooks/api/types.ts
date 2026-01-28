@@ -160,3 +160,85 @@ export type CreatePropertyImageProps = CreateImageProps & {
   propertyId: number;
   addressId: number;
 };
+
+// SMTP Types
+export type SMTPSendRequest = {
+  to_email: string;
+  name: string;
+  subject: string;
+  body: string;
+};
+
+export type SMTPSendResponse = {
+  success: boolean;
+  message: string;
+};
+
+export type SMTPConfigResponse = {
+  configured: boolean;
+  host: string | null;
+  port: number;
+};
+
+// Team Types
+export type Team = {
+  team_id: number;
+  team_name: string;
+  created_at: string;
+  created_by_user_id?: number;
+};
+
+export type TeamMember = {
+  role: string;
+  user: {
+    user_id: number;
+    username: string;
+    profile_pic?: string;
+    first_name?: string;
+    last_name?: string;
+  };
+};
+
+export type TeamWithMembers = Team & {
+  members: TeamMember[];
+};
+
+export type TeamInvitation = {
+  invitation_id: number;
+  team_id: number;
+  sender_id: number;
+  recipient_id?: number;
+  recipient_email: string;
+  status: boolean | null; // null = pending, true = accepted, false = declined
+  created_at: string;
+  team?: Team;
+};
+
+export type Notification = {
+  notification_id: number;
+  recipient_id: number;
+  sender_id: number;
+  type: string;
+  message: string;
+  viewed: boolean;
+  created_at: string;
+  invitation_id?: number;
+  team_id?: number;
+};
+
+export type CreateTeamRequest = {
+  team_name: string;
+  admin_user_id: number;
+};
+
+export type InviteToTeamRequest = {
+  team_id: number;
+  sender_id: number;
+  recipient_email: string;
+};
+
+export type RespondToInvitationRequest = {
+  invitation_id: number;
+  accept: boolean;
+  user_id: number;
+};
