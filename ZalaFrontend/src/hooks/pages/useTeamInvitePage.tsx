@@ -260,6 +260,12 @@ export const useTeamInvitePage = () => {
       return;
     }
 
+    // Check if user is already in a team (users can only join 1 team)
+    if (teams.length > 0) {
+      errorMsg("You're already on a team. Leave your current team first to create a new one.");
+      return;
+    }
+
     setCreatingTeam(true);
     const response = await api.createTeam({
       team_name: newTeamName.trim(),
@@ -598,6 +604,8 @@ export const useTeamInvitePage = () => {
       getMemberDisplayName,
       isCurrentUserCreator,
       isCurrentUserAdmin,
+      // User can only be in one team
+      canCreateOrJoinTeam: teams.length === 0,
     },
   };
 };

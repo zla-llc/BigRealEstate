@@ -80,7 +80,15 @@ def create_team(db: Session, team_in: schemas.TeamCreate) -> Team:
 
 
 def create_team_with_admin(db: Session, team_in: schemas.TeamCreate, admin_user_id: int) -> Team:
-    """Create a team and set the creator as admin."""
+    """
+    Create a team and set the creator as admin.
+    Raises ValueError if user is already in another team (users can only join 1 team).
+    """
+    
+    # Check if user is already in a team
+    existing_in_team = db.query(UserTeam).filter(UserTeam.user_id == admin_user_id).first()
+    if existing_in_team:
+        raise ValueError("You're already on a team. You'll need to leave your current team before creating a new one.")
     
     payload = _prepare_team_payload(team_in.model_dump())
     team = Team(**payload)
@@ -148,22 +156,34 @@ def _remove_id(values: List[int], user_id: int) -> List[int]:
 
 
 def add_member(db: Session, team_id: int, user_id: int, role: str = "member") -> Optional[Team]:
-    """Add a user to the team with specified role using UserTeam relationship."""
+    """
+    Add a user to the team with specified role using UserTeam relationship.
+    Returns None if team not found.
+    Raises ValueError if user is already in another team (users can only join 1 team).
+    """
 
     team = get_team_by_id(db, team_id)
     if not team:
         return None
     
-    # Check if user already in team
+    # Check if user already in THIS team
     existing = db.query(UserTeam).filter(
         UserTeam.team_id == team_id,
         UserTeam.user_id == user_id
     ).first()
     
     if existing:
-        # Update role if already exists
+        # Update role if already exists in this team
         existing.role = role
     else:
+        # Check if user is already in ANOTHER team (constraint: 1 team per user)
+        existing_in_other = db.query(UserTeam).filter(
+            UserTeam.user_id == user_id
+        ).first()
+        
+        if existing_in_other:
+            raise ValueError("This person is already on another team. Each user can only be on one team.")
+        
         # Create new link
         user_team = UserTeam(
             user_id=user_id,
@@ -233,6 +253,22 @@ def get_user_role_in_team(db: Session, team_id: int, user_id: int) -> Optional[s
     ).first()
     
     return user_team.role if user_team else None
+
+
+def get_user_current_team(db: Session, user_id: int) -> Optional[Team]:
+    """Get the team a user belongs to (users can only be in 1 team)."""
+    
+    user_team = db.query(UserTeam).filter(UserTeam.user_id == user_id).first()
+    if not user_team:
+        return None
+    
+    return get_team_by_id(db, user_team.team_id)
+
+
+def is_user_in_any_team(db: Session, user_id: int) -> bool:
+    """Check if user is already in any team."""
+    
+    return db.query(UserTeam).filter(UserTeam.user_id == user_id).first() is not None
 
 
 def is_user_admin(db: Session, team_id: int, user_id: int) -> bool:

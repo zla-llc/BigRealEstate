@@ -35,8 +35,16 @@ def create_team_with_admin(team_in: schemas.TeamCreate, admin_user_id: int, db: 
     
     - **admin_user_id**: The user_id of the person creating the team (they become admin)
     - **team_in**: Team creation data (team_name, optional xp)
+    
+    Note: Users can only be a member of one team. If the user is already in a team, this will fail.
     """
-    return team_crud.create_team_with_admin(db, team_in, admin_user_id)
+    try:
+        return team_crud.create_team_with_admin(db, team_in, admin_user_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e)
+        )
 
 
 @router.get("/", response_model=List[schemas.TeamPublic])
@@ -171,12 +179,22 @@ async def delete_team(team_id: int, requester_id: int, db: Session = Depends(get
     summary="Add user as member",
 )
 def add_member(team_id: int, user_id: int, db: Session = Depends(get_db)):
-    """Append the user to the member list."""
+    """
+    Append the user to the member list.
+    
+    Note: Users can only be a member of one team. If the user is already in a team, this will fail.
+    """
 
-    team = team_crud.add_member(db, team_id, user_id)
-    if not team:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
-    return team
+    try:
+        team = team_crud.add_member(db, team_id, user_id)
+        if not team:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+        return team
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e)
+        )
 
 
 @router.delete(
@@ -423,7 +441,7 @@ async def invite_to_team(
     if existing:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="An invitation is already pending for this email"
+            detail="You've already sent an invitation to this email. Please wait for them to respond."
         )
     
     # Check if recipient is already in team
@@ -431,7 +449,14 @@ async def invite_to_team(
     if recipient_user and invitation_crud.is_user_in_team(db, team_id, recipient_user.user_id):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="This user is already a member of the team"
+            detail="This person is already a member of your team."
+        )
+    
+    # Check if recipient is already in ANY team (users can only join 1 team)
+    if recipient_user and team_crud.is_user_in_any_team(db, recipient_user.user_id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This person is already on another team. Each user can only be on one team."
         )
     
     # Create the invitation
@@ -594,6 +619,14 @@ async def respond_to_invitation(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="This invitation has already been responded to"
         )
+    
+    # If accepting, check if user is already in a team (users can only join 1 team)
+    if response_in.status:
+        if team_crud.is_user_in_any_team(db, user_id):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="You're already on a team. You'll need to leave your current team before joining another one."
+            )
     
     # Update invitation status
     invitation = invitation_crud.update_invitation_status(db, invitation_id, response_in.status)

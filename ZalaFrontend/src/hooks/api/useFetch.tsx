@@ -76,8 +76,12 @@ export const useFetch = () => {
         (parsed && typeof parsed === "object" && ((parsed as Record<string, unknown>).err || (parsed as Record<string, unknown>).error))
       ) {
         const errorObj = parsed as Record<string, unknown> | null;
+        // FastAPI returns errors with "detail" key, also check for "err" and "error"
         throw new Error(
-          (errorObj?.err as string) ?? (errorObj?.error as string) ?? "Error communicating with API"
+          (errorObj?.detail as string) ?? 
+          (errorObj?.err as string) ?? 
+          (errorObj?.error as string) ?? 
+          "Error communicating with API"
         );
       }
 
