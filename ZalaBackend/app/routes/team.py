@@ -759,3 +759,241 @@ def get_user_role_in_team(team_id: int, user_id: int, db: Session = Depends(get_
     
     role = team_crud.get_user_role_in_team(db, team_id, user_id)
     return {"team_id": team_id, "user_id": user_id, "role": role}
+
+
+# ============================================================================
+# TEAM ANNOUNCEMENTS ENDPOINTS
+# ============================================================================
+
+from app.db.crud import team_announcement as announcement_crud
+
+
+@router.post(
+    "/{team_id}/announcements",
+    response_model=schemas.AnnouncementPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a team announcement (admin only)",
+)
+async def create_announcement(
+    team_id: int,
+    author_id: int,
+    announcement_in: schemas.AnnouncementCreate,
+    db: Session = Depends(get_db)
+):
+    """
+    Create a new team announcement. Only team admins can post announcements.
+    
+    - **team_id**: The team to post the announcement to
+    - **author_id**: The user_id of the admin posting (must be a team admin)
+    - **announcement_in**: Contains title and message
+    
+    This will broadcast the announcement to all team members in real-time via WebSocket.
+    """
+    # Check team exists
+    team = team_crud.get_team_by_id(db, team_id)
+    if not team:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+    
+    # Check author is admin of team
+    if not team_crud.is_user_admin(db, team_id, author_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only team admins can post announcements."
+        )
+    
+    # Create the announcement
+    announcement = announcement_crud.create_announcement(
+        db=db,
+        team_id=team_id,
+        author_id=author_id,
+        announcement_in=announcement_in
+    )
+    
+    # Get author info for the WebSocket broadcast
+    from app.db.crud import user as user_crud
+    author = user_crud.get_user_by_id(db, author_id)
+    author_name = author.username if author else "Admin"
+    
+    # Broadcast to all team members via WebSocket
+    try:
+        # Get all member user IDs
+        member_user_ids = [link.user_id for link in team.member_links]
+        
+        announcement_data = {
+            "announcement_id": announcement.announcement_id,
+            "team_id": team_id,
+            "team_name": team.team_name,
+            "author_id": author_id,
+            "author_name": author_name,
+            "author_profile_pic": author.profile_pic if author else None,
+            "title": announcement.title,
+            "message": announcement.message,
+            "created_at": announcement.created_at.isoformat() if announcement.created_at else None
+        }
+        
+        # Send to team channel (for those viewing the team page)
+        await send_team_update(
+            team_id,
+            "new_announcement",
+            announcement_data
+        )
+        
+        # Send to each member's personal notification WebSocket
+        await send_team_update_to_users(
+            member_user_ids,
+            "team_announcement",
+            announcement_data
+        )
+    except Exception as e:
+        print(f"[WebSocket] Failed to broadcast announcement: {e}")
+    
+    return announcement
+
+
+@router.get(
+    "/{team_id}/announcements",
+    response_model=List[schemas.AnnouncementPublic],
+    summary="Get team announcements",
+)
+def get_team_announcements(
+    team_id: int,
+    user_id: int,
+    skip: int = 0,
+    limit: int = 50,
+    db: Session = Depends(get_db)
+):
+    """
+    Get all announcements for a team. User must be a member of the team.
+    
+    - **team_id**: The team ID
+    - **user_id**: The requesting user (must be a team member)
+    - **skip**: Pagination offset
+    - **limit**: Max results to return
+    """
+    # Check team exists
+    team = team_crud.get_team_by_id(db, team_id)
+    if not team:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+    
+    # Check user is a member of the team
+    role = team_crud.get_user_role_in_team(db, team_id, user_id)
+    if not role:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You must be a team member to view announcements."
+        )
+    
+    return announcement_crud.get_announcements_by_team(db, team_id, skip=skip, limit=limit)
+
+
+@router.get(
+    "/{team_id}/announcements/{announcement_id}",
+    response_model=schemas.AnnouncementPublic,
+    summary="Get a specific announcement",
+)
+def get_announcement(
+    team_id: int,
+    announcement_id: int,
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get a specific announcement by ID."""
+    # Check user is a member of the team
+    role = team_crud.get_user_role_in_team(db, team_id, user_id)
+    if not role:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You must be a team member to view announcements."
+        )
+    
+    announcement = announcement_crud.get_announcement_by_id(db, announcement_id)
+    if not announcement or announcement.team_id != team_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Announcement not found")
+    
+    return announcement
+
+
+@router.put(
+    "/{team_id}/announcements/{announcement_id}",
+    response_model=schemas.AnnouncementPublic,
+    summary="Update an announcement (admin only)",
+)
+async def update_announcement(
+    team_id: int,
+    announcement_id: int,
+    user_id: int,
+    announcement_in: schemas.AnnouncementUpdate,
+    db: Session = Depends(get_db)
+):
+    """Update an existing announcement. Only team admins can update announcements."""
+    # Check admin
+    if not team_crud.is_user_admin(db, team_id, user_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only team admins can update announcements."
+        )
+    
+    announcement = announcement_crud.get_announcement_by_id(db, announcement_id)
+    if not announcement or announcement.team_id != team_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Announcement not found")
+    
+    updated = announcement_crud.update_announcement(db, announcement_id, announcement_in)
+    
+    # Broadcast update to team
+    try:
+        await send_team_update(
+            team_id,
+            "announcement_updated",
+            {
+                "announcement_id": announcement_id,
+                "team_id": team_id,
+                "title": updated.title,
+                "message": updated.message,
+                "updated_at": updated.updated_at.isoformat() if updated.updated_at else None
+            }
+        )
+    except Exception as e:
+        print(f"[WebSocket] Failed to broadcast announcement update: {e}")
+    
+    return updated
+
+
+@router.delete(
+    "/{team_id}/announcements/{announcement_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete an announcement (admin only)",
+)
+async def delete_announcement(
+    team_id: int,
+    announcement_id: int,
+    user_id: int,
+    db: Session = Depends(get_db)
+):
+    """Delete an announcement. Only team admins can delete announcements."""
+    # Check admin
+    if not team_crud.is_user_admin(db, team_id, user_id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only team admins can delete announcements."
+        )
+    
+    announcement = announcement_crud.get_announcement_by_id(db, announcement_id)
+    if not announcement or announcement.team_id != team_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Announcement not found")
+    
+    announcement_crud.delete_announcement(db, announcement_id)
+    
+    # Broadcast deletion to team
+    try:
+        await send_team_update(
+            team_id,
+            "announcement_deleted",
+            {
+                "announcement_id": announcement_id,
+                "team_id": team_id
+            }
+        )
+    except Exception as e:
+        print(f"[WebSocket] Failed to broadcast announcement deletion: {e}")
+    
+    return None

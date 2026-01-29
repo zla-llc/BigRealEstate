@@ -20,5 +20,6 @@ from .team import Team
 from .campaign_lead import CampaignLead
 from .lead_image import LeadImage
 from .property_image import PropertyImage
+from .team_announcement import TeamAnnouncement
 
 from ..db.session import Base
