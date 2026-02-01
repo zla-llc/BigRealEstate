@@ -2,15 +2,43 @@ import { useRef, useState } from "react";
 import { BoardStepModalHeader } from "../../headers";
 import type { BoardModalPageProps } from "./types";
 import { MenuButton } from "../../buttons";
+import { ModalCenterButtons } from "../../buttons/ModalCenterButtons";
+import { Icons } from "../../icons";
+import { BoardModal } from "./BoardModal";
+import { useAddBoardStepLeadStore } from "../../../stores";
+import { useApi } from "../../../hooks";
 
-export const ImportLeadsModalPage = ({ onBackBtn }: BoardModalPageProps) => {
+export const ImportLeadsModalPage = ({
+  onBackBtn,
+  onConfirm: parentOnConfirm,
+}: BoardModalPageProps & { onConfirm: (newLeadIds?: number[]) => void }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
+  const { selectedBoardItemIds, editBoardItemId } = useAddBoardStepLeadStore();
+  const { intakeCsv, apiResponseError } = useApi();
+  
   const onPickFile = () => {
     // Allows re-selecting the same file twice in a row
     if (fileInputRef.current) fileInputRef.current.value = "";
     fileInputRef.current?.click();
+  };
+
+  const onConfirmUpload = async() => {
+    if (!selectedFile) return;
+
+    const response = await intakeCsv({ file: selectedFile });
+    if (response.err || !response.data) {
+      apiResponseError("importing csv leads", response.err);
+      return;
+    }
+
+    const newLeadIds = [
+      ...(response.data.leads_created ?? []),
+      ...(response.data.leads_updated ?? []),
+      ...(response.data.leads_unchanged ?? []),
+    ];
+    const mergedLeadIds = [...selectedBoardItemIds, ...newLeadIds];
+    parentOnConfirm(mergedLeadIds);
   };
 
   const onFileChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -28,7 +56,7 @@ export const ImportLeadsModalPage = ({ onBackBtn }: BoardModalPageProps) => {
   return (
     <div className="full p-6 flex flex-col space-y-[15px]">
       <BoardStepModalHeader onBackBtn={onBackBtn} />
-      <div className="flex items-center gap-3">
+      <div className="grow-1 relative flex items-center gap-3">
         <div className="inline-flex items-center justify-center ">
           <MenuButton
             onClick={onPickFile} 
@@ -48,9 +76,14 @@ export const ImportLeadsModalPage = ({ onBackBtn }: BoardModalPageProps) => {
           onChange={onFileChange}
         />
       </div>
-
-      {/* your existing content */}
-      {/* herro */}
+      <ModalCenterButtons
+        primary={{
+          text: "Upload Leads",
+          icon: Icons.Upload,
+          onClick: onConfirmUpload,
+        }}
+      />
+      
     </div>
 
   );
