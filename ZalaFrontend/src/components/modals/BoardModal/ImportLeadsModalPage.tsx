@@ -6,7 +6,7 @@ import { ModalCenterButtons } from "../../buttons/ModalCenterButtons";
 import { Icons } from "../../icons";
 import { BoardModal } from "./BoardModal";
 import { useAddBoardStepLeadStore } from "../../../stores";
-import { useApi } from "../../../hooks";
+import { useApi, useSnack } from "../../../hooks";
 
 export const ImportLeadsModalPage = ({
   onBackBtn,
@@ -16,7 +16,8 @@ export const ImportLeadsModalPage = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { selectedBoardItemIds, editBoardItemId } = useAddBoardStepLeadStore();
   const { intakeCsv, apiResponseError } = useApi();
-  
+  const [successMsg] = useSnack();
+
   const onPickFile = () => {
     // Allows re-selecting the same file twice in a row
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -39,6 +40,7 @@ export const ImportLeadsModalPage = ({
     ];
     const mergedLeadIds = [...selectedBoardItemIds, ...newLeadIds];
     parentOnConfirm(mergedLeadIds);
+    successMsg("Successfully imported leads from CSV file");
   };
 
   const onFileChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
