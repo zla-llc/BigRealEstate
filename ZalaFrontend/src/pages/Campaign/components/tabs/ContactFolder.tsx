@@ -55,11 +55,12 @@ export const ContactFolder = ({
                       active={campaignLead?.contactMethods.includes(
                         CampaignContactMethod.Email
                       )}
-                      onClick={() =>
+                      onClick={hasEmail ? () => {return;} : () =>
                         onContactMethod(CampaignContactMethod.Email)
                       }
                       text="Email"
                       icon={Icons.Mail}
+                      disabled={hasEmail}
                     />
                     <ContactMethod
                       active={campaignLead?.contactMethods.includes(
