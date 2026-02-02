@@ -4,10 +4,10 @@ import type { BoardModalPageProps } from "./types";
 import { MenuButton } from "../../buttons";
 import { ModalCenterButtons } from "../../buttons/ModalCenterButtons";
 import { Icons } from "../../icons";
-import { BoardModal } from "./BoardModal";
 import { useAddBoardStepLeadStore } from "../../../stores";
 import { useApi, useSnack } from "../../../hooks";
 import sampleXLSX from "../../../assets/images/sampleXLSX.png";
+import { Loader } from "../../feedback";
 
 export const ImportLeadsModalPage = ({
   onBackBtn,
@@ -15,9 +15,10 @@ export const ImportLeadsModalPage = ({
 }: BoardModalPageProps & { onConfirm: (newLeadIds?: number[]) => void }) => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const { selectedBoardItemIds, editBoardItemId } = useAddBoardStepLeadStore();
+  const { selectedBoardItemIds } = useAddBoardStepLeadStore();
   const { intakeCsv, apiResponseError } = useApi();
   const [successMsg] = useSnack();
+  const [waiting, setWaiting] = useState<boolean >(false);
 
   const onPickFile = () => {
     // Allows re-selecting the same file twice in a row
@@ -27,6 +28,8 @@ export const ImportLeadsModalPage = ({
 
   const onConfirmUpload = async() => {
     if (!selectedFile) return;
+
+    setWaiting(true);
 
     const response = await intakeCsv({ file: selectedFile });
     if (response.err || !response.data) {
@@ -59,40 +62,47 @@ export const ImportLeadsModalPage = ({
       <div className="w-full flex flex-col items-center justify-center ">
         <span className="text-lg text-center font-bold">
           {"Import Lead(s)"}
-        </span>
-            
+        </span>    
       </div>
-      <div className="grow-1 relative flex flex-col items-center gap-3 text-center">
-        <p>
-          Make sure your sheet has the following headers: first_name, last_name,
-          email, phone_number
-        </p>
-        <p >
-          Then export as csv and upload it here!
-        </p>
-        <div className="flex flex-col items-start gap-3">
-          <img src={sampleXLSX} alt="" />
-          <div className="inline-flex items-center gap-3">
-            <MenuButton
-              onClick={onPickFile} 
-              text={"Select File"}
-              icon={Icons.File}
-            />
-            <span className="text-sm text-black/70 whitespace-nowrap">
-              {selectedFile ? selectedFile.name : "No file selected"}
-            </span>
-          </div>
+      {waiting ? (
+        <div className="grow-1 relative flex items-center justify-center">
+          <Loader darkMode={true} />
         </div>
+      ) : (
+        <div className="grow-1 relative flex flex-col items-center gap-3 text-center">
+          <p>
+            Make sure your sheet has the following headers: first_name, last_name,
+            email, phone_number
+          </p>
+          <p>
+            Then export as csv and upload it here!
+          </p>
+          <p className="text-secondary-50 text-md line-clamp-2 mt-4">
+              <b>Example sheet</b> 
+          </p>
+          <div className="flex flex-col items-start gap-3">
+            <img src={sampleXLSX} alt="" />
+            <div className="inline-flex items-center gap-3 mt-9">
+              <MenuButton
+                onClick={onPickFile}
+                text={"Select File"}
+                icon={Icons.File}
+              />
+              <span className="text-sm text-black/70 whitespace-nowrap">
+                {selectedFile ? selectedFile.name : "No file selected"}
+              </span>
+            </div>
+          </div>
 
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          className="hidden"
-          accept=".csv"
-          onChange={onFileChange}
-        />
-      </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            accept=".csv"
+            onChange={onFileChange}
+          />
+        </div>
+      )}
       <ModalCenterButtons
         primary={{
           text: "Upload Leads",
