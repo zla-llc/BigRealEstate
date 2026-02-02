@@ -7,6 +7,7 @@ import { Icons } from "../../icons";
 import { BoardModal } from "./BoardModal";
 import { useAddBoardStepLeadStore } from "../../../stores";
 import { useApi, useSnack } from "../../../hooks";
+import sampleXLSX from "../../../assets/images/sampleXLSX.png";
 
 export const ImportLeadsModalPage = ({
   onBackBtn,
@@ -49,26 +50,40 @@ export const ImportLeadsModalPage = ({
 
     if (!file) return;
 
-    // TODO: upload/parse here
-    // Example:
-    // const formData = new FormData();
-    // formData.append("file", file);
-    // await fetch("/api/leads/import", { method: "POST", body: formData });
   };
   return (
     <div className="full p-6 flex flex-col space-y-[15px]">
-      <BoardStepModalHeader onBackBtn={onBackBtn} />
-      <div className="grow-1 relative flex items-center gap-3">
-        <div className="inline-flex items-center justify-center ">
-          <MenuButton
-            onClick={onPickFile} 
-            text={"Upload File"}
-          />
+      <BoardStepModalHeader 
+        onBackBtn={onBackBtn} 
+      />
+      <div className="w-full flex flex-col items-center justify-center ">
+        <span className="text-lg text-center font-bold">
+          {"Import Lead(s)"}
+        </span>
+            
+      </div>
+      <div className="grow-1 relative flex flex-col items-center gap-3 text-center">
+        <p>
+          Make sure your sheet has the following headers: first_name, last_name,
+          email, phone_number
+        </p>
+        <p >
+          Then export as csv and upload it here!
+        </p>
+        <div className="flex flex-col items-start gap-3">
+          <img src={sampleXLSX} alt="" />
+          <div className="inline-flex items-center gap-3">
+            <MenuButton
+              onClick={onPickFile} 
+              text={"Select File"}
+              icon={Icons.File}
+            />
+            <span className="text-sm text-black/70 whitespace-nowrap">
+              {selectedFile ? selectedFile.name : "No file selected"}
+            </span>
+          </div>
         </div>
 
-        <span className="text-sm text-black/70 truncate max-w-[60%]">
-          {selectedFile ? selectedFile.name : "No file selected"}
-        </span>
 
         <input
           ref={fileInputRef}

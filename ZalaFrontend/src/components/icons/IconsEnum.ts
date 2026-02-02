@@ -27,4 +27,5 @@ export enum Icons {
   Settings = "Settings",
   Upload = "Upload",
   Edit = "Edit",
+  File = "File",
 }

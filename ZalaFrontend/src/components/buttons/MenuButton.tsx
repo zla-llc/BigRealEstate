@@ -7,9 +7,10 @@ type MenuButtonProps = {
   text: string;
   bold?: boolean;
   onClick?: () => void;
+  icon?: Icons;
 };
 
-export const MenuButton = ({ text, bold, onClick }: MenuButtonProps) => {
+export const MenuButton = ({ text, bold, onClick, icon = Icons.Chevron }: MenuButtonProps) => {
   const [isHovered, hoverProps] = useHover({ onClick });
 
   const isActive = onClick && isHovered;
@@ -27,7 +28,7 @@ export const MenuButton = ({ text, bold, onClick }: MenuButtonProps) => {
         {text}
       </p>
       <Icon
-        name={Icons.Chevron}
+        name={icon}
         color={isActive ? COLORS.accent : COLORS.secondary}
       />
     </div>
