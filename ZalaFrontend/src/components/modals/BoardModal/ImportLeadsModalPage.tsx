@@ -82,16 +82,16 @@ export const ImportLeadsModalPage = ({
           </p>
           <div className="flex flex-col items-start gap-3">
             <img src={sampleXLSX} alt="" />
-            <div className="inline-flex items-center gap-3 mt-9">
-              <MenuButton
-                onClick={onPickFile}
-                text={"Select File"}
-                icon={Icons.File}
-              />
-              <span className="text-sm text-black/70 whitespace-nowrap">
-                {selectedFile ? selectedFile.name : "No file selected"}
-              </span>
-            </div>
+          </div>
+          <div className="inline-flex items-center gap-3 mt-9">
+            <MenuButton
+              onClick={onPickFile}
+              text={"Select File"}
+              icon={Icons.File}
+            />
+          </div>
+          <div className="text-sm text-black/70 whitespace-nowrap">
+            {selectedFile ? selectedFile.name : "No file selected"}
           </div>
 
           <input
