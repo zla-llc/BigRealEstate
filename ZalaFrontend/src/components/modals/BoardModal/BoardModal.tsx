@@ -107,7 +107,7 @@ export const BoardModal = ({ onAddLeads }: BoardModalProps) => {
       )}
 
       {page === BoardModalPage.ImportLeadsPage && (
-        <ImportLeadsModalPage onBackBtn={toMethodSelectModal} />
+        <ImportLeadsModalPage onBackBtn={toMethodSelectModal} onConfirm={onConfirm} />
       )}
     </Modal>
   );

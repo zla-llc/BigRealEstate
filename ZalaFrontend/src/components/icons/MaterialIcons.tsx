@@ -28,6 +28,7 @@ import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import SettingsIcon from "@mui/icons-material/Settings";
 import UploadIcon from "@mui/icons-material/Upload";
 import EditIcon from "@mui/icons-material/Edit";
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 
 export const getMaterialIcon = (iconName: Icons) => {
   switch (iconName) {
@@ -87,6 +88,8 @@ export const getMaterialIcon = (iconName: Icons) => {
       return (props: SvgIconProps) => <UploadIcon {...props} />;
     case Icons.Edit:
       return (props: SvgIconProps) => <EditIcon {...props} />;
+    case Icons.File:
+      return (props: SvgIconProps) => <AttachFileIcon {...props} />;
     default:
       return null;
   }
