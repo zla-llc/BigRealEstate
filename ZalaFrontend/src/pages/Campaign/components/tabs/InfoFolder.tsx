@@ -1,7 +1,7 @@
-import { Icons } from "../../../../components";
+import { Icons, LeadInfoSection } from "../../../../components";
 import { CampaignTab } from "../../../../interfaces";
 import { useFolderIcons } from "../../hooks";
-import { Folder, LeadButtons, LeadFolder, LeadTitleValue } from "../layout";
+import { Folder, LeadButtons, LeadFolder } from "../layout";
 import type { CampaignFolderChildProps } from "./types";
 
 type InfoFolderProps = CampaignFolderChildProps;
@@ -42,22 +42,7 @@ export const InfoFolder = ({
                   Contact: {lead.contact.firstName} {lead.contact.lastName}
                 </p>
                 <div className="w-full flex grow-1 items-center justify-center">
-                  <div className="w-full flex flex-col space-y-[15px]">
-                    <LeadTitleValue title="Email:" value={lead.contact.email} />
-                    <LeadTitleValue
-                      title="Phone #:"
-                      value={lead.contact.phone}
-                    />
-                    <LeadTitleValue
-                      title="Lead type:"
-                      value={"Real estate agent"}
-                    />
-                    <LeadTitleValue
-                      title="Buisness:"
-                      value={"Real Real Estate Agency"}
-                    />
-                    <LeadTitleValue title="Website:" value={"realagent.com"} />
-                  </div>
+                  <LeadInfoSection lead={lead} />
                 </div>
               </div>
             </div>

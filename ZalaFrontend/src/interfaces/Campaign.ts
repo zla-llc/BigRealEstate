@@ -1,4 +1,4 @@
-import type { AUser, IUser } from "./User";
+import type { AUser, IUser } from "./user";
 
 export enum CampaignContactMethod {
   Phone = "phone",

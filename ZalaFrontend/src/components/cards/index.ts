@@ -2,3 +2,8 @@ export * from "./LeadCard";
 export * from "./ArrowLeadCard";
 export * from "./GoogleRequiredCard";
 export * from "./CampaignCard";
+export * from "./BoardCard";
+export * from "./BoardItemCard";
+export * from "./BoardCardColumns";
+export * from "./BoardItemCard";
+export * from "./types";

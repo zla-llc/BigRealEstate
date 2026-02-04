@@ -9,12 +9,19 @@ export const UserSidenav = () => {
   const user = useAuthStore((state) => state.user);
   const closeSideNav = useSideNavControlStore((state) => state.close);
   const logout = useLogout();
-  const { toPastCampaigns, toCampaignEmailTestPage, toEmailTestPage } =
-    useAppNavigation();
+  const {
+    toPastCampaigns,
+    toBoardsPage,
+    toCampaignEmailTestPage,
+    toEmailTestPage,
+  } = useAppNavigation();
 
   const onLogout = () => (closeSideNav(), logout());
 
   const avatarSize = 150;
+  const firstInitial =
+    user?.contact?.firstName?.[0] ?? user?.username?.[0] ?? "?";
+  const lastInitial = user?.contact?.lastName?.[0] ?? "";
   return (
     user && (
       <div className="w-full h-full flex flex-col space-y-[30px]">
@@ -29,8 +36,8 @@ export const UserSidenav = () => {
                 fontWeight: "bold",
               }}
             >
-              {user.contact!.firstName[0]}
-              {user.contact!.lastName[0]}
+              {firstInitial}
+              {lastInitial}
             </Avatar>
             <div className="flex flex-col items-center justify-center mt-[10px]">
               <p className="text-secondary text-xl font-bold">
@@ -48,6 +55,11 @@ export const UserSidenav = () => {
             <MenuButton
               text="Past campaigns"
               onClick={() => (closeSideNav(), toPastCampaigns())}
+            />
+
+            <MenuButton
+              text="Boards V1 Demo"
+              onClick={() => (closeSideNav(), toBoardsPage())}
             />
 
             {user.gmailConnected && (

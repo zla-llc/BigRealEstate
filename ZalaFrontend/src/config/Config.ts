@@ -9,6 +9,7 @@ type IConfig = {
       scopes: string;
     };
   };
+  maxBoardItemCards: number;
 };
 
 export const CONFIG: IConfig = {
@@ -24,4 +25,5 @@ export const CONFIG: IConfig = {
         "openid email profile https://www.googleapis.com/auth/gmail.send",
     },
   },
+  maxBoardItemCards: 4,
 };

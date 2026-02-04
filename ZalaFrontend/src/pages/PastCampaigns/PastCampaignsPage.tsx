@@ -1,4 +1,4 @@
-import { CampaignCard } from "../../components";
+import { CampaignCard, ModalHeader } from "../../components";
 import { usePastCampaignsPage } from "../../hooks";
 import { LoadingPage } from "../Loading";
 
@@ -7,11 +7,22 @@ export const PastCampaignsPage = () => {
   return loading ? (
     <LoadingPage />
   ) : (
-    <div className="flex flex-1 flex-col p-[60px] space-y-[30px]">
-      <div className="flex flex-col items-center justify-center">
-        <h2 className="text-3xl font-bold text-secondary">My Campaigns</h2>
+    <div className="flex flex-1 flex-col px-[60px] space-y-[30px]">
+      <div className="w-full pt-[15px]">
+        <ModalHeader
+          title="My Campaigns"
+          actions={
+            [
+              // {
+              //   side: "right",
+              //   type: "iconBtn",
+              //   iconBtnProps: { name: Icons.Add, onClick: onAddNewBoardBtn },
+              // },
+            ]
+          }
+        />
       </div>
-      <div className="flex flex-row flex-wrap space-y-[35px] items-center justify-between">
+      <div className="pt-[30px] flex flex-row flex-wrap space-y-[35px] items-center justify-between">
         {campaigns.map((campaign) => (
           <CampaignCard
             key={campaign.campaignId}

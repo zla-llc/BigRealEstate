@@ -11,7 +11,6 @@ import { Normalizer, stringify } from "../../utils";
 import type { MapRefHandle } from "../components";
 import { useAppNavigation, useSnack } from "../utils";
 import { useApi } from "../api";
-import type { ILead } from "../../interfaces";
 
 export const useLeadSearchPage = () => {
   const user = useAuthStore((state) => state.user);
@@ -20,7 +19,7 @@ export const useLeadSearchPage = () => {
   const sortBy = useSearchFilterStore((state) => state.sortBy);
   const openSideNav = useSideNavControlStore((state) => state.open);
 
-  const { createCampaign, createLead } = useApi();
+  const { createCampaign } = useApi();
   const [_successSnack, errorSnack] = useSnack();
   const { toCampaignPage } = useAppNavigation();
 
@@ -94,18 +93,6 @@ export const useLeadSearchPage = () => {
     );
 
     setLoading(true);
-    // const apiLeads: ILead[] = (
-    //   await Promise.all(
-    //     leadsToAddToCampaign.map(async (lead) => {
-    //       console.log(`Creating ${lead.leadId}`);
-    //       return (await createLead({ lead, createdById: user!.userId })).data
-    //         ?.lead;
-    //     })
-    //   )
-    // )
-    //   .map((apiLead) => apiLead && Normalizer.APINormalizer.lead(apiLead))
-    //   .filter((apiLead) => apiLead) as ILead[];
-    // const leadIds = apiLeads.map((lead) => lead.leadId);
 
     const res = await createCampaign({
       title,

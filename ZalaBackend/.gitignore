@@ -40,6 +40,9 @@ ENV/
 logs/
 *.sqlite3
 
+# Runtime media
+uploads/
+
 # IDE/editor files
 .vscode/
 .idea/

@@ -36,12 +36,13 @@ export const EmailModal = ({
           </h2>
           <p className="text-secondary-50 text-sm line-clamp-2">
             Send an email to{" "}
-            {leads
-              .slice(0, Math.min(leads.length, 3))
-              .map(
-                (lead) => `${lead.contact.firstName} ${lead.contact.lastName}`
-              )
-              .join(", ")}{" "}
+            {leads.slice(0, Math.min(leads.length, 3)).map((lead) => (
+              <span className="font-bold text-secondary">{`${
+                lead.contact.firstName
+              } ${lead.contact.lastName} (${
+                lead.contact.email ?? lead.contact.phone
+              })`}</span>
+            ))}{" "}
             {leads.length > 3 ? `+${leads.length - 3} more` : ""}
           </p>
         </div>

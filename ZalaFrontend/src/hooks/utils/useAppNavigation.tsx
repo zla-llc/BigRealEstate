@@ -10,6 +10,8 @@ export const useAppNavigation = () => {
   const toCampaignPage = (campaignId: number, leads: ILead[] = []) =>
     navigate("/campaigns/" + campaignId, { state: { leads } });
 
+  const toBoardsPage = () => navigate("/boards");
+
   const toLoginPage = () => navigate("/login");
 
   const toSignupPage = () => navigate("/signup");
@@ -22,11 +24,14 @@ export const useAppNavigation = () => {
 
   const toPastCampaigns = () => navigate("/campaigns");
 
+  const toBoardsV2Page = () => navigate("/boards/v2");
+
   return {
     location,
     navigate,
 
     toLeadSearchPage,
+    toBoardsPage,
     toCampaignPage,
     toLoginPage,
     toSignupPage,
@@ -34,5 +39,6 @@ export const useAppNavigation = () => {
     toEmailTestPage,
     toPastCampaigns,
     toCampaignEmailTestPage,
+    toBoardsV2Page,
   };
 };

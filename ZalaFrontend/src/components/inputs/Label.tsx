@@ -3,9 +3,10 @@ import clsx from "clsx";
 type LabelProps = {
   label: string;
   active?: boolean;
+  optional?: boolean;
 };
 
-export const Label = ({ label, active }: LabelProps) => {
+export const Label = ({ label, active, optional }: LabelProps) => {
   return (
     <div
       className={clsx(
@@ -20,7 +21,14 @@ export const Label = ({ label, active }: LabelProps) => {
         <div className="absolute z-0 top-0 left-0 bottom-0 right-0 flex items-center ">
           <div className="bg-white w-full h-[8px]" />
         </div>
-        <span className="z-1">{label}</span>
+        <span
+          className={clsx(
+            "z-1",
+            optional ? "text-secondary-50" : "text-secondary"
+          )}
+        >
+          {label}
+        </span>
       </div>
     </div>
   );

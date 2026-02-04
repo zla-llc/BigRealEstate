@@ -1,17 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   CampaignContactMethod,
   CampaignTab,
   type ILead,
 } from "../../interfaces";
-import { useGetCampaignLeads } from "../../pages/Campaign/hooks";
 import {
   useCampaignStore,
   useCampaignPageStore,
   useAuthStore,
   useGoogleRequiredStore,
 } from "../../stores";
-import { useCampaignPageAPI } from "../api";
+import { useCampaignPageAPI, useGetCampaignLeads } from "../api";
 import { useSnack } from "../utils";
 
 export const useCampaignPage = () => {
@@ -32,6 +31,8 @@ export const useCampaignPage = () => {
 
   const [successMsg] = useSnack();
   const [leads, leadsLoading, setLeads] = useGetCampaignLeads(campaign);
+
+  const initRan = useRef(false);
 
   const [showEmail, setShowEmail] = useState(false);
   const [multiEmail, setMultiEmail] = useState(false);
@@ -68,6 +69,13 @@ export const useCampaignPage = () => {
   useEffect(() => {
     setNotes(viewingLead ? viewingLead.notes : "");
   }, [viewingLead?.leadId]);
+
+  useEffect(() => {
+    if (campaign.campaignId === -1 || initRan.current) return;
+    initRan.current = true;
+    setSelectedLeads(campaign.leads.map((lead) => lead.leadId));
+    setTab(campaign.leads.length > 1 ? CampaignTab.Multi : CampaignTab.Connect);
+  }, [campaign.campaignId]);
 
   const onSendEmail = (leads: ILead[]) =>
     (async () => {

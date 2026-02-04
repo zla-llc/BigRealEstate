@@ -1,13 +1,25 @@
-import { useSideNavControlStore, useSearchQueryStore } from "../../../stores";
+import { Icons } from "../../../components";
+import {
+  useSideNavControlStore,
+  useSearchQueryStore,
+  SideNavControlVariant,
+} from "../../../stores";
 import { useApi } from "../../api";
 import { useAppNavigation } from "../../utils";
 
 export const useAppHeader = () => {
-  const { location, toLeadSearchPage } = useAppNavigation();
-  const { open: openSideNav, close: closeSideNav } = useSideNavControlStore();
+  const { location, toLeadSearchPage, toBoardsPage, toBoardsV2Page } =
+    useAppNavigation();
+  const {
+    open: openSideNav,
+    close: closeSideNav,
+    isOpen,
+  } = useSideNavControlStore();
   const { query, setData, setQuery, setLoading } = useSearchQueryStore();
 
   const { searchLeads } = useApi();
+
+  const sideNavIcon = isOpen ? Icons.Close : Icons.Menu;
 
   const onSearchClick = async () => {
     if (query.length === 0) return; // TODO: Add error message
@@ -35,12 +47,19 @@ export const useAppHeader = () => {
     }
   };
 
+  const onSidenavBtn = () =>
+    isOpen ? closeSideNav() : openSideNav(SideNavControlVariant.None);
+
   return {
     query,
+    sideNavIcon,
     setQuery,
     toLeadSearchPage,
+    toBoardsPage,
     openSideNav,
     onSearchClick,
     onSearchCore,
+    onSidenavBtn,
+    toBoardsV2Page,
   };
 };

@@ -1,22 +1,28 @@
 import { useAppHeader } from "../../hooks";
-import { SideNavControlVariant } from "../../stores";
 import { IconButton, IconButtonVariant } from "../buttons";
 import { Icons } from "../icons";
 import { TextInput } from "../inputs";
 
 export const AppHeader = () => {
-  const { query, setQuery, openSideNav, toLeadSearchPage, onSearchClick } =
-    useAppHeader();
+  const {
+    query,
+    sideNavIcon,
+    setQuery,
+    toLeadSearchPage,
+    onSearchClick,
+    onSidenavBtn,
+    toBoardsV2Page,
+  } = useAppHeader();
 
   return (
     <div className="w-full z-10 flex flex-row items-center justify-between p-4 px-[100px] bg-[var(--color-primary)] box-shadow">
       <div>
-        <p
+        <button
           className="text-5xl font-bold cursor-pointer grenze"
           onClick={toLeadSearchPage}
         >
-          Zala
-        </p>
+          <img src="src\assets\images\zala_b.png" width={100}/>
+        </button>
       </div>
 
       <div className="flex-1 h-full px-10">
@@ -32,12 +38,9 @@ export const AppHeader = () => {
       </div>
 
       <div className="flex flex-row space-x-4">
-        <IconButton name={Icons.Chart} />
+        <IconButton name={Icons.Kanban} onClick={toBoardsV2Page} />
         <IconButton name={Icons.User} />
-        <IconButton
-          name={Icons.Menu}
-          onClick={() => openSideNav(SideNavControlVariant.None)}
-        />
+        <IconButton name={sideNavIcon} onClick={onSidenavBtn} />
       </div>
     </div>
   );

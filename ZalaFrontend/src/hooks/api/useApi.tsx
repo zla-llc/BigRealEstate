@@ -1,25 +1,17 @@
 import {
   CampaignContactMethod,
-  type AAddress,
   type ACampaign,
   type ACampaignLead,
-  type AContact,
-  type ALead,
   type AUser,
-  type IAddress,
   type ACampaignEmail,
   type ACampaignEmailSendResponse,
   type ACampaignSummary,
 } from "../../interfaces";
 import type {
-  APIResponse,
-  CreateContactProps,
-  CreateLeadProps,
   CreateUserProps,
   LinkContactToUserProps,
   LoginAPIProps,
   LoginGoogleProps,
-  SearchLeadsProps,
   SendTestEmailProps,
   CreateCampaignEmailDraftProps,
   SendCampaignEmailProps as SendCampaignEmailPayload,
@@ -29,20 +21,15 @@ import type {
   ListCampaignsParams,
   CreateCampaignProps,
   UpdateCampaignLeadProps,
-  UpdateLeadProps,
-  SearchLeadsResponse,
 } from "./types";
 import { useFetch } from "./useFetch";
-import { Normalizer } from "../../utils";
 import { useState } from "react";
 import { useApiResponseError } from "../utils";
+import { useBoardsApi } from "./useBoardsApi";
+import { useLeadsApi } from "./useLeadsApi";
+import { usePropertyApi } from "./usePropertyApi";
 
 export const useApi = () => {
-  // const defaultResponse: APIResponse<unknown> = {
-  //   data: null,
-  //   err: "Method not implemented",
-  // };
-
   const apiResponseError = useApiResponseError();
   const { post, get, put, del } = useFetch();
   const [signal, setSignalState] = useState<AbortSignal>(
@@ -72,115 +59,17 @@ export const useApi = () => {
     return string;
   };
 
-  const createContact = async (body: CreateContactProps) => {
-    return await post<AContact>(`/api/contacts`, body, {
-      isFormData: false,
-      signal: getSignal("createContact"),
-    });
-  };
+  const apiProps = { signal, getSignal, idsToQueryString };
+
+  const boardsApiRoutes = useBoardsApi(apiProps);
+  const leadsContactsAddressApi = useLeadsApi(apiProps);
+  const propertyApiRoutes = usePropertyApi(apiProps);
 
   const createUser = async (body: CreateUserProps) => {
     return await post<AUser>(`/api/users/`, body, {
       isFormData: false,
       signal: getSignal("createUser"),
     });
-  };
-
-  const createAddress = async ({ address }: { address: IAddress }) => {
-    return await post<AAddress>(
-      `/api/addresses/`,
-      {
-        street_1: address.street1,
-        street_2: address.street2,
-        city: address.city,
-        state: address.state,
-        zipcode: address.zipcode,
-        lat: address.lat,
-        long: address.long,
-      },
-      { isFormData: false, signal: getSignal("createAddress") }
-    );
-  };
-
-  const createLead = async ({
-    lead,
-    createdById: _userId,
-  }: CreateLeadProps): Promise<APIResponse<{ lead: ALead }>> => {
-    const errorOut = (msg: string | null, backup: string) => {
-      throw new Error(msg ?? backup);
-    };
-
-    const createData = async (): Promise<[ALead, AContact, AAddress]> => {
-      const leadRes = await post<ALead>(
-        `/api/leads`,
-        {
-          person_type: "person",
-          business: lead.buisness,
-          website: lead.website,
-          license_num: lead.licenseNum,
-          notes: lead.notes,
-        },
-        { isFormData: false, signal: getSignal("createData") }
-      );
-      if (leadRes.err || !leadRes.data)
-        return errorOut(leadRes.err, "Creating lead api failed");
-      const apiLead = leadRes.data;
-
-      const contactRes = await createContact({
-        ...lead.contact,
-        first_name: lead.contact.firstName,
-        last_name: lead.contact.lastName,
-      });
-      if (contactRes.err || !contactRes.data)
-        return errorOut(contactRes.err, "Creating contact api failed");
-      const apiContact = contactRes.data;
-
-      const addressRes = await createAddress({ address: lead.address });
-      if (addressRes.err || !addressRes.data)
-        return errorOut(addressRes.err, "Creating address api failed");
-      const apiAddress = addressRes.data;
-
-      return [apiLead, apiContact, apiAddress];
-    };
-
-    const connectData = async ([apiLead, apiContact, apiAddress]: [
-      ALead,
-      AContact,
-      AAddress
-    ]) => {
-      const contactRes = await linkContactToLead({
-        leadId: apiLead.lead_id,
-        contactId: apiContact.contact_id,
-      });
-      if (contactRes.err || !contactRes.data)
-        return errorOut(contactRes.err, "Contact link to lead api failed");
-
-      const addressRes = await linkAddressToLead({
-        leadId: apiLead.lead_id,
-        addressId: apiAddress.address_id,
-      });
-      if (addressRes.err || !addressRes.data)
-        return errorOut(addressRes.err, "Address link to lead api failed");
-
-      // const userRes = await linkUserToLead({
-      //   leadId: apiLead.lead_id,
-      //   userId: createdById,
-      // });
-      // if (userRes.err || !userRes.data)
-      //   return errorOut(contactRes.err, "User link to lead api failed");
-
-      return addressRes.data;
-    };
-
-    try {
-      const createdParts = await createData();
-      const createdLead = await connectData(createdParts);
-      return { data: { lead: createdLead }, err: null };
-    } catch (e) {
-      if (e instanceof Error) return { err: e.message, data: null };
-      if (typeof e === "string") return { err: e, data: null };
-      return { err: "Internal error creating lead", data: null };
-    }
   };
 
   const createCampaign = async ({
@@ -207,48 +96,6 @@ export const useApi = () => {
     );
   };
 
-  const linkContactToLead = async ({
-    leadId,
-    contactId,
-  }: {
-    leadId: number;
-    contactId: number;
-  }) => {
-    return await post<ALead>(
-      `/api/leads/${leadId}/contacts/${contactId}`,
-      {},
-      { isFormData: false, signal: getSignal("linkContactToLead") }
-    );
-  };
-
-  const linkAddressToLead = async ({
-    leadId,
-    addressId,
-  }: {
-    leadId: number;
-    addressId: number;
-  }) => {
-    return await post<ALead>(
-      `/api/leads/${leadId}/addresses/${addressId}`,
-      {},
-      { isFormData: false, signal: getSignal("linkAddressToLead") }
-    );
-  };
-
-  const linkUserToLead = async ({
-    leadId,
-    userId,
-  }: {
-    leadId: number;
-    userId: number;
-  }) => {
-    return await post<ALead>(
-      `/api/leads/${leadId}/users/${userId}`,
-      {},
-      { isFormData: false, signal: getSignal("linkUserToLead") }
-    );
-  };
-
   const updateCampaign = async ({
     title,
     leads,
@@ -263,27 +110,6 @@ export const useApi = () => {
         lead_ids: leads,
       },
       { isFormData: false, signal: getSignal("updateCampaign") }
-    );
-  };
-
-  const updateLead = async ({
-    userId: _userId,
-    buisness,
-    leadId,
-    licenseNumber,
-    notes,
-    website,
-  }: UpdateLeadProps) => {
-    return await put<ALead>(
-      `/api/leads/${leadId}`,
-      {
-        person_type: "person",
-        business: buisness,
-        notes,
-        license_num: licenseNumber,
-        website,
-      },
-      { signal: getSignal("updateLead"), isFormData: false }
     );
   };
 
@@ -317,17 +143,6 @@ export const useApi = () => {
     );
   };
 
-  const getLeads = async (leadIds: number[], _userId: number | string) => {
-    return await get<ALead[]>(
-      `/api/leads?${idsToQueryString(leadIds, "lead_ids")}`,
-      getSignal("getLeads")
-    );
-  };
-
-  const getLead = async (leadId: number, _userId: number) => {
-    return await get<ALead>(`/api/leads/${leadId}`, getSignal("getLead"));
-  };
-
   const getCampaigns = async (campaignIds: number[] = []) => {
     return await get<ACampaign[]>(
       `/api/campaigns${
@@ -358,36 +173,6 @@ export const useApi = () => {
       isFormData: false,
       signal: getSignal("loginAPI"),
     });
-  };
-
-  const searchLeads = async ({ query }: SearchLeadsProps) => {
-    const response = await post<SearchLeadsResponse>(
-      `/api/searchLeads`,
-      {
-        location_text: query,
-      },
-      { isFormData: false, signal: getSignal("searchLeads") }
-    );
-
-    if (response.err || !response.data) {
-      return {
-        data: null,
-        err: response.err ?? "No data returned",
-      };
-    }
-
-    const nearby_properties = Array.isArray(response.data.aggregated_leads)
-      ? response.data.aggregated_leads.map(Normalizer.APINormalizer.sourceLead)
-      : [];
-
-    return {
-      data: {
-        nearby_properties,
-        external_persistence: response.data.external_persistence ?? {},
-        errors: response.data.errors ?? {},
-      },
-      err: null,
-    };
   };
 
   const sendTestEmail = async ({
@@ -497,16 +282,17 @@ export const useApi = () => {
       `/api/campaigns${query ? `?${query}` : ""}`
     );
   };
+
   return {
+    ...boardsApiRoutes,
+    ...leadsContactsAddressApi,
+    ...propertyApiRoutes,
     apiResponseError,
-    searchLeads,
-    createContact,
     createUser,
     linkContactToUser,
     loginAPI,
     getUser,
     getCampaign,
-    getLeads,
     getCampaigns,
     loginGoogle,
     sendTestEmail,
@@ -517,12 +303,8 @@ export const useApi = () => {
     deleteCampaignEmailDraft,
     listCampaigns,
     createCampaign,
-    createLead,
     updateCampaign,
-    updateLead,
     setSignal,
     updateCampaignLead,
-    getLead,
-    linkUserToLead,
   };
 };

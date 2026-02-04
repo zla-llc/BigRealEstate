@@ -9,11 +9,16 @@ from .user import User
 from .user_google_credentials import UserGoogleCredential
 from .property import Property
 from .unit import Unit
+from .board import Board
+from .board_step import BoardStep
 from .campaign import Campaign
 from .campaign_email import CampaignEmail
 from .lead import Lead
+from .team import Team
 
 
 from .campaign_lead import CampaignLead
+from .lead_image import LeadImage
+from .property_image import PropertyImage
 
 from ..db.session import Base
