@@ -21,7 +21,7 @@ export const AppHeader = () => {
           className="text-5xl font-bold cursor-pointer grenze"
           onClick={toLeadSearchPage}
         >
-          <img src="src\assets\images\zala_b.png" width={60}/>
+          <img src="src\assets\images\zala_b.png" width={100}/>
         </button>
       </div>
 
