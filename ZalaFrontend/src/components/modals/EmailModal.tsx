@@ -26,7 +26,18 @@ export const EmailModal = ({
     loading,
     onSubmit,
   } = useEmailModal({ leads, onSendEmail });
-
+  const hasEmail = [];
+  const notHasEmail = [];
+  for(const i of leads){
+    if(i['contact']['email']){
+      hasEmail.push(i)
+    }
+    else{
+      notHasEmail.push(i)
+    }
+  }
+  console.log(hasEmail)
+  console.log(notHasEmail)
   return (
     <Modal open={open} onClose={onClose}>
       <div className="w-full h-full p-6 flex flex-col justify-between">
@@ -35,15 +46,26 @@ export const EmailModal = ({
             Email Lead{leads.length > 1 ? "s" : ""}
           </h2>
           <p className="text-secondary-50 text-sm line-clamp-2">
-            Send an email to{" "}
-            {leads.slice(0, Math.min(leads.length, 3)).map((lead) => (
+            {hasEmail.length < 1 ? '' : 'Send an email to'}{" "}
+            {hasEmail.slice(0, Math.min(leads.length, 3)).map((lead) => (
               <span className="font-bold text-secondary">{`${
                 lead.contact.firstName
               } ${lead.contact.lastName} (${
                 lead.contact.email ?? lead.contact.phone
               })`}</span>
             ))}{" "}
-            {leads.length > 3 ? `+${leads.length - 3} more` : ""}
+            {hasEmail.length > 3 ? `+${hasEmail.length - 3} more` : ""}
+          </p>
+          <p className="text-secondary-50 text-sm line-clamp-2">
+            {hasEmail.length < 1 ?'Cannot Email' : ''}{" "}
+            {notHasEmail.slice(0, Math.min(leads.length, 3)).map((lead) => (
+              <span className="font-bold text-secondary" style={{ color: 'red' }}>{`${
+                lead.contact.firstName
+              } ${lead.contact.lastName} (${
+                lead.contact.email ?? lead.contact.phone
+              })`}</span>
+            ))}{" "}
+            {notHasEmail.length > 3 ? `+${notHasEmail.length - 3} more` : ""}
           </p>
         </div>
 
@@ -73,7 +95,7 @@ export const EmailModal = ({
           <Button
             text={loading ? "Sending..." : "Send Campaign"}
             onClick={onSubmit}
-            disabled={loading}
+            disabled={loading || hasEmail.length < 1}
             icon={Icons.Mail}
           />
         </div>
