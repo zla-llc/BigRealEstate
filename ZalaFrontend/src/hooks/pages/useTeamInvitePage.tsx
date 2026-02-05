@@ -124,9 +124,13 @@ export const useTeamInvitePage = () => {
 
     teamSocket.onmessage = (event) => {
       try {
+        const ignoreTypes = ["ping", "connection"];
         const message = JSON.parse(event.data);
-        console.log("[TeamWS] Received:", message);
-        console.log(``);
+
+        if (!ignoreTypes.includes(message.type)) {
+          console.log("[TeamWS] Received:", message);
+          console.log(``);
+        }
 
         if (message.type === "invitation_update") {
           const updatedInvitation = message.data;

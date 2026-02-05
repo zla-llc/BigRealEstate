@@ -12,6 +12,7 @@ export type EditablePageHeaderProps = {
   setValue: (v: string) => void;
 
   title?: string;
+  nonEditableText?: string;
   actions?: (Actions | null)[];
   inputProps?: TextInputProps;
   variant?: EditablePageHeaderVariant;
@@ -25,6 +26,7 @@ export type EditablePageHeaderProps = {
 
 export const EditablePageHeader = ({
   title = "Title:",
+  nonEditableText,
 
   value,
   setValue,
@@ -64,7 +66,14 @@ export const EditablePageHeader = ({
         >
           <HeaderActions side="left" actions={actions} />
           <div className="w-full flex flex-row items-center justify-center">
-            <p className="text-lg font-bold color-secondary">{title}</p>
+            <p
+              className={clsx(
+                "color-secondary",
+                !editable && nonEditableText ? "text-md" : "text-lg font-bold",
+              )}
+            >
+              {title}
+            </p>
           </div>
           <HeaderActions side="right" actions={actions} />
         </div>
@@ -72,6 +81,12 @@ export const EditablePageHeader = ({
         {editable && (
           <div>
             <TextInput value={value} setValue={setValue} {...inputProps} />
+          </div>
+        )}
+
+        {!editable && nonEditableText && (
+          <div className="flex justify-center items-center">
+            <p className="font-bold text-xl">{nonEditableText}</p>
           </div>
         )}
       </div>

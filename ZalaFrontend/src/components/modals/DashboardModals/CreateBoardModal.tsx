@@ -37,7 +37,7 @@ export const CreateBoardModal = ({
       <div className="grow-1 flex flex-col items-center justify-center">
         <div className="w-[75%]">
           <TextInput
-            optional
+            optional={boardTitle.length === 0}
             label="Board Title"
             placeholder="*Optional*"
             value={boardTitle}

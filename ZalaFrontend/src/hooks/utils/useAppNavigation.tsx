@@ -5,7 +5,7 @@ export const useAppNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const toLeadSearchPage = () => navigate("/");
+  const toLeadSearchPage = () => navigate("/search");
 
   const toCampaignPage = (campaignId: number, leads: ILead[] = []) =>
     navigate("/campaigns/" + campaignId, { state: { leads } });
@@ -34,6 +34,8 @@ export const useAppNavigation = () => {
 
   const toBoardPage = (boardId: number) => navigate("/board/" + boardId);
 
+  const goBack = () => navigate(-1);
+
   return {
     location,
     navigate,
@@ -52,5 +54,6 @@ export const useAppNavigation = () => {
     toBoardsV2Page,
     toDashboard,
     toBoardPage,
+    goBack,
   };
 };

@@ -1,10 +1,12 @@
 import {
   AnnouncmentsCard,
   BoardsListCard,
+  Button,
   DashboardModals,
   EditablePageHeader,
   LeaderBoardsCard,
   PropertiesListCard,
+  TextInput,
 } from "../../components";
 import { useDashboardPage } from "../../hooks";
 import { LoadingPage } from "../Loading";
@@ -35,6 +37,7 @@ export const DashboardPage = () => {
     openViewBoardsModal,
 
     onPropertyCardClick,
+    onCreateTeam,
     onBoardClick,
 
     setSelectedMemberId,
@@ -42,6 +45,8 @@ export const DashboardPage = () => {
     displayOverflow,
     overflow,
     sliceCount,
+
+    loading,
 
     showAllInCards,
   } = useDashboardPage();
@@ -103,19 +108,62 @@ export const DashboardPage = () => {
   );
 
   return (
-    <div className="flex flex-col gap-y-[60px] flex-1 p-[60px] overflow-y-scroll">
-      <div className="w-full px-[60px]">
-        <EditablePageHeader
-          title="Team Name:"
-          value={newTeamName}
-          setValue={setNewTeamName}
-          inputProps={{ placeholder: "Ex: The best team ever" }}
-        />
-      </div>
+    <div className="flex flex-col gap-y-[60px] flex-1 p-[60px]">
+      {selectedTeam && (
+        <div className="w-full px-[60px]">
+          <EditablePageHeader
+            title="Team Name:"
+            nonEditableText={newTeamName}
+            value={newTeamName}
+            setValue={setNewTeamName}
+            editable={isUserAdmin}
+            inputProps={{ placeholder: "Ex: The best team ever" }}
+          />
+        </div>
+      )}
 
-      {!selectedTeam && (
+      {loading.loadingTeams && !selectedTeam && (
         <div className="grow-1 flex justify-center items-center">
           <LoadingPage text="" />
+        </div>
+      )}
+
+      {!loading.loadingTeams && !selectedTeam && (
+        <div className="grow-1 flex flex-col justify-center items-center">
+          <div className="card-base box-shadow p-[30px] flex flex-col justify-center items-center space-y-[30px]">
+            <div className="w-full flex flex-col justify-center items-center space-y-[15px]">
+              <div className=" flex flex-col justify-center items-center">
+                <p className="text-sm text-secondary-50">
+                  You do not have a team yet.
+                </p>
+                <p className="text-lg font-bold">Create a new team</p>
+              </div>
+              <div className="w-full">
+                <TextInput
+                  value={newTeamName}
+                  setValue={setNewTeamName}
+                  label="Team Name"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col justify-center items-center">
+              <p className="text-md text-secondary-50">or</p>
+              <p className="text-md">
+                Please reach out to your admin to recieve an invite.
+              </p>
+            </div>
+
+            <div className="flex flex-col justify-center items-center">
+              <div className="w-[300px]">
+                <Button
+                  onClick={onCreateTeam}
+                  text="Create team"
+                  disabled={newTeamName.length === 0}
+                />
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -141,15 +189,15 @@ export const DashboardPage = () => {
             <div className="w-[70%]">
               <AnnouncmentsCard
                 title="Announcments:"
-                messages={Array(4)
+                messages={Array(1)
                   .fill(1)
                   .map((_, i) => ({
                     messageId: i,
-                    title: "Announcment " + i,
-                    message: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`,
+                    title: "Coming soon...",
+                    message: `Hi! Just a quick update to share that an Announcements feature will be coming soon to the Zala team dashboard. This new addition will allow teams to post and view important updates in one central place, making communication clearer and more efficient across the team.`,
                   }))}
-                onAdd={() => {}}
-                btnProps={{ text: "View all" }}
+                // onAdd={() => {}}
+                // btnProps={{ text: "View all" }}
               />
             </div>
             <div className="flex-grow">
@@ -214,7 +262,7 @@ export const DashboardPage = () => {
                 boards={[...userBoards].splice(0, sliceCount.boards + 1)}
                 title="My Boards:"
                 btnProps={
-                  overflow.leaderboard > 0
+                  overflow.boards > 0
                     ? {
                         text: "View all",
                         onClick: openViewBoardsModal(userBoards, `My Boards:`),

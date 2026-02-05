@@ -19,7 +19,8 @@ import { useAuthStore } from "../stores";
 
 export const NavigationProvider = () => {
   const user = useAuthStore((state) => state.user);
-  const NavToLeadSearch = () => <Navigate to={"/"} />;
+  // const NavToLeadSearch = () => <Navigate to={"/search"} />;
+  const NavToDashboard = () => <Navigate to={"/dashboard"} />;
   const NavTo404 = () => <Navigate to={"/404"} />;
   const NavToLogin = () => <Navigate to={"/login"} />;
   return (
@@ -28,16 +29,16 @@ export const NavigationProvider = () => {
         <Route element={<RootLayout />}>
           <Route
             path="/login"
-            element={user ? <NavToLeadSearch /> : <LoginPage />}
+            element={user ? <NavToDashboard /> : <LoginPage />}
           />
           <Route
             path="/signup"
-            element={user ? <NavToLeadSearch /> : <SignupPage />}
+            element={user ? <NavToDashboard /> : <SignupPage />}
           />
 
           {!user && <Route path="*" element={<NavToLogin />} />}
 
-          <Route index path="/" element={<LeadSearchPage />} />
+          <Route index path="/" element={<NavToDashboard />} />
 
           <Route path="/campaigns">
             <Route index element={<PastCampaignsPage />} />
@@ -53,6 +54,7 @@ export const NavigationProvider = () => {
           </Route>
 
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/search" element={<LeadSearchPage />} />
           <Route path="/board/:boardId" element={<SingleBoardPage />} />
 
           <Route path="404" element={<NotFoundPage />} />

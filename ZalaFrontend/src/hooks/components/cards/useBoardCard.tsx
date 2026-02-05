@@ -36,17 +36,19 @@ export const useBoardCard = ({ board, expandable }: BoardCardProps) => {
     : Math.min(5, board.boardSteps.length);
   const steps = board.boardSteps.filter((_step, i) => i < numOfSteps);
 
-  const actions: Actions[] = expanded
+  const actions: (Actions | null)[] = expanded
     ? [
-        // {
-        //   type: "iconBtn",
-        //   side: "left",
-        //   iconBtnProps: {
-        //     name: Icons.Back,
-        //     scale: CSSVars.icons.scale.normal,
-        //     onClick: expandable.onBackBtn,
-        //   },
-        // },
+        expandable.onBackBtn
+          ? {
+              type: "iconBtn",
+              side: "left",
+              iconBtnProps: {
+                name: Icons.Back,
+                scale: CSSVars.icons.scale.normal,
+                onClick: expandable.onBackBtn,
+              },
+            }
+          : null,
         {
           type: "iconBtn",
           side: "right",

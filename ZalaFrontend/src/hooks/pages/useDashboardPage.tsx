@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useTeamInvitePage } from "./useTeamInvitePage";
 import {
   useAppNavigation,
@@ -42,6 +42,7 @@ export const useDashboardPage = () => {
       onRemoveMember,
       onPromoteToAdmin,
       onDemoteFromAdmin,
+      onCreateTeam,
     },
     forms: { newTeamName, setNewTeamName, inviteEmail, setInviteEmail },
     invitations,
@@ -51,6 +52,7 @@ export const useDashboardPage = () => {
     selectedTeam,
     selectedMemberId,
     isInvitee,
+    loading,
     setSelectedMemberId,
   } = useTeamInvitePage();
 
@@ -137,13 +139,17 @@ export const useDashboardPage = () => {
     false,
   );
 
+  const { location } = useAppNavigation();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0, behavior: "instant" });
+  }, [location.key]);
+
   useEffect(() => {
     if (teams.length > 0 && !selectedTeam) {
       onSelectTeam(teams[0]);
       setNewTeamName(teams[0].team_name);
-      console.log(`Team`);
-      console.log(teams[0]);
-      console.log(``);
     }
   }, [teams.length]);
 
@@ -282,6 +288,7 @@ export const useDashboardPage = () => {
     onDemoteFromAdmin,
     onPropertyCardClick,
     onBoardClick,
+    onCreateTeam,
 
     displayOverflow: {
       invitations: invitationsDisplayOverflow,
@@ -312,6 +319,9 @@ export const useDashboardPage = () => {
       property: propertySliceCount,
       boards: boardsSliceCount,
     },
+
+    loading,
+    scrollRef,
 
     showAllInCards: {
       invitations: {

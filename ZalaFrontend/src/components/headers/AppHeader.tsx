@@ -12,7 +12,6 @@ export const AppHeader = () => {
     toLeadSearchPage,
     onSearchClick,
     onSidenavBtn,
-    // toBoardsV2Page,
     toDashboard,
   } = useAppHeader();
 
@@ -21,7 +20,7 @@ export const AppHeader = () => {
       <div>
         <p
           className="text-5xl font-bold cursor-pointer grenze"
-          onClick={toLeadSearchPage}
+          onClick={toDashboard}
         >
           Zala
         </p>

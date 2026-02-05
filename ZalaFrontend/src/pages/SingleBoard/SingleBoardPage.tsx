@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useParams } from "react-router";
-import { useAllBoardsPage } from "../../hooks";
+import { useAllBoardsPage, useAppNavigation } from "../../hooks";
 import { LoadingPage } from "../Loading";
 import { BoardCard, BoardModal } from "../../components";
 
@@ -23,6 +23,8 @@ export const SingleBoardPage = () => {
     onSettingsBtn,
   } = useAllBoardsPage();
 
+  const { goBack } = useAppNavigation();
+
   useEffect(() => {
     if (boards.length <= 0) return;
     const board = boards.find((board) => board.boardId === boardId);
@@ -43,6 +45,7 @@ export const SingleBoardPage = () => {
           onBoardStepNameChange: onStepNameChange,
           onBoardNameChange: setSelectedBoardName,
           onTrashBtn: onDeleteBoardBtn,
+          onBackBtn: goBack,
           onDeleteStep: onRemoveBoardStep,
           onSettingsBtn,
           reloadBoards: getBoards,
