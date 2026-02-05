@@ -16,6 +16,7 @@ type MenuButtonProps = {
   variant?: MenuButtonVariant;
   bold?: boolean;
   onClick?: () => void;
+  icon?: Icons;
 };
 
 export const MenuButton = ({
@@ -23,6 +24,7 @@ export const MenuButton = ({
   variant = MenuButtonVariant.Default,
   bold,
   onClick,
+  icon = Icons.Chevron,
 }: MenuButtonProps) => {
   const [isHovered, hoverProps] = useHover({ onClick });
 
@@ -58,7 +60,7 @@ export const MenuButton = ({
         {text}
       </p>
       <Icon
-        name={Icons.Chevron}
+        name={icon}
         color={isActive ? getActiveColor(variant) : getTextHexColor(variant)}
       />
     </div>

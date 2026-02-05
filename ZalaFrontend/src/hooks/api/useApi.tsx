@@ -443,6 +443,19 @@ export const useApi = () => {
     );
   };
 
+  const intakeCsv = async ({ file }: { file: File }) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return await post<{
+      leads_created: number[];
+      leads_updated: number[];
+      leads_unchanged: number[];
+    }>(`/api/import-csv/`, formData, {
+      isFormData: true,
+      signal: getSignal("intakeCsv"),
+    });
+  };
+
   return {
     ...boardsApiRoutes,
     ...leadsContactsAddressApi,
@@ -486,5 +499,6 @@ export const useApi = () => {
     getNotifications,
     markNotificationRead,
     deleteNotification,
+    intakeCsv,
   };
 };
