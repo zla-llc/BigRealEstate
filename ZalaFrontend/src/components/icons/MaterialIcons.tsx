@@ -33,6 +33,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import GroupIcon from "@mui/icons-material/Group";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PendingIcon from "@mui/icons-material/Pending";
+import MapIcon from "@mui/icons-material/Map";
 
 export const getMaterialIcon = (iconName: Icons) => {
   switch (iconName) {
@@ -104,6 +105,8 @@ export const getMaterialIcon = (iconName: Icons) => {
       return (props: SvgIconProps) => <CheckCircleIcon {...props} />;
     case Icons.Pending:
       return (props: SvgIconProps) => <PendingIcon {...props} />;
+    case Icons.Map:
+      return (props: SvgIconProps) => <MapIcon {...props} />;
     default:
       return null;
   }

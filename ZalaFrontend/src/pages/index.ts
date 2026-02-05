@@ -11,3 +11,4 @@ export * from "./AllBoards";
 export * from "./Dashboard";
 export * from "./SMTPTest";
 export * from "./TeamInviteTest";
+export * from "./SingleBoard";

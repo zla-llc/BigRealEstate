@@ -10,7 +10,7 @@ export const useAppNavigation = () => {
   const toCampaignPage = (campaignId: number, leads: ILead[] = []) =>
     navigate("/campaigns/" + campaignId, { state: { leads } });
 
-  const toBoardsPage = () => navigate("/boards");
+  const toBoardsPage = () => navigate("/demos/board");
 
   const toLoginPage = () => navigate("/login");
 
@@ -32,6 +32,8 @@ export const useAppNavigation = () => {
 
   const toDashboard = () => navigate("/dashboard");
 
+  const toBoardPage = (boardId: number) => navigate("/board/" + boardId);
+
   return {
     location,
     navigate,
@@ -49,5 +51,6 @@ export const useAppNavigation = () => {
     toTeamInviteTestPage,
     toBoardsV2Page,
     toDashboard,
+    toBoardPage,
   };
 };

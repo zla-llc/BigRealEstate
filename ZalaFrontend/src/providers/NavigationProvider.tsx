@@ -9,10 +9,10 @@ import {
   TestEmailPage,
   CampaignEmailDemoPage,
   PastCampaignsPage,
-  AllBoardsPage,
   DashboardPage,
   SMTPTestPage,
   TeamInviteTestPage,
+  SingleBoardPage,
 } from "../pages";
 import { RootLayout } from "../layouts";
 import { useAuthStore } from "../stores";
@@ -38,8 +38,6 @@ export const NavigationProvider = () => {
           {!user && <Route path="*" element={<NavToLogin />} />}
 
           <Route index path="/" element={<LeadSearchPage />} />
-          <Route path="/boards/v2" element={<AllBoardsPage />} />
-          <Route path="/boards" element={<KanbanBoardPage />} />
 
           <Route path="/campaigns">
             <Route index element={<PastCampaignsPage />} />
@@ -51,9 +49,11 @@ export const NavigationProvider = () => {
             <Route path="email" element={<TestEmailPage />} />
             <Route path="smtp" element={<SMTPTestPage />} />
             <Route path="team" element={<TeamInviteTestPage />} />
+            <Route path="board" element={<KanbanBoardPage />} />
           </Route>
 
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/board/:boardId" element={<SingleBoardPage />} />
 
           <Route path="404" element={<NotFoundPage />} />
           <Route path="*" element={<NavTo404 />} />

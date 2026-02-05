@@ -1,5 +1,9 @@
-import { BoardStepModalHeader, PageHeader } from "../../headers";
-import type { BoardModalPageProps } from "./types";
+import {
+  BoardStepModalHeader,
+  EditablePageHeaderVariant,
+  PageHeader,
+} from "../../headers";
+import type { BoardModalPageProps } from "../BoardModal/types";
 import { Button, ModalCenterButtons } from "../../buttons";
 import { Icons } from "../../icons";
 import { ManualCreateModalContainer } from "../../layout";
@@ -11,8 +15,13 @@ import { useManualCreateProperty } from "../../../hooks";
 
 export const ManualCreateProperty = ({
   onBackBtn,
+  onCloseBtn,
   onConfirm: parentOnConfirm,
-}: BoardModalPageProps & { onConfirm: (newLeadIds?: number[]) => void }) => {
+  onTrashDeletes = false,
+}: BoardModalPageProps & {
+  onConfirm: (newLeadIds?: number[]) => void;
+  onTrashDeletes?: boolean;
+}) => {
   const {
     editingBoardItem,
     selectedImageIndex,
@@ -38,14 +47,15 @@ export const ManualCreateProperty = ({
     selectedBoardItemIds,
     onConfirm,
     onRemovePropertyFromStep,
-  } = useManualCreateProperty({ onConfirm: parentOnConfirm });
+  } = useManualCreateProperty({ onConfirm: parentOnConfirm, onTrashDeletes });
 
   return (
     <div className="full p-6 flex flex-col space-y-[15px]">
       <BoardStepModalHeader
         title={editingBoardItem ? "Edit Property" : "Add Property"}
         subtitle={editingBoardItem && <span />}
-        onCloseBtn={onBackBtn}
+        onCloseBtn={onCloseBtn}
+        onBackBtn={onBackBtn}
         onTrashBtn={editingBoardItem ? onRemovePropertyFromStep : undefined}
       />
 
@@ -66,7 +76,7 @@ export const ManualCreateProperty = ({
         <div className="flex flex-col space-y-[15px] py-[15px]">
           <div
             className={clsx(
-              "flex flex-row justify-between items-center space-x-[30px]"
+              "flex flex-row justify-between items-center space-x-[30px]",
             )}
           >
             {unitButtons.map((unitBtn) => (
@@ -98,12 +108,13 @@ export const ManualCreateProperty = ({
           value={propertyFormState.get(PropertyKeys.MlsNumber)}
           setValue={setKeyInObject(
             PropertyKeys.MlsNumber,
-            setPropertyFormState
+            setPropertyFormState,
           )}
           optional
         />
 
         <PageHeader
+          variant={EditablePageHeaderVariant.Underline}
           value={`${unitLimit > 1 ? "Primary" : "Property"} Address`}
           centerText
         />
@@ -137,8 +148,8 @@ export const ManualCreateProperty = ({
           text: editingBoardItem
             ? `Update Property`
             : selectedBoardItemIds.length > 0
-            ? "Confirm & create properties"
-            : "Create property",
+              ? "Confirm & create properties"
+              : "Create property",
           icon: Icons.Add,
           onClick: onConfirm,
         }}

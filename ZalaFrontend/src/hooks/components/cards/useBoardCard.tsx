@@ -19,7 +19,7 @@ type ExpandedBoardProps = {
   onTrashBtn: () => void;
   onBoardNameChange: (val: string) => void;
   onBoardStepNameChange: (val: string, stepId: number) => void | Promise<void>;
-  onBackBtn: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
+  onBackBtn?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
   onDeleteStep: (stepId: number) => void;
   onSettingsBtn: () => void;
   reloadBoards: () => Promise<void>;
@@ -36,40 +36,39 @@ export const useBoardCard = ({ board, expandable }: BoardCardProps) => {
     : Math.min(5, board.boardSteps.length);
   const steps = board.boardSteps.filter((_step, i) => i < numOfSteps);
 
-  const actions: Actions[] =
-    expandable?.onBackBtn && expanded
-      ? [
-          {
-            type: "iconBtn",
-            side: "left",
-            iconBtnProps: {
-              name: Icons.Back,
-              scale: CSSVars.icons.scale.normal,
-              onClick: expandable.onBackBtn,
-            },
+  const actions: Actions[] = expanded
+    ? [
+        // {
+        //   type: "iconBtn",
+        //   side: "left",
+        //   iconBtnProps: {
+        //     name: Icons.Back,
+        //     scale: CSSVars.icons.scale.normal,
+        //     onClick: expandable.onBackBtn,
+        //   },
+        // },
+        {
+          type: "iconBtn",
+          side: "right",
+          iconBtnProps: {
+            name: Icons.Settings,
+            variant: IconButtonVariant.Secondary,
+            scale: CSSVars.icons.scale.normal,
+            onClick: expandable.onSettingsBtn,
           },
-          {
-            type: "iconBtn",
-            side: "right",
-            iconBtnProps: {
-              name: Icons.Settings,
-              variant: IconButtonVariant.Secondary,
-              scale: CSSVars.icons.scale.normal,
-              onClick: expandable.onSettingsBtn,
-            },
+        },
+        {
+          type: "iconBtn",
+          side: "right",
+          iconBtnProps: {
+            name: Icons.Trash,
+            variant: IconButtonVariant.Secondary,
+            scale: CSSVars.icons.scale.normal,
+            onClick: expandable.onTrashBtn,
           },
-          {
-            type: "iconBtn",
-            side: "right",
-            iconBtnProps: {
-              name: Icons.Trash,
-              variant: IconButtonVariant.Secondary,
-              scale: CSSVars.icons.scale.normal,
-              onClick: expandable.onTrashBtn,
-            },
-          },
-        ]
-      : [];
+        },
+      ]
+    : [];
 
   const calcStepItemsHeight = useCallback(
     (step: IBoardStepCard) => {
@@ -78,14 +77,14 @@ export const useBoardCard = ({ board, expandable }: BoardCardProps) => {
       const height = boundedItemCount === 0 ? 1 : 2.5 * boundedItemCount;
       return `${height * 10}%`;
     },
-    [board.boardSteps.length]
+    [board.boardSteps.length],
   );
 
   const getStepItems = useCallback(
     (value: IBoardStepCard) => {
       return value.properties.length > 0 ? value.properties : value.leads;
     },
-    [board.boardSteps.length]
+    [board.boardSteps.length],
   );
 
   return {

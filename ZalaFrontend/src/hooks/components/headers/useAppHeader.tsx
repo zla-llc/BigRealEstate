@@ -12,7 +12,7 @@ export const useAppHeader = () => {
     location,
     toLeadSearchPage,
     toBoardsPage,
-    toBoardsV2Page,
+    // toBoardsV2Page,
     toDashboard,
   } = useAppNavigation();
   const {
@@ -65,7 +65,7 @@ export const useAppHeader = () => {
     onSearchClick,
     onSearchCore,
     onSidenavBtn,
-    toBoardsV2Page,
+    // toBoardsV2Page,
     toDashboard,
   };
 };

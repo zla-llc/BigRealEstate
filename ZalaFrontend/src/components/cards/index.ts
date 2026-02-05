@@ -11,4 +11,8 @@ export * from "./DashboardCard";
 export * from "./AnnouncmentsCard";
 export * from "./LeaderBoardsCard";
 export * from "./PropertiesListCard";
+export * from "./AvatarCard";
+export * from "./LeaderboardItemCard";
+export * from "./BoardsListCard";
+export * from "./BoardCardV2";
 export * from "./types";

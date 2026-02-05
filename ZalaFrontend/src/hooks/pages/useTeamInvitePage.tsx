@@ -1,12 +1,17 @@
 import { useState, useEffect, useRef } from "react";
-import { useApi } from "../api";
+import { useApi, useTeamMembersWithXp } from "../api";
 import { useSnack } from "../utils";
-import { useAuthStore, useTeamsStore } from "../../stores";
+import {
+  useAuthStore,
+  useDashboardModalStore,
+  useTeamsStore,
+} from "../../stores";
 import { CONFIG } from "../../config";
 import type {
   TeamWithMembers,
+  TeamMember,
   TeamInvitation,
-} from "../api/types";
+} from "../../interfaces";
 
 export const useTeamInvitePage = () => {
   const api = useApi();
@@ -14,16 +19,30 @@ export const useTeamInvitePage = () => {
   const user = useAuthStore((state) => state.user);
 
   // Teams store - use as single source of truth
-  const teams = useTeamsStore((state) => state.teams);
-  const setTeams = useTeamsStore((state) => state.setTeams);
-  const removeTeam = useTeamsStore((state) => state.removeTeam);
+  const {
+    teams,
+    removeTeam,
+    setTeams,
+    invitations,
+    setInvitations,
+    selectedMemberId,
+    isInvitee,
+    setSelectedMemberId,
+  } = useTeamsStore();
+
+  // Dashboard Modal Control
+  const closeModal = useDashboardModalStore((state) => state.toggle);
 
   // Ref to prevent infinite fetching
   const hasFetchedTeams = useRef(false);
 
   // State
-  const [selectedTeam, setSelectedTeam] = useState<TeamWithMembers | null>(null);
-  const [invitations, setInvitations] = useState<TeamInvitation[]>([]);
+  const [selectedTeam, setSelectedTeam] = useState<TeamWithMembers | null>(
+    null,
+  );
+
+  const [teamMembersWithXp, _setTeamMembersWithXp, refreshTeamMembersWithXp] =
+    useTeamMembersWithXp({ teamId: selectedTeam?.team_id ?? -1 });
 
   // Separate loading states
   const [creatingTeam, setCreatingTeam] = useState(false);
@@ -33,7 +52,9 @@ export const useTeamInvitePage = () => {
   const [promotingMember, setPromotingMember] = useState<number | null>(null);
   const [demotingMember, setDemotingMember] = useState<number | null>(null);
   const [deletingTeam, setDeletingTeam] = useState(false);
-  const [cancelingInvitation, setCancelingInvitation] = useState<number | null>(null);
+  const [cancelingInvitation, setCancelingInvitation] = useState<number | null>(
+    null,
+  );
   const [editMode, setEditMode] = useState(false);
 
   // Form state
@@ -44,7 +65,9 @@ export const useTeamInvitePage = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showInvitePanel, setShowInvitePanel] = useState(false);
-  const [activeTab, setActiveTab] = useState<"members" | "invitations">("members");
+  const [activeTab, setActiveTab] = useState<"members" | "invitations">(
+    "members",
+  );
 
   // Load user's teams
   const loadTeams = async () => {
@@ -62,7 +85,9 @@ export const useTeamInvitePage = () => {
     if (!user) return;
     const response = await api.getTeamInvitations(teamId, user.userId);
     if (response.data) {
-      setInvitations(response.data);
+      setInvitations(
+        response.data.filter((invite: TeamInvitation) => !invite.status),
+      );
     }
   };
 
@@ -89,35 +114,43 @@ export const useTeamInvitePage = () => {
     const wsHost = CONFIG.api.replace(/^https?:\/\//, "");
     const wsUrl = `${wsProtocol}://${wsHost}/ws/team/${selectedTeam.team_id}`;
 
-    console.log("[TeamWS] Connecting to:", wsUrl);
+    // console.log("[TeamWS] Connecting to:", wsUrl);
     const teamSocket = new WebSocket(wsUrl);
     const currentTeamId = selectedTeam.team_id;
 
     teamSocket.onopen = () => {
-      console.log("[TeamWS] Connected to team", currentTeamId);
+      // console.log("[TeamWS] Connected to team", currentTeamId);
     };
 
     teamSocket.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
         console.log("[TeamWS] Received:", message);
+        console.log(``);
 
         if (message.type === "invitation_update") {
           const updatedInvitation = message.data;
 
           // Update invitation status in list
-          setInvitations((prev) =>
-            prev.map((inv) =>
+          setInvitations(
+            invitations.map((inv) =>
               inv.invitation_id === updatedInvitation.invitation_id
                 ? { ...inv, status: updatedInvitation.status }
-                : inv
-            )
+                : inv,
+            ),
           );
         }
 
         if (message.type === "member_joined") {
-          console.log("[TeamWS] Member joined, updating state...");
-          const { user_id, username, profile_pic, first_name, last_name, role } = message.data;
+          // console.log("[TeamWS] Member joined, updating state...");
+          const {
+            user_id,
+            username,
+            profile_pic,
+            first_name,
+            last_name,
+            role,
+          } = message.data;
 
           const newMember = {
             role: role || "member",
@@ -148,19 +181,21 @@ export const useTeamInvitePage = () => {
             prev.map((t) => {
               if (t.team_id !== currentTeamId) return t;
               // Check if member already exists
-              if (t.members.some((m) => m.user.user_id === user_id)) {
+              if (
+                t.members.some((m: TeamMember) => m.user.user_id === user_id)
+              ) {
                 return t;
               }
               return {
                 ...t,
                 members: [...t.members, newMember],
               };
-            })
+            }),
           );
         }
 
         if (message.type === "member_removed") {
-          console.log("[TeamWS] Member removed, updating state...");
+          // console.log("[TeamWS] Member removed, updating state...");
           const removedUserId = message.data.user_id;
 
           // Update selectedTeam by removing the member immediately
@@ -168,33 +203,8 @@ export const useTeamInvitePage = () => {
             if (!prev) return prev;
             return {
               ...prev,
-              members: prev.members.filter((m) => m.user.user_id !== removedUserId),
-            };
-          });
-
-          // Update teams list
-          setTeams((prev) =>
-            prev.map((t) => {
-              if (t.team_id !== currentTeamId) return t;
-              return {
-                ...t,
-                members: t.members.filter((m) => m.user.user_id !== removedUserId),
-              };
-            })
-          );
-        }
-
-        if (message.type === "member_role_changed") {
-          console.log("[TeamWS] Member role changed, updating state...");
-          const { user_id: changedUserId, new_role: newRole } = message.data;
-
-          // Update selectedTeam by changing the member's role
-          setSelectedTeam((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              members: prev.members.map((m) =>
-                m.user.user_id === changedUserId ? { ...m, role: newRole } : m
+              members: prev.members.filter(
+                (m) => m.user.user_id !== removedUserId,
               ),
             };
           });
@@ -205,16 +215,47 @@ export const useTeamInvitePage = () => {
               if (t.team_id !== currentTeamId) return t;
               return {
                 ...t,
-                members: t.members.map((m) =>
-                  m.user.user_id === changedUserId ? { ...m, role: newRole } : m
+                members: t.members.filter(
+                  (m: TeamMember) => m.user.user_id !== removedUserId,
                 ),
               };
-            })
+            }),
+          );
+        }
+
+        if (message.type === "member_role_changed") {
+          // console.log("[TeamWS] Member role changed, updating state...");
+          const { user_id: changedUserId, new_role: newRole } = message.data;
+
+          // Update selectedTeam by changing the member's role
+          setSelectedTeam((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              members: prev.members.map((m) =>
+                m.user.user_id === changedUserId ? { ...m, role: newRole } : m,
+              ),
+            };
+          });
+
+          // Update teams list
+          setTeams((prev) =>
+            prev.map((t) => {
+              if (t.team_id !== currentTeamId) return t;
+              return {
+                ...t,
+                members: t.members.map((m: TeamMember) =>
+                  m.user.user_id === changedUserId
+                    ? { ...m, role: newRole }
+                    : m,
+                ),
+              };
+            }),
           );
         }
 
         if (message.type === "team_deleted") {
-          console.log("[TeamWS] Team deleted, removing from state...");
+          // console.log("[TeamWS] Team deleted, removing from state...");
           const deletedTeamId = message.data.team_id;
 
           // Clear selected team if it's the deleted one
@@ -234,6 +275,11 @@ export const useTeamInvitePage = () => {
           // Exit edit mode if active
           setEditMode(false);
         }
+
+        if ((message.type as string).includes("member")) {
+          loadInvitations(selectedTeam.team_id);
+          refreshTeamMembersWithXp();
+        }
       } catch (error) {
         console.error("[TeamWS] Failed to parse message:", error);
       }
@@ -244,14 +290,14 @@ export const useTeamInvitePage = () => {
     };
 
     teamSocket.onclose = () => {
-      console.log("[TeamWS] Disconnected from team", currentTeamId);
+      // console.log("[TeamWS] Disconnected from team", currentTeamId);
     };
 
     return () => {
-      console.log("[TeamWS] Cleaning up connection for team", currentTeamId);
+      // console.log("[TeamWS] Cleaning up connection for team", currentTeamId);
       teamSocket.close();
     };
-  }, [selectedTeam?.team_id, user]);
+  }, [selectedTeam?.team_id, user?.userId]);
 
   // Create team handler
   const onCreateTeam = async () => {
@@ -302,6 +348,7 @@ export const useTeamInvitePage = () => {
     setInviteEmail("");
     setShowInvitePanel(false);
     loadInvitations(selectedTeam.team_id);
+    closeModal(false);
   };
 
   // Remove member handler
@@ -311,7 +358,7 @@ export const useTeamInvitePage = () => {
     setRemovingMember(memberId);
     const response = await api.removeMemberFromTeam(
       selectedTeam.team_id,
-      memberId
+      memberId,
     );
     setRemovingMember(null);
 
@@ -335,10 +382,13 @@ export const useTeamInvitePage = () => {
         if (t.team_id !== selectedTeam.team_id) return t;
         return {
           ...t,
-          members: t.members.filter((m) => m.user.user_id !== memberId),
+          members: t.members.filter(
+            (m: TeamMember) => m.user.user_id !== memberId,
+          ),
         };
-      })
+      }),
     );
+    closeModal(false);
   };
 
   // Promote member to admin handler
@@ -362,7 +412,7 @@ export const useTeamInvitePage = () => {
       return {
         ...prev,
         members: prev.members.map((m) =>
-          m.user.user_id === memberId ? { ...m, role: "admin" } : m
+          m.user.user_id === memberId ? { ...m, role: "admin" } : m,
         ),
       };
     });
@@ -371,11 +421,11 @@ export const useTeamInvitePage = () => {
         if (t.team_id !== selectedTeam.team_id) return t;
         return {
           ...t,
-          members: t.members.map((m) =>
-            m.user.user_id === memberId ? { ...m, role: "admin" } : m
+          members: t.members.map((m: TeamMember) =>
+            m.user.user_id === memberId ? { ...m, role: "admin" } : m,
           ),
         };
-      })
+      }),
     );
   };
 
@@ -400,7 +450,7 @@ export const useTeamInvitePage = () => {
       return {
         ...prev,
         members: prev.members.map((m) =>
-          m.user.user_id === memberId ? { ...m, role: "member" } : m
+          m.user.user_id === memberId ? { ...m, role: "member" } : m,
         ),
       };
     });
@@ -409,11 +459,11 @@ export const useTeamInvitePage = () => {
         if (t.team_id !== selectedTeam.team_id) return t;
         return {
           ...t,
-          members: t.members.map((m) =>
-            m.user.user_id === memberId ? { ...m, role: "member" } : m
+          members: t.members.map((m: TeamMember) =>
+            m.user.user_id === memberId ? { ...m, role: "member" } : m,
           ),
         };
-      })
+      }),
     );
   };
 
@@ -439,7 +489,7 @@ export const useTeamInvitePage = () => {
     }
     // Fallback for old teams: treat any admin as having creator privileges
     return team.members.some(
-      (m) => m.user.user_id === user.userId && m.role === "admin"
+      (m) => m.user.user_id === user.userId && m.role === "admin",
     );
   };
 
@@ -447,7 +497,7 @@ export const useTeamInvitePage = () => {
   const isCurrentUserAdmin = (team: TeamWithMembers | null): boolean => {
     if (!team || !user) return false;
     return team.members.some(
-      (m) => m.user.user_id === user.userId && m.role === "admin"
+      (m) => m.user.user_id === user.userId && m.role === "admin",
     );
   };
 
@@ -490,7 +540,10 @@ export const useTeamInvitePage = () => {
     successMsg("Invitation canceled");
 
     // Remove from invitations list
-    setInvitations((prev) => prev.filter((inv) => inv.invitation_id !== invitationId));
+    setInvitations(
+      invitations.filter((inv) => inv.invitation_id !== invitationId),
+    );
+    closeModal(false);
   };
 
   // Select a team
@@ -533,13 +586,19 @@ export const useTeamInvitePage = () => {
   };
 
   return {
+    api,
+
     // User
     user,
 
     // Teams data
     teams,
     selectedTeam,
+    teamMembersWithXp,
     invitations,
+    selectedMemberId,
+    isInvitee,
+    setSelectedMemberId,
 
     // Loading states
     loading: {

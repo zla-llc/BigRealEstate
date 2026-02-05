@@ -6,6 +6,9 @@ import {
   type ACampaignEmail,
   type ACampaignEmailSendResponse,
   type ACampaignSummary,
+  type TeamInvitation,
+  type TeamWithMembers,
+  type TeamMemberWithXP,
 } from "../../interfaces";
 import type {
   CreateUserProps,
@@ -24,13 +27,10 @@ import type {
   SMTPSendRequest,
   SMTPSendResponse,
   SMTPConfigResponse,
-  Team,
-  TeamWithMembers,
-  TeamInvitation,
-  Notification,
   CreateTeamRequest,
   InviteToTeamRequest,
   RespondToInvitationRequest,
+  UpdateTeamNameRequest,
 } from "./types";
 import { useFetch } from "./useFetch";
 import { useState } from "react";
@@ -43,7 +43,7 @@ export const useApi = () => {
   const apiResponseError = useApiResponseError();
   const { post, get, put, del, patch } = useFetch();
   const [signal, setSignalState] = useState<AbortSignal>(
-    new AbortController().signal
+    new AbortController().signal,
   );
   const [signalTo, setSignalTo] = useState<string[]>([]);
 
@@ -59,7 +59,7 @@ export const useApi = () => {
 
   const idsToQueryString = (
     ids: (string | number)[],
-    prefix: string = "id"
+    prefix: string = "id",
   ) => {
     let string = "";
     for (let i = 0; i < ids.length; i++) {
@@ -94,7 +94,7 @@ export const useApi = () => {
         user_id: userId,
         lead_ids: leads,
       },
-      { isFormData: false, signal: getSignal("createCampaign") }
+      { isFormData: false, signal: getSignal("createCampaign") },
     );
   };
 
@@ -102,7 +102,7 @@ export const useApi = () => {
     return await post<AUser>(
       `/api/users/${body.userId}/contacts/${body.contactId}`,
       {},
-      { isFormData: false, signal: getSignal("linkContactToUser") }
+      { isFormData: false, signal: getSignal("linkContactToUser") },
     );
   };
 
@@ -119,7 +119,7 @@ export const useApi = () => {
         user_id: userId,
         lead_ids: leads,
       },
-      { isFormData: false, signal: getSignal("updateCampaign") }
+      { isFormData: false, signal: getSignal("updateCampaign") },
     );
   };
 
@@ -135,7 +135,7 @@ export const useApi = () => {
         phone_contacted: contactMethods.includes(CampaignContactMethod.Phone),
         sms_contacted: contactMethods.includes(CampaignContactMethod.SMS),
         email_contacted: contactMethods.includes(CampaignContactMethod.Email),
-      }
+      },
     );
   };
 
@@ -145,11 +145,11 @@ export const useApi = () => {
 
   const getCampaign = async (
     campaignId: number | string,
-    _userId: number | string
+    _userId: number | string,
   ) => {
     return await get<ACampaign>(
       `/api/campaigns/${campaignId}`,
-      getSignal("getCampaign")
+      getSignal("getCampaign"),
     );
   };
 
@@ -159,7 +159,7 @@ export const useApi = () => {
         campaignIds.length > 0
           ? `?${idsToQueryString(campaignIds, "campaign_id")}`
           : ""
-      }`
+      }`,
     );
   };
 
@@ -202,7 +202,7 @@ export const useApi = () => {
         html,
         from_name: fromName,
       },
-      { isFormData: false, signal: getSignal("sendTestEmail") }
+      { isFormData: false, signal: getSignal("sendTestEmail") },
     );
   };
 
@@ -273,7 +273,7 @@ export const useApi = () => {
     else if (leadId === null) payload.lead_id = null;
     return await put<ACampaignEmail>(
       `/api/campaign-emails/${messageId}`,
-      payload
+      payload,
     );
   };
 
@@ -289,13 +289,16 @@ export const useApi = () => {
     if (typeof limit === "number") params.append("limit", String(limit));
     const query = params.toString();
     return await get<ACampaignSummary[]>(
-      `/api/campaigns${query ? `?${query}` : ""}`
+      `/api/campaigns${query ? `?${query}` : ""}`,
     );
   };
 
   // SMTP Email functions
   const smtpGetConfig = async () => {
-    return await get<SMTPConfigResponse>(`/api/smtp/config`, getSignal("smtpGetConfig"));
+    return await get<SMTPConfigResponse>(
+      `/api/smtp/config`,
+      getSignal("smtpGetConfig"),
+    );
   };
 
   const smtpSendEmail = async (request: SMTPSendRequest) => {
@@ -306,62 +309,92 @@ export const useApi = () => {
   };
 
   // Team Management APIs
-  const createTeam = async ({ team_name, admin_user_id }: CreateTeamRequest) => {
+  const createTeam = async ({
+    team_name,
+    admin_user_id,
+  }: CreateTeamRequest) => {
     return await post<TeamWithMembers>(
       `/api/teams/with-admin/${admin_user_id}`,
       { team_name },
-      { isFormData: false, signal: getSignal("createTeam") }
+      { isFormData: false, signal: getSignal("createTeam") },
+    );
+  };
+
+  const updateTeam = async ({
+    team_id,
+    team_name,
+    xp,
+  }: UpdateTeamNameRequest) => {
+    return await put<TeamWithMembers>(
+      `/api/teams/${team_id}`,
+      { team_name, xp },
+      { isFormData: false, signal: getSignal("updateTeam") },
     );
   };
 
   const getTeamsByUser = async (userId: number) => {
     return await get<TeamWithMembers[]>(
       `/api/teams/user/${userId}`,
-      getSignal("getTeamsByUser")
+      getSignal("getTeamsByUser"),
     );
   };
 
   const getTeamMembers = async (teamId: number) => {
     return await get<TeamWithMembers>(
       `/api/teams/${teamId}/members`,
-      getSignal("getTeamMembers")
+      getSignal("getTeamMembers"),
     );
   };
 
-  const inviteToTeam = async ({ team_id, sender_id, recipient_email }: InviteToTeamRequest) => {
+  const getTeamMembersByXp = async (teamId: number) => {
+    return await get<TeamMemberWithXP[]>(`/api/teams/${teamId}/users/xp`);
+  };
+
+  const inviteToTeam = async ({
+    team_id,
+    sender_id,
+    recipient_email,
+  }: InviteToTeamRequest) => {
     return await post<TeamInvitation>(
       `/api/teams/${team_id}/invitations?sender_id=${sender_id}`,
       { recipient_email },
-      { isFormData: false, signal: getSignal("inviteToTeam") }
+      { isFormData: false, signal: getSignal("inviteToTeam") },
     );
   };
 
   const getTeamInvitations = async (teamId: number, requesterId: number) => {
     return await get<TeamInvitation[]>(
       `/api/teams/${teamId}/invitations?requester_id=${requesterId}`,
-      getSignal("getTeamInvitations")
+      getSignal("getTeamInvitations"),
     );
   };
 
-  const respondToInvitation = async ({ invitation_id, accept, user_id }: RespondToInvitationRequest) => {
+  const respondToInvitation = async ({
+    invitation_id,
+    accept,
+    user_id,
+  }: RespondToInvitationRequest) => {
     return await patch<{ message: string }>(
       `/api/teams/invitations/${invitation_id}/respond?user_id=${user_id}`,
       { status: accept },
-      { isFormData: false, signal: getSignal("respondToInvitation") }
+      { isFormData: false, signal: getSignal("respondToInvitation") },
     );
   };
 
-  const cancelInvitation = async (invitationId: number, requesterId: number) => {
+  const cancelInvitation = async (
+    invitationId: number,
+    requesterId: number,
+  ) => {
     return await del<void>(
       `/api/teams/invitations/${invitationId}?requester_id=${requesterId}`,
-      getSignal("cancelInvitation")
+      getSignal("cancelInvitation"),
     );
   };
 
   const removeMemberFromTeam = async (teamId: number, userId: number) => {
     return await del<{ message: string }>(
       `/api/teams/${teamId}/members/${userId}`,
-      getSignal("removeMemberFromTeam")
+      getSignal("removeMemberFromTeam"),
     );
   };
 
@@ -369,21 +402,21 @@ export const useApi = () => {
     return await post<TeamWithMembers>(
       `/api/teams/${teamId}/admins/${userId}`,
       {},
-      { isFormData: false, signal: getSignal("promoteToAdmin") }
+      { isFormData: false, signal: getSignal("promoteToAdmin") },
     );
   };
 
   const demoteFromAdmin = async (teamId: number, userId: number) => {
     return await del<TeamWithMembers>(
       `/api/teams/${teamId}/admins/${userId}`,
-      getSignal("demoteFromAdmin")
+      getSignal("demoteFromAdmin"),
     );
   };
 
   const deleteTeam = async (teamId: number, requesterId: number) => {
     return await del<void>(
       `/api/teams/${teamId}?requester_id=${requesterId}`,
-      getSignal("deleteTeam")
+      getSignal("deleteTeam"),
     );
   };
 
@@ -391,7 +424,7 @@ export const useApi = () => {
   const getNotifications = async (userId: number) => {
     return await get<Notification[]>(
       `/api/notifications/user/${userId}`,
-      getSignal("getNotifications")
+      getSignal("getNotifications"),
     );
   };
 
@@ -399,14 +432,14 @@ export const useApi = () => {
     return await patch<Notification>(
       `/api/notifications/${notificationId}/read`,
       {},
-      { isFormData: false, signal: getSignal("markNotificationRead") }
+      { isFormData: false, signal: getSignal("markNotificationRead") },
     );
   };
 
   const deleteNotification = async (notificationId: number) => {
     return await del<void>(
       `/api/notifications/${notificationId}`,
-      getSignal("deleteNotification")
+      getSignal("deleteNotification"),
     );
   };
 
@@ -437,6 +470,8 @@ export const useApi = () => {
     smtpSendEmail,
     // Team APIs
     createTeam,
+    getTeamMembersByXp,
+    updateTeam,
     getTeamsByUser,
     getTeamMembers,
     inviteToTeam,

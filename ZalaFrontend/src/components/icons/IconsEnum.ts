@@ -33,4 +33,5 @@ export enum Icons {
   Group = "Group",
   Check = "Check",
   Pending = "Pending",
+  Map = "Map",
 }

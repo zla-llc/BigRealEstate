@@ -10,7 +10,7 @@ import { Modal } from "../Modal";
 import { CampaignSelectModalPage } from "./CampaignSelectModalPage";
 import { ImportLeadsModalPage } from "./ImportLeadsModalPage";
 import { ManualCreateLeadModalPage } from "./ManualCreateLeadModalPage";
-import { ManualCreateProperty } from "./ManualCreateProperty";
+import { ManualCreateProperty } from "../Forms";
 import { MethodSelectModalPage } from "./MethodSelectModalPage";
 import { PropertySelectModal } from "./PropertySelectModal";
 
@@ -81,8 +81,8 @@ export const BoardModal = ({ onAddLeads }: BoardModalProps) => {
             page === BoardModalPage.CampaignSelectPage
               ? toMethodSelectModal
               : page === BoardModalPage.CampaignLeadSelectPage
-              ? toCampaignSelectModal
-              : toCampaignLeadSelectModal
+                ? toCampaignSelectModal
+                : toCampaignLeadSelectModal
           }
           onConfirm={onConfirm}
         />
@@ -103,7 +103,7 @@ export const BoardModal = ({ onAddLeads }: BoardModalProps) => {
       )}
 
       {page === BoardModalPage.ManualPropertyPage && (
-        <ManualCreateProperty onBackBtn={onClose} onConfirm={onConfirm} />
+        <ManualCreateProperty onCloseBtn={onClose} onConfirm={onConfirm} />
       )}
 
       {page === BoardModalPage.ImportLeadsPage && (

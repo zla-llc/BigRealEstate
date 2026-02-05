@@ -16,7 +16,7 @@ export const DashboardCard = ({
   children,
 }: PropsWithChildren<DashboardCardProps>) => {
   return (
-    <div className="card-base box-shadow w-full flex flex-col p-[30px] gap-y-[15px]">
+    <div className="card-base box-shadow w-full flex flex-col p-[30px] gap-y-[15px] transition-[height] duration-500">
       <div className="w-full flex items-center justify-center">
         <PageHeader
           actions={[

@@ -1,40 +1,43 @@
-import { useEffect, useState } from "react";
 import { DashboardCard, type DashboardCardProps } from "./DashboardCard";
-import { ordinals, Random } from "../../utils";
+import { LeaderboardItemCard } from "./LeaderboardItemCard";
+
+type LeaderBoardUserProps = {
+  title: string;
+  xp: number;
+};
 
 type LeaderBoardsCardProps = DashboardCardProps & {
-  users: string[];
+  users: LeaderBoardUserProps[];
+  overflowCount: number;
+  onClick?: (i: number) => void;
 };
 
 export const LeaderBoardsCard = (props: LeaderBoardsCardProps) => {
-  const { users } = props;
-  const [dummyUsers, setDummyUsers] = useState<
-    { id: number; user: string; xp: number }[]
-  >([]);
-  useEffect(() => {
-    setDummyUsers(
-      users
-        .map((usr, i) => ({ id: i, user: usr, xp: Random.inclusive(0, 1000) }))
-        .sort((a, b) => b.xp - a.xp),
-    );
-  }, []);
+  const { users, overflowCount, onClick = () => {} } = props;
+  const sortedUsers = users.sort((a, b) => a.xp - b.xp);
+
   return (
     <DashboardCard {...props}>
-      <div className="w-full flex flex-col gap-y-[30px]">
-        {dummyUsers.map((usr, i) => (
-          <div
-            key={usr.id}
-            className="flex flex-row justify-between items-center card-base-secondary box-shadow p-[15px]"
-          >
-            <div>
-              <p className="text-lg font-bold text-secondary">{usr.user}</p>
-              <p className="text-sm font-bold text-secondary-50">{usr.xp} XP</p>
-            </div>
-            <p className="text-lg font-bold text-secondary">
-              {ordinals(i + 1)}
-            </p>
+      <div className="w-full flex flex-col gap-y-[15px]">
+        <div className="flex flex-col gap-y-[30px]">
+          {sortedUsers.map((usr, i) => (
+            <LeaderboardItemCard
+              key={i}
+              title={usr.title}
+              xp={usr.xp}
+              place={i + 1}
+              onClick={() => onClick(i)}
+            />
+          ))}
+        </div>
+
+        {overflowCount > 0 ? (
+          <div className="flex justify-center items-center">
+            + {overflowCount} More
           </div>
-        ))}
+        ) : (
+          <div />
+        )}
       </div>
     </DashboardCard>
   );
