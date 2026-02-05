@@ -19,5 +19,5 @@ htmlcov/
 .dmypy.json
 dmypy.json
 
-uploads/leads
-uploads/properties
+uploads/leads/*
+uploads/properties/*
