@@ -36,7 +36,7 @@ export const CampaignFolders = ({
     viewing,
     lead,
     showBackBtn,
-    disableSecondary: viewing === allLeads.length - 1,
+    disableSecondary: leadIndex === allLeads.length - 1,
   };
 
   const singleActions = {
