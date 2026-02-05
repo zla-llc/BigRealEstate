@@ -19,4 +19,4 @@ htmlcov/
 .dmypy.json
 dmypy.json
 
-./uploads/*
+uploads/
