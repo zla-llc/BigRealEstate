@@ -6,6 +6,8 @@ from app import schemas
 from app.models.team import Team
 from app.models.user import User
 from app.models.user_team import UserTeam
+from app.models.board import Board
+from app.models.property import Property
 
 # Fields that are not actual columns on the Team model
 EXCLUDED_RELATIONSHIP_FIELDS = ("member_ids", "property_ids", "board_ids")
@@ -54,7 +56,7 @@ def get_teams(db: Session, skip: int = 0, limit: int = 100) -> List[Team]:
 
 def get_teams_by_user(db: Session, user_id: int) -> List[Team]:
     """Return all teams a user belongs to."""
-    
+
     return (
         db.query(Team)
         .join(UserTeam)
@@ -84,18 +86,18 @@ def create_team_with_admin(db: Session, team_in: schemas.TeamCreate, admin_user_
     Create a team and set the creator as admin.
     Raises ValueError if user is already in another team (users can only join 1 team).
     """
-    
+
     # Check if user is already in a team
     existing_in_team = db.query(UserTeam).filter(UserTeam.user_id == admin_user_id).first()
     if existing_in_team:
         raise ValueError("You're already on a team. You'll need to leave your current team before creating a new one.")
-    
+
     payload = _prepare_team_payload(team_in.model_dump())
     team = Team(**payload)
     team.created_by_user_id = admin_user_id  # Track who created the team
     db.add(team)
     db.flush()  # Get the team_id
-    
+
     # Add creator as admin
     user_team = UserTeam(
         user_id=admin_user_id,
@@ -165,13 +167,13 @@ def add_member(db: Session, team_id: int, user_id: int, role: str = "member") ->
     team = get_team_by_id(db, team_id)
     if not team:
         return None
-    
+
     # Check if user already in THIS team
     existing = db.query(UserTeam).filter(
         UserTeam.team_id == team_id,
         UserTeam.user_id == user_id
     ).first()
-    
+
     if existing:
         # Update role if already exists in this team
         existing.role = role
@@ -180,10 +182,10 @@ def add_member(db: Session, team_id: int, user_id: int, role: str = "member") ->
         existing_in_other = db.query(UserTeam).filter(
             UserTeam.user_id == user_id
         ).first()
-        
+
         if existing_in_other:
             raise ValueError("This person is already on another team. Each user can only be on one team.")
-        
+
         # Create new link
         user_team = UserTeam(
             user_id=user_id,
@@ -191,7 +193,7 @@ def add_member(db: Session, team_id: int, user_id: int, role: str = "member") ->
             role=role
         )
         db.add(user_team)
-    
+
     db.commit()
     db.refresh(team)
     return team
@@ -209,12 +211,12 @@ def remove_member(db: Session, team_id: int, user_id: int) -> Optional[Team]:
         UserTeam.team_id == team_id,
         UserTeam.user_id == user_id
     ).first()
-    
+
     if user_team:
         db.delete(user_team)
         db.commit()
         db.refresh(team)
-    
+
     return team
 
 
@@ -225,7 +227,7 @@ def add_admin(db: Session, team_id: int, user_id: int) -> Optional[Team]:
 
 def remove_admin(db: Session, team_id: int, user_id: int) -> Optional[Team]:
     """Remove admin role from user (demote to member)."""
-    
+
     team = get_team_by_id(db, team_id)
     if not team:
         return None
@@ -234,40 +236,40 @@ def remove_admin(db: Session, team_id: int, user_id: int) -> Optional[Team]:
         UserTeam.team_id == team_id,
         UserTeam.user_id == user_id
     ).first()
-    
+
     if user_team and user_team.role == "admin":
         # Demote to member instead of removing
         user_team.role = "member"
         db.commit()
         db.refresh(team)
-    
+
     return team
 
 
 def get_user_role_in_team(db: Session, team_id: int, user_id: int) -> Optional[str]:
     """Get a user's role in a team. Returns None if not in team."""
-    
+
     user_team = db.query(UserTeam).filter(
         UserTeam.team_id == team_id,
         UserTeam.user_id == user_id
     ).first()
-    
+
     return user_team.role if user_team else None
 
 
 def get_user_current_team(db: Session, user_id: int) -> Optional[Team]:
     """Get the team a user belongs to (users can only be in 1 team)."""
-    
+
     user_team = db.query(UserTeam).filter(UserTeam.user_id == user_id).first()
     if not user_team:
         return None
-    
+
     return get_team_by_id(db, user_team.team_id)
 
 
 def is_user_in_any_team(db: Session, user_id: int) -> bool:
     """Check if user is already in any team."""
-    
+
     return db.query(UserTeam).filter(UserTeam.user_id == user_id).first() is not None
 
 
@@ -309,3 +311,87 @@ def get_team_users_by_xp(db: Session, team_id: int) -> Optional[List[tuple]]:
         .all()
     )
     return rows
+
+
+def add_board_to_team(db: Session, team_id: int, board_id: int) -> Optional[Team]:
+    """Link an existing Board to a Team"""
+    db_team = db.query(Team).filter(Team.team_id == team_id).first()
+    if not db_team:
+        return None
+    db_board = db.query(Board).filter(Board.board_id == board_id).first()
+    if not db_board:
+        return None
+    # ensure board not already attached to a different team
+    existing = db.query(Team).filter(Team.board_id == board_id).first()
+    if existing and existing.team_id != team_id:
+        # already linked elsewhere
+        return None
+    db_board.team_id = team_id
+    db.add(db_board)
+    db.commit()
+    db.refresh(db_team)
+    return db_team
+
+
+def remove_board_from_team(db: Session, team_id: int, board_id: int) -> Optional[Team]:
+    """Unlink (but do not delete) a Board from a Team. Returns None if team/board missing, or the updated team."""
+    db_team = db.query(Team).filter(Team.team_id == team_id).first()
+    db_board = db.query(Board).filter(Board.board_id == board_id).first()
+    if not db_team:
+        return None
+    if db_team.board_id != board_id:
+        # nothing to do
+        return db_team
+    db_board.team_id = None
+    db.add(db_board)
+    db.commit()
+    db.refresh(db_team)
+    return db_team
+
+
+def add_property_to_team(db: Session, team_id: int, property_id: int) -> Optional[Team]:
+    """Link an existing Property to a Team"""
+    db_team = db.query(Team).filter(Team.team_id == team_id).first()
+    if not db_team:
+        return None
+    db_property = db.query(Property).filter(Property.property_id == property_id).first()
+    if not db_property:
+        return None
+    # ensure property not already attached to a different team
+    existing = db.query(Team).filter(Team.property_id == property_id).first()
+    if existing and existing.team_id != team_id:
+        # already linked elsewhere
+        return None
+    db_property.team_id = team_id
+    db.add(db_property)
+    db.commit()
+    db.refresh(db_team)
+    return db_team
+
+
+def remove_property_from_team(db: Session, team_id: int, property_id: int) -> Optional[Team]:
+    """Unlink (but do not delete) a Property from a Team. Returns None if team/property missing, or the updated team."""
+    db_team = db.query(Team).filter(Team.team_id == team_id).first()
+    db_property = db.query(Property).filter(Property.property_id == property_id).first()
+    if not db_team:
+        return None
+    if db_team.property_id != property_id:
+        # nothing to do
+        return db_team
+    db_property.team_id = None
+    db.add(db_property)
+    db.commit()
+    db.refresh(db_team)
+    return db_team
+
+
+def get_property_ids_for_team(db: Session, team_id: int):
+    """Return list of property_ids linked to the team."""
+    rows = db.query(Property.property_id).filter(Property.team_id == team_id).all()
+    return [r[0] for r in rows]
+
+
+def get_board_ids_for_team(db: Session, team_id: int):
+    """Return list of board_ids linked to the team."""
+    rows = db.query(Board.board_id).filter(Board.team_id == team_id).all()
+    return [r[0] for r in rows]
