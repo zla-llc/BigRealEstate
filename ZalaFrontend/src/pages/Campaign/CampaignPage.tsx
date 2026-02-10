@@ -6,6 +6,11 @@ import { LoadingPage } from "../Loading";
 import { useCampaignPage } from "../../hooks";
 import { CampaignContactMethod } from "../../interfaces";
 
+/**
+ * Container of all leads in a campaign.
+ *
+ * @returns {CampaignPage}
+ */
 export const CampaignPage = () => {
   const {
     pageLoading,

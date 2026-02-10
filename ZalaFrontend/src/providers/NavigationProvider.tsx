@@ -14,6 +14,11 @@ import {
 import { RootLayout } from "../layouts";
 import { useAuthStore } from "../stores";
 
+/**
+ * Handles which components and pages to show from URL.
+ *
+ * @returns {BrowserRouter}
+ */
 export const NavigationProvider = () => {
   const user = useAuthStore((state) => state.user);
   const NavToLeadSearch = () => <Navigate to={"/"} />;

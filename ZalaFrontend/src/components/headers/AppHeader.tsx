@@ -3,6 +3,11 @@ import { IconButton, IconButtonVariant } from "../buttons";
 import { Icons } from "../icons";
 import { TextInput } from "../inputs";
 
+/**
+ * The header of the app once you log in. Includes the search bar and top buttons.
+ *
+ * @returns {AppHeader}
+ */
 export const AppHeader = () => {
   const {
     query,
