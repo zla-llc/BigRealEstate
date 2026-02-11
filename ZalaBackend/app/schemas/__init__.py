@@ -42,6 +42,12 @@ from .team import (
     TeamCreate,
     TeamUpdate,
     TeamPublic,
+    TeamPublicWithProperties,
+    TeamPublicWithBoards,
+    TeamPublicWithPropertiesAndBoards,
+    TeamPublicWithInvitations,
+    TeamAdminsPublic,
+    TeamMembersOnlyPublic,
     TeamLeaderboardEntry,
     TeamUserXPEntry,
 )
