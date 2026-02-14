@@ -1,35 +1,61 @@
 import { create } from "zustand";
-import type { TeamWithMembers } from "../hooks/api/types";
+import type { TeamInvitation, TeamWithMembers } from "../interfaces";
 
-type TeamsUpdater = TeamWithMembers[] | ((prev: TeamWithMembers[]) => TeamWithMembers[]);
+type TeamsUpdater =
+  | TeamWithMembers[]
+  | ((prev: TeamWithMembers[]) => TeamWithMembers[]);
 
 interface TeamsState {
   teams: TeamWithMembers[];
   selectedTeamId: number | null;
   setTeams: (teamsOrUpdater: TeamsUpdater) => void;
+
+  invitations: TeamInvitation[];
+  setInvitations: (invitations: TeamInvitation[]) => void;
+
+  selectedMemberId: number;
+  isInvitee: boolean;
+  setSelectedMemberId: (selectedMemberId: number, isInvitee: boolean) => void;
+
   addTeam: (team: TeamWithMembers) => void;
   updateTeam: (team: TeamWithMembers) => void;
   removeTeam: (teamId: number) => void;
   setSelectedTeamId: (teamId: number | null) => void;
   updateTeamMember: (teamId: number, userId: number, role: string) => void;
-  addTeamMember: (teamId: number, member: TeamWithMembers["members"][0]) => void;
+  addTeamMember: (
+    teamId: number,
+    member: TeamWithMembers["members"][0],
+  ) => void;
   removeTeamMember: (teamId: number, userId: number) => void;
 }
 
 export const useTeamsStore = create<TeamsState>((set) => ({
   teams: [],
   selectedTeamId: null,
+  invitations: [],
+
+  selectedMemberId: -1,
+  isInvitee: false,
+  setSelectedMemberId: (selectedMemberId: number, isInvitee: boolean) =>
+    set({ selectedMemberId, isInvitee }),
 
   setTeams: (teamsOrUpdater) =>
     set((state) => ({
-      teams: typeof teamsOrUpdater === "function" 
-        ? teamsOrUpdater(state.teams) 
-        : teamsOrUpdater,
+      teams:
+        typeof teamsOrUpdater === "function"
+          ? teamsOrUpdater(state.teams)
+          : teamsOrUpdater,
     })),
+
+  setInvitations: (invitations) => set({ invitations }),
 
   addTeam: (team) =>
     set((state) => {
-      console.log("[TeamsStore] addTeam called with:", team.team_id, team.team_name);
+      console.log(
+        "[TeamsStore] addTeam called with:",
+        team.team_id,
+        team.team_name,
+      );
       // Avoid duplicates
       if (state.teams.some((t) => t.team_id === team.team_id)) {
         console.log("[TeamsStore] Team already exists, skipping");
@@ -41,9 +67,7 @@ export const useTeamsStore = create<TeamsState>((set) => ({
 
   updateTeam: (team) =>
     set((state) => ({
-      teams: state.teams.map((t) =>
-        t.team_id === team.team_id ? team : t
-      ),
+      teams: state.teams.map((t) => (t.team_id === team.team_id ? team : t)),
     })),
 
   removeTeam: (teamId) =>
@@ -62,7 +86,7 @@ export const useTeamsStore = create<TeamsState>((set) => ({
         return {
           ...t,
           members: t.members.map((m) =>
-            m.user.user_id === userId ? { ...m, role } : m
+            m.user.user_id === userId ? { ...m, role } : m,
           ),
         };
       }),

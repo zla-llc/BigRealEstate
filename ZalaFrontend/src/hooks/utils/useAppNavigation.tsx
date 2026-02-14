@@ -5,12 +5,12 @@ export const useAppNavigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const toLeadSearchPage = () => navigate("/");
+  const toLeadSearchPage = () => navigate("/search");
 
   const toCampaignPage = (campaignId: number, leads: ILead[] = []) =>
     navigate("/campaigns/" + campaignId, { state: { leads } });
 
-  const toBoardsPage = () => navigate("/boards");
+  const toBoardsPage = () => navigate("/demos/board");
 
   const toLoginPage = () => navigate("/login");
 
@@ -30,6 +30,12 @@ export const useAppNavigation = () => {
 
   const toBoardsV2Page = () => navigate("/boards/v2");
 
+  const toDashboard = () => navigate("/dashboard");
+
+  const toBoardPage = (boardId: number) => navigate("/board/" + boardId);
+
+  const goBack = () => navigate(-1);
+
   return {
     location,
     navigate,
@@ -46,5 +52,8 @@ export const useAppNavigation = () => {
     toSMTPTestPage,
     toTeamInviteTestPage,
     toBoardsV2Page,
+    toDashboard,
+    toBoardPage,
+    goBack,
   };
 };

@@ -1,43 +1,103 @@
 import clsx from "clsx";
-import { EditablePageHeaderSize, type Actions } from "./types";
+import {
+  EditablePageHeaderSize,
+  EditablePageHeaderVariant,
+  type Actions,
+} from "./types";
 import { HeaderActions } from "./HeaderActions";
+import { TextInput, type TextInputProps } from "../inputs";
 
 export type EditablePageHeaderProps = {
   value: string;
   setValue: (v: string) => void;
 
+  title?: string;
+  nonEditableText?: string;
   actions?: (Actions | null)[];
+  inputProps?: TextInputProps;
+  variant?: EditablePageHeaderVariant;
 
   editable?: boolean;
   centerText?: boolean;
   size?: EditablePageHeaderSize;
   disablePadding?: boolean;
+  transparent?: boolean;
 };
 
 export const EditablePageHeader = ({
+  title = "Title:",
+  nonEditableText,
+
   value,
   setValue,
 
   actions = [],
+  inputProps,
+  variant = EditablePageHeaderVariant.Card,
 
   editable = true,
   centerText,
   size = EditablePageHeaderSize.Large,
   disablePadding,
+  transparent,
 }: EditablePageHeaderProps) => {
   const textSize =
     size === EditablePageHeaderSize.Large
       ? "!text-2xl"
       : size === EditablePageHeaderSize.Medium
-      ? "text-xl"
-      : "text-lg";
+        ? "text-xl"
+        : "text-lg";
   const centerStyle = centerText ? "text-center" : "";
+
+  if (variant === EditablePageHeaderVariant.Card)
+    return (
+      <div
+        className={clsx(
+          "flex flex-col w-full h-min gap-y-[15px]",
+          transparent ? "" : "card-base box-shadow",
+          disablePadding ? "" : "p-[30px]",
+        )}
+      >
+        <div
+          className={clsx(
+            "flex flex-row items-center justify-center",
+            actions.length == 0 ? "" : "gap-[15px]",
+          )}
+        >
+          <HeaderActions side="left" actions={actions} />
+          <div className="w-full flex flex-row items-center justify-center">
+            <p
+              className={clsx(
+                "color-secondary",
+                !editable && nonEditableText ? "text-md" : "text-lg font-bold",
+              )}
+            >
+              {title}
+            </p>
+          </div>
+          <HeaderActions side="right" actions={actions} />
+        </div>
+
+        {editable && (
+          <div>
+            <TextInput value={value} setValue={setValue} {...inputProps} />
+          </div>
+        )}
+
+        {!editable && nonEditableText && (
+          <div className="flex justify-center items-center">
+            <p className="font-bold text-xl">{nonEditableText}</p>
+          </div>
+        )}
+      </div>
+    );
+
   return (
     <div
       className={clsx(
         "flex flex-row w-full",
         disablePadding ? "" : "px-[30px] py-[15px]",
-        actions.length == 0 ? "" : "gap-[15px]"
+        actions.length == 0 ? "" : "gap-[15px]",
       )}
     >
       <HeaderActions side="left" actions={actions} />
@@ -46,7 +106,7 @@ export const EditablePageHeader = ({
           className={clsx(
             "border-text-input w-full py-[5px] line-clamp-1",
             textSize,
-            centerStyle
+            centerStyle,
           )}
           placeholder="Campaign Title"
           value={value}
@@ -57,7 +117,7 @@ export const EditablePageHeader = ({
           className={clsx(
             "border-text-input w-full py-[5px] line-clamp-1 cursor-default",
             textSize,
-            centerStyle
+            centerStyle,
           )}
         >
           {value}

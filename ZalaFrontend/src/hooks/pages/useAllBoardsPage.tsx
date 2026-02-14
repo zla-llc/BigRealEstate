@@ -23,7 +23,7 @@ export const useAllBoardsPage = () => {
   const boardSettingsFuncs = useBoardSettingsStore();
 
   const inferBoardType: IBoardType = selectedBoard?.boardSteps.some(
-    (step) => step.properties.length > 0
+    (step) => step.properties.length > 0,
   )
     ? "properties"
     : "lead";
@@ -52,7 +52,7 @@ export const useAllBoardsPage = () => {
       }
     },
     [createdBoard],
-    750
+    750,
   );
 
   useTimeoutEffect(
@@ -64,15 +64,16 @@ export const useAllBoardsPage = () => {
       })();
     },
     [stepName, stepNameId],
-    750
+    750,
   );
 
   const selectBoard = useCallback(
     (board: IKanbanBoard) =>
       (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => (
-        setSelectedBoard(board), animationProps.runAnimation(e)
+        setSelectedBoard(board),
+        animationProps.runAnimation(e)
       ),
-    []
+    [],
   );
 
   const onAddNewBoardBtn = async () => {
@@ -101,8 +102,8 @@ export const useAllBoardsPage = () => {
     boardSettingsFuncs.setBoardName(selectedBoard?.boardName ?? "");
     boardSettingsFuncs.setBoardTypeDisabled(
       selectedBoard?.boardSteps.some(
-        (step) => step.properties.length > 0 || step.leads.length > 0
-      ) ?? false
+        (step) => step.properties.length > 0 || step.leads.length > 0,
+      ) ?? false,
     );
     boardSettingsFuncs.setBoardType(inferBoardType);
     boardSettingsFuncs.setOnSave(onSettingsSave);
@@ -125,6 +126,7 @@ export const useAllBoardsPage = () => {
 
     selectedBoard,
     selectBoard,
+    setSelectedBoard,
 
     stepName,
     stepNameId,

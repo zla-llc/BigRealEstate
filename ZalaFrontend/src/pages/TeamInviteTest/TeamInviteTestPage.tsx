@@ -2,6 +2,7 @@ import { TextInput } from "../../components";
 import { Icons, Icon } from "../../components/icons";
 import { useTeamInvitePage } from "../../hooks";
 import type { TeamWithMembers, TeamAnnouncement } from "../../hooks/api/types";
+import type { TeamMember, TeamWithMembers } from "../../interfaces";
 
 // Modal component for creating teams
 const CreateTeamModal = ({
@@ -238,8 +239,12 @@ export const TeamInviteTestPage = () => {
           <div className="w-16 h-16 mx-auto mb-4 bg-secondary-10 rounded-full flex items-center justify-center">
             <Icon name={Icons.Group} size={32} className="text-secondary-50" />
           </div>
-          <p className="text-lg font-medium text-secondary mb-2">Welcome to Teams</p>
-          <p className="text-secondary-50">Please log in to manage your teams.</p>
+          <p className="text-lg font-medium text-secondary mb-2">
+            Welcome to Teams
+          </p>
+          <p className="text-secondary-50">
+            Please log in to manage your teams.
+          </p>
         </div>
       </div>
     );
@@ -287,7 +292,9 @@ export const TeamInviteTestPage = () => {
             </div>
             <div>
               <h1 className="text-xl font-bold text-secondary">Teams</h1>
-              <p className="text-sm text-secondary-50">Manage your teams and members</p>
+              <p className="text-sm text-secondary-50">
+                Manage your teams and members
+              </p>
             </div>
           </div>
           <button
@@ -317,7 +324,11 @@ export const TeamInviteTestPage = () => {
             ) : teams.length === 0 ? (
               <div className="text-center py-8">
                 <div className="w-12 h-12 mx-auto mb-3 bg-secondary-10 rounded-full flex items-center justify-center">
-                  <Icon name={Icons.Group} size={24} className="text-secondary-50" />
+                  <Icon
+                    name={Icons.Group}
+                    size={24}
+                    className="text-secondary-50"
+                  />
                 </div>
                 <p className="text-sm text-secondary-50 mb-4">No teams yet</p>
                 <button
@@ -344,19 +355,30 @@ export const TeamInviteTestPage = () => {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
-                          isSelected ? "bg-white/20 text-white" : "bg-accent/10 text-accent"
-                        }`}>
+                        <div
+                          className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm ${
+                            isSelected
+                              ? "bg-white/20 text-white"
+                              : "bg-accent/10 text-accent"
+                          }`}
+                        >
                           {team.team_name.slice(0, 2).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold truncate">{team.team_name}</p>
-                          <p className={`text-xs ${isSelected ? "text-white/70" : "text-secondary-50"}`}>
-                            {memberCount} {memberCount === 1 ? "member" : "members"}
+                          <p className="font-semibold truncate">
+                            {team.team_name}
+                          </p>
+                          <p
+                            className={`text-xs ${isSelected ? "text-white/70" : "text-secondary-50"}`}
+                          >
+                            {memberCount}{" "}
+                            {memberCount === 1 ? "member" : "members"}
                           </p>
                         </div>
                         {helpers.isCurrentUserCreator(team) && (
-                          <span className={`text-xs ${isSelected ? "text-white/70" : "text-accent"}`}>
+                          <span
+                            className={`text-xs ${isSelected ? "text-white/70" : "text-accent"}`}
+                          >
                             👑
                           </span>
                         )}
@@ -390,10 +412,18 @@ export const TeamInviteTestPage = () => {
           <div className="flex-1 flex items-center justify-center bg-secondary-5">
             <div className="text-center">
               <div className="w-20 h-20 mx-auto mb-4 bg-white rounded-2xl shadow-sm flex items-center justify-center">
-                <Icon name={Icons.Group} size={40} className="text-secondary-25" />
+                <Icon
+                  name={Icons.Group}
+                  size={40}
+                  className="text-secondary-25"
+                />
               </div>
-              <p className="text-xl font-semibold text-secondary mb-2">Select a team</p>
-              <p className="text-secondary-50 mb-6">Choose a team from the sidebar to view details</p>
+              <p className="text-xl font-semibold text-secondary mb-2">
+                Select a team
+              </p>
+              <p className="text-secondary-50 mb-6">
+                Choose a team from the sidebar to view details
+              </p>
               {teams.length === 0 && (
                 <button
                   onClick={controls.openCreateModal}
@@ -449,18 +479,22 @@ const TeamDetailView = ({
               {selectedTeam.team_name.slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-secondary">{selectedTeam.team_name}</h2>
+              <h2 className="text-xl font-bold text-secondary">
+                {selectedTeam.team_name}
+              </h2>
               <p className="text-sm text-secondary-50">
-                {selectedTeam.members?.length ?? 0} members • Created by {
-                  helpers.isCurrentUserCreator(selectedTeam)
-                    ? "you"
-                    : (() => {
-                        const creator = selectedTeam.members?.find(
-                          m => m.user.user_id === selectedTeam.created_by_user_id
-                        );
-                        return creator ? helpers.getMemberDisplayName(creator) : "unknown";
-                      })()
-                }
+                {selectedTeam.members?.length ?? 0} members • Created by{" "}
+                {helpers.isCurrentUserCreator(selectedTeam)
+                  ? "you"
+                  : (() => {
+                      const creator = selectedTeam.members?.find(
+                        (m: TeamMember) =>
+                          m.user.user_id === selectedTeam.created_by_user_id,
+                      );
+                      return creator
+                        ? helpers.getMemberDisplayName(creator)
+                        : "unknown";
+                    })()}
               </p>
             </div>
           </div>
@@ -643,12 +677,19 @@ const MembersTab = ({
     <>
       {/* Members Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {selectedTeam.members?.map((member) => {
+        {selectedTeam.members?.map((member: TeamMember) => {
           const displayName = helpers.getMemberDisplayName(member);
-          const initials = displayName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "?";
+          const initials =
+            displayName
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .toUpperCase()
+              .slice(0, 2) || "?";
           const isCurrentUser = member.user.user_id === user?.userId;
           const isAdmin = member.role === "admin";
-          const isCreator = selectedTeam.created_by_user_id === member.user.user_id;
+          const isCreator =
+            selectedTeam.created_by_user_id === member.user.user_id;
 
           return (
             <div
@@ -657,18 +698,24 @@ const MembersTab = ({
             >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${
-                    isCreator ? "bg-gradient-to-br from-yellow-400 to-orange-500" :
-                    isAdmin ? "bg-gradient-to-br from-accent to-blue-600" :
-                    "bg-gradient-to-br from-secondary-50 to-secondary"
-                  }`}>
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${
+                      isCreator
+                        ? "bg-gradient-to-br from-yellow-400 to-orange-500"
+                        : isAdmin
+                          ? "bg-gradient-to-br from-accent to-blue-600"
+                          : "bg-gradient-to-br from-secondary-50 to-secondary"
+                    }`}
+                  >
                     {initials}
                   </div>
                   <div>
                     <p className="font-semibold text-secondary">
                       {displayName}
                       {isCurrentUser && (
-                        <span className="ml-2 text-xs font-normal text-secondary-50">(You)</span>
+                        <span className="ml-2 text-xs font-normal text-secondary-50">
+                          (You)
+                        </span>
                       )}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
@@ -694,27 +741,43 @@ const MembersTab = ({
                   <div className="flex flex-col gap-1">
                     {!isAdmin ? (
                       <button
-                        onClick={() => actions.onPromoteToAdmin(member.user.user_id)}
-                        disabled={loading.promotingMember === member.user.user_id}
+                        onClick={() =>
+                          actions.onPromoteToAdmin(member.user.user_id)
+                        }
+                        disabled={
+                          loading.promotingMember === member.user.user_id
+                        }
                         className="px-3 py-1.5 text-xs font-medium rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50"
                       >
-                        {loading.promotingMember === member.user.user_id ? "..." : "Promote"}
+                        {loading.promotingMember === member.user.user_id
+                          ? "..."
+                          : "Promote"}
                       </button>
                     ) : (
                       <button
-                        onClick={() => actions.onDemoteFromAdmin(member.user.user_id)}
-                        disabled={loading.demotingMember === member.user.user_id}
+                        onClick={() =>
+                          actions.onDemoteFromAdmin(member.user.user_id)
+                        }
+                        disabled={
+                          loading.demotingMember === member.user.user_id
+                        }
                         className="px-3 py-1.5 text-xs font-medium rounded-lg bg-secondary-10 text-secondary hover:bg-secondary-25 transition-colors disabled:opacity-50"
                       >
-                        {loading.demotingMember === member.user.user_id ? "..." : "Demote"}
+                        {loading.demotingMember === member.user.user_id
+                          ? "..."
+                          : "Demote"}
                       </button>
                     )}
                     <button
-                      onClick={() => actions.onRemoveMember(member.user.user_id)}
+                      onClick={() =>
+                        actions.onRemoveMember(member.user.user_id)
+                      }
                       disabled={loading.removingMember === member.user.user_id}
                       className="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors disabled:opacity-50"
                     >
-                      {loading.removingMember === member.user.user_id ? "..." : "Remove"}
+                      {loading.removingMember === member.user.user_id
+                        ? "..."
+                        : "Remove"}
                     </button>
                   </div>
                 )}
@@ -730,8 +793,12 @@ const MembersTab = ({
           <div className="w-16 h-16 mx-auto mb-4 bg-secondary-10 rounded-full flex items-center justify-center">
             <Icon name={Icons.Group} size={32} className="text-secondary-50" />
           </div>
-          <p className="text-lg font-medium text-secondary mb-2">No members yet</p>
-          <p className="text-secondary-50 mb-4">Start by inviting people to your team</p>
+          <p className="text-lg font-medium text-secondary mb-2">
+            No members yet
+          </p>
+          <p className="text-secondary-50 mb-4">
+            Start by inviting people to your team
+          </p>
           {helpers.isCurrentUserAdmin(selectedTeam) && (
             <button
               onClick={() => controls.setShowInvitePanel(true)}
@@ -777,10 +844,16 @@ const InvitationsTab = ({
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-secondary-10 flex items-center justify-center">
-                    <Icon name={Icons.Mail} size={20} className="text-secondary-50" />
+                    <Icon
+                      name={Icons.Mail}
+                      size={20}
+                      className="text-secondary-50"
+                    />
                   </div>
                   <div>
-                    <p className="font-medium text-secondary">{inv.recipient_email}</p>
+                    <p className="font-medium text-secondary">
+                      {inv.recipient_email}
+                    </p>
                     <p className="text-xs text-secondary-50">
                       Sent {new Date(inv.created_at).toLocaleDateString()}
                     </p>
@@ -790,11 +863,17 @@ const InvitationsTab = ({
                   {getStatusBadge(inv.status)}
                   {isPending && (
                     <button
-                      onClick={() => actions.onCancelInvitation(inv.invitation_id)}
-                      disabled={loading.cancelingInvitation === inv.invitation_id}
+                      onClick={() =>
+                        actions.onCancelInvitation(inv.invitation_id)
+                      }
+                      disabled={
+                        loading.cancelingInvitation === inv.invitation_id
+                      }
                       className="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors disabled:opacity-50"
                     >
-                      {loading.cancelingInvitation === inv.invitation_id ? "..." : "Cancel"}
+                      {loading.cancelingInvitation === inv.invitation_id
+                        ? "..."
+                        : "Cancel"}
                     </button>
                   )}
                 </div>
@@ -807,8 +886,12 @@ const InvitationsTab = ({
           <div className="w-16 h-16 mx-auto mb-4 bg-secondary-10 rounded-full flex items-center justify-center">
             <Icon name={Icons.Mail} size={32} className="text-secondary-50" />
           </div>
-          <p className="text-lg font-medium text-secondary mb-2">No invitations yet</p>
-          <p className="text-secondary-50 mb-4">Invite people to join your team</p>
+          <p className="text-lg font-medium text-secondary mb-2">
+            No invitations yet
+          </p>
+          <p className="text-secondary-50 mb-4">
+            Invite people to join your team
+          </p>
           {helpers.isCurrentUserAdmin(selectedTeam) && (
             <button
               onClick={() => {

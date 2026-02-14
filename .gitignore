@@ -5,3 +5,6 @@ ZalaBackend/app/external_api/api_usage.json
 # Python
 __pycache__/
 *.pyc
+.vscode
+.DS_Store
+**/.DS_Store

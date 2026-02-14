@@ -1,5 +1,6 @@
 import { useNotificationBell } from "../../hooks";
-import { Icons, Icon } from "../icons";
+import { ButtonVariant, IconButton } from "../buttons";
+import { Icons } from "../icons";
 
 export const NotificationBell = () => {
   const {
@@ -21,17 +22,15 @@ export const NotificationBell = () => {
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Bell Icon Button */}
-      <button
+
+      <IconButton
+        name={Icons.Notification}
         onClick={controls.toggleDropdown}
-        className="relative p-2 rounded-full hover:bg-white/10 transition-colors"
-      >
-        <Icon name={Icons.Notification} size={24} />
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center text-xs font-bold text-white bg-red-500 rounded-full">
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
-        )}
-      </button>
+        badge={{
+          content: unreadCount > 9 ? "9+" : unreadCount,
+          color: ButtonVariant.Destructive,
+        }}
+      />
 
       {/* Dropdown */}
       {isOpen && (
@@ -69,13 +68,13 @@ export const NotificationBell = () => {
                   >
                     <div className="flex items-start gap-2">
                       {/* Icon indicator */}
-                      <div className="text-lg flex-shrink-0">
-                        {style.icon}
-                      </div>
+                      <div className="text-lg flex-shrink-0">{style.icon}</div>
                       <div className="flex-1 min-w-0">
                         {/* Status badge for responded invites */}
                         {(isResponded || isRemoved) && style.label && (
-                          <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full text-white mb-1 ${style.color}`}>
+                          <span
+                            className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full text-white mb-1 ${style.color}`}
+                          >
                             {style.label}
                           </span>
                         )}
@@ -96,7 +95,7 @@ export const NotificationBell = () => {
                                   notif.invitation_id!,
                                   true,
                                   notif.notification_id,
-                                  notif.team_id
+                                  notif.team_id,
                                 )
                               }
                               className="px-2 py-1 text-xs font-medium rounded bg-green-500 text-white hover:bg-green-600"
@@ -109,7 +108,7 @@ export const NotificationBell = () => {
                                   notif.invitation_id!,
                                   false,
                                   notif.notification_id,
-                                  notif.team_id
+                                  notif.team_id,
                                 )
                               }
                               className="px-2 py-1 text-xs font-medium rounded bg-red-500 text-white hover:bg-red-600"
@@ -122,7 +121,9 @@ export const NotificationBell = () => {
                         {/* Clear button for responded invites and removal notifications */}
                         {(isResponded || isRemoved) && (
                           <button
-                            onClick={() => actions.onClearNotification(notif.notification_id)}
+                            onClick={() =>
+                              actions.onClearNotification(notif.notification_id)
+                            }
                             className="text-xs text-secondary-50 hover:text-red-500 mt-2 flex items-center gap-1"
                           >
                             <span>✕</span> Clear
@@ -132,7 +133,9 @@ export const NotificationBell = () => {
                         {/* Mark as read for unread notifications (except pending invites which have Accept/Decline) */}
                         {!notif.viewed && !isPending && (
                           <button
-                            onClick={() => actions.onMarkAsRead(notif.notification_id)}
+                            onClick={() =>
+                              actions.onMarkAsRead(notif.notification_id)
+                            }
                             className="text-xs text-accent hover:underline mt-1"
                           >
                             Mark as read
@@ -142,7 +145,9 @@ export const NotificationBell = () => {
 
                       {/* Clear button on the right side */}
                       <button
-                        onClick={() => actions.onClearNotification(notif.notification_id)}
+                        onClick={() =>
+                          actions.onClearNotification(notif.notification_id)
+                        }
                         className="text-secondary-50 hover:text-red-500 p-1 flex-shrink-0"
                         title="Clear notification"
                       >

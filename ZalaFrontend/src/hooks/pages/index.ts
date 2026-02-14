@@ -7,3 +7,4 @@ export * from "./useAllBoardsPage";
 export * from "./useManualCreateLeadModalPage";
 export * from "./useManualCreateProperty";
 export * from "./useTeamInvitePage";
+export * from "./useDashboardPage";

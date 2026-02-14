@@ -1,6 +1,7 @@
 import {
   BoardStepModalHeader,
   CreateLeadsSelectedHeader,
+  EditablePageHeaderVariant,
   PageHeader,
 } from "../../headers";
 import type { BoardModalPageProps } from "./types";
@@ -100,7 +101,11 @@ export const ManualCreateLeadModalPage = ({
         </div>
 
         <div className="flex flex-col space-y-[15px]">
-          <PageHeader value="Contact Info" centerText />
+          <PageHeader
+            variant={EditablePageHeaderVariant.Underline}
+            value="Contact Info"
+            centerText
+          />
 
           {showBuisInputs && (
             <TextInput
@@ -154,7 +159,11 @@ export const ManualCreateLeadModalPage = ({
         </div>
         {showAddyInputs && (
           <div className="flex flex-col space-y-[15px]">
-            <PageHeader value="Associated Address" centerText />
+            <PageHeader
+              variant={EditablePageHeaderVariant.Underline}
+              value="Associated Address"
+              centerText
+            />
 
             <AddressInput
               addressFormState={addressFormState}
@@ -170,8 +179,8 @@ export const ManualCreateLeadModalPage = ({
           text: editingBoardItem
             ? `Update lead`
             : selectedBoardItemIds.length > 0
-            ? "Confirm & create leads"
-            : "Create lead",
+              ? "Confirm & create leads"
+              : "Create lead",
           icon: editingBoardItem ? Icons.Edit : Icons.Add,
           onClick: onConfirm,
         }}

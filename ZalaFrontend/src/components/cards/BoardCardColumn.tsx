@@ -2,10 +2,16 @@ import clsx from "clsx";
 import {
   EditablePageHeader,
   EditablePageHeaderSize,
+  EditablePageHeaderVariant,
   type Actions,
 } from "../headers";
 import { BoardItemCard, type DraggableBoardItemData } from "./BoardItemCard";
-import type { IBoardStepCard, ILead, IPropertyCard } from "../../interfaces";
+import type {
+  IBoardStepCard,
+  ILead,
+  IProperty,
+  IPropertyCard,
+} from "../../interfaces";
 import { Button, ButtonVariant } from "../buttons";
 import { Icons } from "../icons";
 import {
@@ -14,6 +20,7 @@ import {
   useBoardModalControlStore,
   useBoardSettingsStore,
   useBoardStore,
+  useCreatePropertyStore,
 } from "../../stores";
 import { CONFIG } from "../../config";
 import { useCallback, useState } from "react";
@@ -65,6 +72,7 @@ export const BoardCardColumn = ({
     useBoardModalControlStore();
   const { setSelectedBoardItemIds, setEditBoardItemId } =
     useAddBoardStepLeadStore();
+  const { setEditingProperty } = useCreatePropertyStore();
 
   const { updateBoardStepLeads, updateBoardStepProperties } = useApi();
 
@@ -84,17 +92,26 @@ export const BoardCardColumn = ({
     (i: number) => {
       const boardItem = items[i];
       const itemId = getBoardItemId(boardItem, itemType);
+
+      let newPage = BoardModalPage.ManualLeadPage;
+
+      if (boardType === "properties") {
+        newPage = BoardModalPage.ManualPropertyPage;
+        setEditingProperty(
+          allItems.find((bItem) => {
+            const id = getBoardItemId(bItem, itemType);
+            return id !== -1 && id === itemId;
+          }) as IProperty | undefined,
+        );
+      }
+
       setSelectedStep(step);
       setSelectedBoardItemIds(boardItemIds);
       setEditBoardItemId(itemId);
-      setBoardModalPage(
-        boardType === "properties"
-          ? BoardModalPage.ManualPropertyPage
-          : BoardModalPage.ManualLeadPage
-      );
+      setBoardModalPage(newPage);
       toggleBoardModalOpen();
     },
-    [itemType, boardType, setEditBoardItemId, stringify(items)]
+    [itemType, boardType, setEditBoardItemId, stringify(items)],
   );
 
   const onBoardItemDrop = (e: React.DragEvent) => {
@@ -111,28 +128,28 @@ export const BoardCardColumn = ({
       await moveBoardItem(
         cardData.cardId,
         cardData.fromStepId,
-        step.boardStepId
+        step.boardStepId,
       ))();
   };
 
   const moveBoardItem = async (
     boardItemId: number,
     fromStepId: number,
-    toStepId: number
+    toStepId: number,
   ) => {
     if (!board) return;
 
     const fromStep = board.boardSteps.find(
-      (step) => step.boardStepId === fromStepId
+      (step) => step.boardStepId === fromStepId,
     );
     const toStep = board.boardSteps.find(
-      (step) => step.boardStepId === toStepId
+      (step) => step.boardStepId === toStepId,
     );
 
     if (!fromStep || !toStep) return;
 
     const newFromStepItemIds = getItemIdsFromStep(fromStep)[0].filter(
-      (fromId) => fromId !== boardItemId
+      (fromId) => fromId !== boardItemId,
     );
     const newToStepItemIds = getItemIdsFromStep(toStep)[0];
 
@@ -154,7 +171,7 @@ export const BoardCardColumn = ({
     setBoardModalPage(
       boardType === "lead"
         ? BoardModalPage.MethodSelectPage
-        : BoardModalPage.ManualPropertyPage
+        : BoardModalPage.ManualPropertyPage,
     );
     toggleBoardModalOpen();
   };
@@ -169,25 +186,23 @@ export const BoardCardColumn = ({
       className={clsx(
         "flex flex-col",
         "transition-[min-width,min-height] ease-in-out duration-75",
-        expanded ? "p-2" : ""
+        expanded ? "p-2" : "",
       )}
       onDrop={onBoardItemDrop}
       onDragOver={(e) => (e.preventDefault(), setIsDragTarget(true))}
       onDragLeave={() => setIsDragTarget(false)}
     >
       {expanded && (
-        <div
-          onClick={onTitleClick}
-          className="w-full flex items-center justify-center bg-primary p-[10px] py-[15px] box-shadow-sm rounded-[10px]"
-        >
+        <div onClick={onTitleClick} className="w-full">
           <EditablePageHeader
+            variant={EditablePageHeaderVariant.Card}
+            title="Step:"
             value={title}
             setValue={onTitleChange}
             size={EditablePageHeaderSize.Small}
             actions={actions}
             centerText={center}
             editable={editable}
-            disablePadding
           />
         </div>
       )}
@@ -199,13 +214,13 @@ export const BoardCardColumn = ({
             isDragTarget ? "bg-accent/50" : "bg-secondary/25",
             expanded
               ? "gap-3.5 p-4 pb-[15px] box-shadow-sm rounded-t-[0px]"
-              : "gap-2 p-2.5"
+              : "gap-2 p-2.5",
           )}
         >
           <div
             className={clsx(
               "grow w-full overflow-y-scroll space-y-[15px]",
-              expanded ? "pt-[15px]" : ""
+              expanded ? "pt-[15px]" : "",
             )}
           >
             {items.map((item, j) => (

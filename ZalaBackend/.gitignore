@@ -22,3 +22,5 @@ dmypy.json
 # Python cache
 __pycache__/
 *.pyc
+uploads/leads/*
+uploads/properties/*

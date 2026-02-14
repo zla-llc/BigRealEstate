@@ -3,7 +3,18 @@
  * Can be used for notifications, live updates, etc.
  */
 
-export type WebSocketEventType = "notification" | "team_update" | "invitation_update" | "member_joined" | "member_removed" | "member_left" | "team_deleted" | "team_joined" | "member_kicked" | "message" | "connection";
+export type WebSocketEventType =
+  | "notification"
+  | "team_update"
+  | "invitation_update"
+  | "member_joined"
+  | "member_removed"
+  | "member_left"
+  | "team_deleted"
+  | "team_joined"
+  | "member_kicked"
+  | "message"
+  | "connection";
 
 export type WebSocketMessage<T = unknown> = {
   type: WebSocketEventType;
@@ -11,11 +22,14 @@ export type WebSocketMessage<T = unknown> = {
   timestamp?: string;
 };
 
-export type WebSocketListener<T = unknown> = (message: WebSocketMessage<T>) => void;
+export type WebSocketListener<T = unknown> = (
+  message: WebSocketMessage<T>,
+) => void;
 
 class WebSocketManager {
   private socket: WebSocket | null = null;
-  private listeners: Map<WebSocketEventType, Set<WebSocketListener>> = new Map();
+  private listeners: Map<WebSocketEventType, Set<WebSocketListener>> =
+    new Map();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 3000;
@@ -28,7 +42,7 @@ class WebSocketManager {
    */
   connect(url: string): void {
     if (this.socket?.readyState === WebSocket.OPEN) {
-      console.log("[WebSocket] Already connected");
+      // console.log("[WebSocket] Already connected");
       return;
     }
 
@@ -39,7 +53,7 @@ class WebSocketManager {
       this.socket = new WebSocket(url);
 
       this.socket.onopen = () => {
-        console.log("[WebSocket] Connected to", url);
+        // console.log("[WebSocket] Connected to", url);
         this.reconnectAttempts = 0;
         this.emit("connection", { status: "connected" });
       };
@@ -47,7 +61,7 @@ class WebSocketManager {
       this.socket.onmessage = (event) => {
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
-          console.log("[WebSocket] Received:", message);
+          // console.log("[WebSocket] Received:", message);
           // Emit to listeners for this specific type
           this.emit(message.type, message.data);
           // Also emit to catch-all "message" listeners
@@ -55,27 +69,30 @@ class WebSocketManager {
             this.emit("message" as WebSocketEventType, message);
           }
         } catch (error) {
-          console.error("[WebSocket] Failed to parse message:", error);
+          // console.error("[WebSocket] Failed to parse message:", error);
         }
       };
 
-      this.socket.onclose = (event) => {
-        console.log("[WebSocket] Disconnected", event.code, event.reason);
+      this.socket.onclose = (_event) => {
+        // console.log("[WebSocket] Disconnected", event.code, event.reason);
         this.emit("connection", { status: "disconnected" });
 
-        if (!this.isManualClose && this.reconnectAttempts < this.maxReconnectAttempts) {
+        if (
+          !this.isManualClose &&
+          this.reconnectAttempts < this.maxReconnectAttempts
+        ) {
           this.reconnectAttempts++;
-          console.log(`[WebSocket] Reconnecting in ${this.reconnectDelay}ms... (attempt ${this.reconnectAttempts})`);
+          // console.log(`[WebSocket] Reconnecting in ${this.reconnectDelay}ms... (attempt ${this.reconnectAttempts})`);
           setTimeout(() => this.connect(this.url), this.reconnectDelay);
         }
       };
 
       this.socket.onerror = (error) => {
-        console.error("[WebSocket] Error:", error);
+        // console.error("[WebSocket] Error:", error);
         this.emit("connection", { status: "error", error });
       };
     } catch (error) {
-      console.error("[WebSocket] Failed to connect:", error);
+      // console.error("[WebSocket] Failed to connect:", error);
     }
   }
 
@@ -95,7 +112,7 @@ class WebSocketManager {
    */
   send<T>(type: WebSocketEventType, data: T): void {
     if (this.socket?.readyState !== WebSocket.OPEN) {
-      console.warn("[WebSocket] Cannot send - not connected");
+      // console.warn("[WebSocket] Cannot send - not connected");
       return;
     }
 
@@ -135,7 +152,10 @@ class WebSocketManager {
    */
   private emit<T>(type: WebSocketEventType, data: T): void {
     const listeners = this.listeners.get(type);
-    console.log(`[WebSocket] Emitting ${type}, listeners found:`, listeners?.size ?? 0);
+    // console.log(
+    //   `[WebSocket] Emitting ${type}, listeners found:`,
+    //   listeners?.size ?? 0,
+    // );
     if (listeners) {
       listeners.forEach((listener) => {
         listener({ type, data } as WebSocketMessage);
