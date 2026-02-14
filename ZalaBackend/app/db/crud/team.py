@@ -322,8 +322,8 @@ def add_board_to_team(db: Session, team_id: int, board_id: int) -> Optional[Team
     if not db_board:
         return None
     # ensure board not already attached to a different team
-    existing = db.query(Team).filter(Team.board_id == board_id).first()
-    if existing and existing.team_id != team_id:
+    existing = db.query(Board).filter(Board.board_id == board_id).first()
+    if existing and existing.team_id is not None and existing.team_id != team_id:
         # already linked elsewhere
         return None
     db_board.team_id = team_id
@@ -339,7 +339,7 @@ def remove_board_from_team(db: Session, team_id: int, board_id: int) -> Optional
     db_board = db.query(Board).filter(Board.board_id == board_id).first()
     if not db_team:
         return None
-    if db_team.board_id != board_id:
+    if not db_board or db_board.team_id != team_id:
         # nothing to do
         return db_team
     db_board.team_id = None
@@ -358,8 +358,8 @@ def add_property_to_team(db: Session, team_id: int, property_id: int) -> Optiona
     if not db_property:
         return None
     # ensure property not already attached to a different team
-    existing = db.query(Team).filter(Team.property_id == property_id).first()
-    if existing and existing.team_id != team_id:
+    existing = db.query(Property).filter(Property.property_id == property_id).first()
+    if existing and existing.team_id is not None and existing.team_id != team_id:
         # already linked elsewhere
         return None
     db_property.team_id = team_id
@@ -375,7 +375,7 @@ def remove_property_from_team(db: Session, team_id: int, property_id: int) -> Op
     db_property = db.query(Property).filter(Property.property_id == property_id).first()
     if not db_team:
         return None
-    if db_team.property_id != property_id:
+    if not db_property or db_property.team_id != team_id:
         # nothing to do
         return db_team
     db_property.team_id = None

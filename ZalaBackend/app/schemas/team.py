@@ -7,7 +7,6 @@ from app.schemas.user import UserSummary
 from app.schemas.team_invitation import TeamInvitationPublic
 from app.schemas.property import PropertyPublic
 from app.schemas.board import BoardPublic
-from app.schemas.summaries import PropertySummary, BoardSummary
 
 
 class TeamRole(str, Enum):
@@ -58,11 +57,9 @@ class TeamPublic(TeamBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     member_links: List[TeamMemberPublic] = Field(default=[], alias="members")
-
     # ^ json obj will show "members" but pydantic will pull "member_links" from user_teams
-
-    # properties: List[PropertyPublic] = []
-    # boards: List[BoardPublic] = []
+    properties: List[PropertyPublic] = []
+    boards: List[BoardPublic] = []
 
     class Config:
         from_attributes = True
@@ -89,22 +86,19 @@ class TeamMembersOnlyPublic(TeamBase):
         from_attributes = True
 
 
-class TeamPublicWithProperties(TeamPublic):
-    properties: List[PropertySummary] = []
-
-
-class TeamPublicWithBoards(TeamPublic):
-    boards: List[BoardSummary] = []
-
-
-class TeamPublicWithPropertiesAndBoards(TeamPublic):
-    properties: List[PropertySummary] = []
-    boards: List[BoardSummary] = []
-
-
 class TeamPublicWithInvitations(TeamPublic):
     """Schema for Team with invitations MEANT FOR ADMINS ONLY"""
     invitations: List[TeamInvitationPublic] = []
+
+
+class TeamPublicWithProperties(TeamPublic):
+    """Schema for Team with its linked properties."""
+    pass
+
+
+class TeamPublicWithBoards(TeamPublic):
+    """Schema for Team with its linked boards."""
+    pass
 
 
 class TeamLeaderboardEntry(BaseModel):

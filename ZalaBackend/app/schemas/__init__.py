@@ -27,7 +27,7 @@ from .campaign_email import (
     CampaignEmailStatus,
     ContactMethod,
 )
-from .gmail import GmailSendRequest, GmailSendResponse
+from .gmail import GmailSendRequest, GmailSendResponse, GmailSignatureResponse
 from .campaign_lead import (
     CampaignLeadBase,
     CampaignLeadCreate,
@@ -44,10 +44,7 @@ from .team import (
     TeamPublic,
     TeamPublicWithProperties,
     TeamPublicWithBoards,
-    TeamPublicWithPropertiesAndBoards,
-    TeamPublicWithInvitations,
-    TeamAdminsPublic,
-    TeamMembersOnlyPublic,
+    TeamSummary,
     TeamLeaderboardEntry,
     TeamUserXPEntry,
 )
@@ -72,6 +69,7 @@ from .team_announcement import (
 
 
 CampaignPublic.model_rebuild()
+PropertyPublic.model_rebuild()
 LeadPublic.model_rebuild()
 CampaignLeadPublic.model_rebuild()
 CampaignLeadDetailedPublic.model_rebuild()
