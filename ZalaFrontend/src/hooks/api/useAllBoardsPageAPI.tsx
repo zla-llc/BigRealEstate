@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useTimeoutEffect } from "../utils";
+import { useSnack, useTimeoutEffect } from "../utils";
 import { useApi } from "./useApi";
 import {
   ABoardStepCardToIBoardStepCard,
@@ -30,6 +30,8 @@ export const useAllBoardsPageAPI = () => {
   const updateBoardNameRef = useRef(false);
   const updateBoardStepNameRef = useRef(false);
 
+  const [successMsg] = useSnack();
+
   const [boardsLoading, setBoardsLoading] = useState(false);
   const [boardLoading, setBoardLoading] = useState(false);
 
@@ -38,7 +40,7 @@ export const useAllBoardsPageAPI = () => {
   const [selectedBoardName, setSelectedBoardName] = useState("");
 
   const [abortController, _setAbortController] = useState(
-    new AbortController()
+    new AbortController(),
   );
 
   useTimeoutEffect(
@@ -46,7 +48,7 @@ export const useAllBoardsPageAPI = () => {
       getBoards();
     },
     [],
-    250
+    250,
   );
 
   useTimeoutEffect(
@@ -54,7 +56,7 @@ export const useAllBoardsPageAPI = () => {
       updateBoardName();
     },
     [selectedBoardName],
-    500
+    500,
   );
 
   const getBoards = async () => {
@@ -70,22 +72,24 @@ export const useAllBoardsPageAPI = () => {
       });
 
     const sBoard = data.find(
-      (apiBoard) => apiBoard.board_id === selectedBoard?.boardId
+      (apiBoard) => apiBoard.board_id === selectedBoard?.boardId,
     );
 
     setBoards(
-      data.map(AKanbanBoardToIKanbanBoard).sort((a, b) => a.boardId - b.boardId)
+      data
+        .map(AKanbanBoardToIKanbanBoard)
+        .sort((a, b) => a.boardId - b.boardId),
     );
 
     if (sBoard) setSelectedBoard(AKanbanBoardToIKanbanBoard(sBoard));
   };
 
-  const createBoard = async () => {
+  const createBoard = async (title?: string) => {
     if (!user || boardLoading || selectedBoard) return;
 
     setBoardLoading(true);
     const { err, data } = await createBoardAPICall({
-      boardName: `${new Date().toLocaleString()} - New Board`,
+      boardName: title ?? `${new Date().toLocaleString()} - New Board`,
       userId: user.userId,
     });
     setBoardLoading(false);
@@ -98,9 +102,11 @@ export const useAllBoardsPageAPI = () => {
 
     await Promise.all(
       template.map(async (stepName, i) =>
-        createBoardStep({ boardId: board.boardId, boardColumn: i, stepName })
-      )
+        createBoardStep({ boardId: board.boardId, boardColumn: i, stepName }),
+      ),
     );
+
+    successMsg(`Board created!`);
 
     await getBoards();
 
@@ -192,18 +198,18 @@ export const useAllBoardsPageAPI = () => {
     setBoards((prev) =>
       produce(prev, (draft) => {
         const bIndex = draft.findIndex(
-          (board) => board.boardId === selectedBoard.boardId
+          (board) => board.boardId === selectedBoard.boardId,
         );
         if (bIndex === -1) return;
         const board = draft[bIndex];
         const sIndex = board.boardSteps.findIndex(
-          (step) => step.boardStepId === stepId
+          (step) => step.boardStepId === stepId,
         );
         if (sIndex === -1) return;
         draft[bIndex].boardSteps = draft[bIndex].boardSteps.filter(
-          (_step, i) => i !== sIndex
+          (_step, i) => i !== sIndex,
         );
-      })
+      }),
     );
   };
 
@@ -213,14 +219,14 @@ export const useAllBoardsPageAPI = () => {
     setBoards((prev) =>
       produce(prev, (draft) => {
         const index = draft.findIndex(
-          (dBoard) => dBoard.boardId === board.boardId
+          (dBoard) => dBoard.boardId === board.boardId,
         );
         if (index !== -1) {
           draft[index] = board;
         } else {
           draft.push(board);
         }
-      })
+      }),
     );
   };
 
@@ -229,19 +235,19 @@ export const useAllBoardsPageAPI = () => {
     setBoards((prev) =>
       produce(prev, (draft) => {
         const boardIndex = draft.findIndex(
-          (board) => board.boardId === step.boardId
+          (board) => board.boardId === step.boardId,
         );
         if (boardIndex === -1) return;
         const board = draft[boardIndex];
         const stepIndex = board.boardSteps.findIndex(
-          (bStep) => bStep.boardStepId === step.boardStepId
+          (bStep) => bStep.boardStepId === step.boardStepId,
         );
         if (stepIndex === -1) {
           draft[boardIndex].boardSteps.push(step);
         } else {
           draft[boardIndex].boardSteps[stepIndex] = step;
         }
-      })
+      }),
     );
   };
 

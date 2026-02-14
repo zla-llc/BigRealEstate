@@ -1,4 +1,4 @@
-import { EditablePageHeader } from "../headers";
+import { EditablePageHeader, EditablePageHeaderVariant } from "../headers";
 import { useBoardCard, type BoardCardProps } from "../../hooks";
 import clsx from "clsx";
 import { BoardCardColumns } from "./BoardCardColumns";
@@ -17,15 +17,26 @@ export const BoardCard = (props: BoardCardProps) => {
       }}
       onClick={expandable ? undefined : onClick}
       className={clsx(
-        "board-card-container full flex flex-col overflow-hidden card-base relative",
+        "board-card-container full flex flex-col overflow-hidden relative card-base",
+        expandable ? "!bg-background" : "",
         expandable
           ? "pb-[15px]"
           : "cursor-pointer transition-[translate] duration-75 box-shadow-sm",
-        hoverable && !expandable ? "hover:-translate-y-[10px]" : ""
+        hoverable && !expandable ? "hover:-translate-y-[10px]" : "",
       )}
     >
-      <div className="w-full flex flex-row items-center">
+      <div
+        className={clsx(
+          "w-full flex flex-row items-center",
+          expanded ? "px-[60px] pt-[60px]" : "",
+        )}
+      >
         <EditablePageHeader
+          variant={
+            expanded
+              ? EditablePageHeaderVariant.Card
+              : EditablePageHeaderVariant.Underline
+          }
           value={expandable?.boardName ?? board.boardName}
           setValue={(v) => expandable?.onBoardNameChange(v)}
           actions={actions}
@@ -36,13 +47,13 @@ export const BoardCard = (props: BoardCardProps) => {
         className={clsx(
           "full",
           "transition-[padding] duration-75",
-          expanded ? "px-[60px]" : "p-[15px] pt-[unset]"
+          expanded ? "px-[60px]" : "p-[15px] pt-[unset]",
         )}
       >
         <div
           className={clsx(
             "full transition-[padding] duration-75 overflow-x-scroll ",
-            expanded ? "p-[30px]" : ""
+            expanded ? "p-[30px]" : "",
           )}
         >
           <BoardCardColumns

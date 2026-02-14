@@ -1,4 +1,4 @@
-import { PageHeader } from "../headers";
+import { EditablePageHeaderVariant, PageHeader } from "../headers";
 import { SwitchInput, TextInput } from "../inputs";
 import { Button, ButtonVariant } from "../buttons";
 import { Icons } from "../icons";
@@ -25,7 +25,13 @@ export const UnitFormSection = ({
 
   return (
     <div className="flex flex-col space-y-[15px]">
-      {headerText && <PageHeader value={headerText} centerText />}
+      {headerText && (
+        <PageHeader
+          variant={EditablePageHeaderVariant.Underline}
+          value={headerText}
+          centerText
+        />
+      )}
 
       <div className="flex items-center justify-center">
         <div>

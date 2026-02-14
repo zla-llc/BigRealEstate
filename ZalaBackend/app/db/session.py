@@ -38,18 +38,24 @@ def init_db():
     # Import all your models so Base knows about them
     from ..models import (
         user,
+        user_authentication,
+        user_google_credentials,
+        user_team,
         board,
         board_step,
         team,
+        team_invitation,
         property,
+        property_image,
         contact,
         lead,
+        lead_image,
         address,
         unit,
-        user_authentication,
         campaign,
         campaign_email,
-        campaign_lead
+        campaign_lead,
+        notification
     )
 
     print("Dropping all database tables...")
