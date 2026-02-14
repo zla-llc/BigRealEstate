@@ -8,8 +8,13 @@ import { useApi } from "../../api";
 import { useAppNavigation } from "../../utils";
 
 export const useAppHeader = () => {
-  const { location, toLeadSearchPage, toBoardsPage, toBoardsV2Page } =
-    useAppNavigation();
+  const {
+    location,
+    toLeadSearchPage,
+    toBoardsPage,
+    // toBoardsV2Page,
+    toDashboard,
+  } = useAppNavigation();
   const {
     open: openSideNav,
     close: closeSideNav,
@@ -60,6 +65,7 @@ export const useAppHeader = () => {
     onSearchClick,
     onSearchCore,
     onSidenavBtn,
-    toBoardsV2Page,
+    // toBoardsV2Page,
+    toDashboard,
   };
 };

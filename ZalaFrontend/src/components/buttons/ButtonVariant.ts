@@ -7,6 +7,25 @@ export enum ButtonVariant {
   Destructive = "Destructive",
 }
 
+export enum MenuButtonVariant {
+  Default = "Default",
+  Destructive = "Destructive",
+}
+
+const menuButtonVariantToButtonVariant = (variant: MenuButtonVariant) => {
+  switch (variant) {
+    case MenuButtonVariant.Destructive:
+      return ButtonVariant.Destructive;
+    case MenuButtonVariant.Default:
+    default:
+      return ButtonVariant.Secondary;
+  }
+};
+
+export const getMenuButtonBgColor = (variant: MenuButtonVariant) => {
+  return getButtonBgColor(menuButtonVariantToButtonVariant(variant));
+};
+
 export const getButtonBgColor = (variant: ButtonVariant) => {
   switch (variant) {
     case ButtonVariant.Primary:
@@ -35,6 +54,10 @@ export const getButtonBgColorHex = (variant: ButtonVariant) => {
   }
 };
 
+export const getMenuButtonBgColorHex = (variant: MenuButtonVariant) => {
+  return getButtonBgColorHex(menuButtonVariantToButtonVariant(variant));
+};
+
 export const getButtonTextColor = (variant: ButtonVariant) => {
   switch (variant) {
     case ButtonVariant.Primary:
@@ -47,6 +70,10 @@ export const getButtonTextColor = (variant: ButtonVariant) => {
   }
 };
 
+export const getMenuButtonTextColor = (variant: MenuButtonVariant) => {
+  return getButtonTextColor(menuButtonVariantToButtonVariant(variant));
+};
+
 export const getButtonTextColorHex = (variant: ButtonVariant) => {
   switch (variant) {
     case ButtonVariant.Primary:
@@ -56,5 +83,19 @@ export const getButtonTextColorHex = (variant: ButtonVariant) => {
     case ButtonVariant.Secondary:
     default:
       return COLORS.secondary;
+  }
+};
+
+export const getMenuButtonTextColorHex = (variant: MenuButtonVariant) => {
+  return getButtonTextColorHex(menuButtonVariantToButtonVariant(variant));
+};
+
+export const getMenuButtonActiveColorHex = (variant: MenuButtonVariant) => {
+  switch (variant) {
+    case MenuButtonVariant.Destructive:
+      return COLORS.white;
+    case MenuButtonVariant.Default:
+    default:
+      return COLORS.accent;
   }
 };

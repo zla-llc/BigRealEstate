@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
@@ -6,6 +6,9 @@ from app.schemas.unit import UnitPublic
 from app.schemas.address import AddressPublic
 from app.schemas.summaries import UserSummary
 from app.schemas.property_image import PropertyImagePublic
+
+if TYPE_CHECKING:
+    from app.schemas.team import TeamSummary
 
 
 class PropertyBase(BaseModel):
@@ -44,6 +47,7 @@ class PropertyPublic(PropertyBase):
     address: Optional[AddressPublic] = None
     units: List[UnitPublic] = []
     images: List[PropertyImagePublic] = Field(default_factory=list)
+    team: Optional["TeamSummary"] = None
 
     class Config:
         from_attributes = True

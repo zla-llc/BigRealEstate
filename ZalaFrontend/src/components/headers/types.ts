@@ -7,7 +7,12 @@ export enum EditablePageHeaderSize {
   Small = "Small",
 }
 
-type ActionType = "icon" | "iconBtn";
+export enum EditablePageHeaderVariant {
+  Card = "Card",
+  Underline = "Underline",
+}
+
+type ActionType = "icon" | "iconBtn" | "invisible";
 export type ActionSide = "left" | "right";
 
 export type Actions = {

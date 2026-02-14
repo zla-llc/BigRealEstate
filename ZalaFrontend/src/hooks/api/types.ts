@@ -160,3 +160,47 @@ export type CreatePropertyImageProps = CreateImageProps & {
   propertyId: number;
   addressId: number;
 };
+
+// SMTP Types
+export type SMTPSendRequest = {
+  to_email: string;
+  name: string;
+  subject: string;
+  body: string;
+};
+
+export type SMTPSendResponse = {
+  success: boolean;
+  message: string;
+};
+
+export type SMTPConfigResponse = {
+  configured: boolean;
+  host: string | null;
+  port: number;
+};
+
+// Team Types
+
+export type CreateTeamRequest = {
+  team_name: string;
+  admin_user_id: number;
+};
+
+export type UpdateTeamNameRequest = {
+  team_id: number;
+  team_name: string;
+  xp: number;
+};
+
+export type InviteToTeamRequest = {
+  team_id: number;
+  sender_id: number;
+  recipient_email: string;
+};
+
+export type RespondToInvitationRequest = {
+  invitation_id: number;
+  accept: boolean;
+  user_id: number;
+};

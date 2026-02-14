@@ -8,3 +8,7 @@ export * from "./TestEmail";
 export * from "./CampaignEmailDemo";
 export * from "./PastCampaigns";
 export * from "./AllBoards";
+export * from "./Dashboard";
+export * from "./SMTPTest";
+export * from "./TeamInviteTest";
+export * from "./SingleBoard";
