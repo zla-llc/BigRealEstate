@@ -18,3 +18,7 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Python cache
+__pycache__/
+*.pyc

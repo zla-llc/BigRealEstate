@@ -33,4 +33,7 @@ export enum Icons {
   Check = "Check",
   Pending = "Pending",
   Announce = "Announce",
+  Dashboard = "Dashboard",
+  Map = "Map",
+  File = "File",
 }
