@@ -24,6 +24,7 @@ export const useBoardsApi = ({ getSignal }: APIHookProps) => {
       {
         user_id: userId,
         board_name: boardName,
+        board_type: "lead"
       },
       { signal: getSignal("createBoard") }
     );
@@ -89,12 +90,14 @@ export const useBoardsApi = ({ getSignal }: APIHookProps) => {
     boardId,
     boardName,
     userId,
+    boardType
   }: UpdateBoardProps) => {
     return await put<AKanbanBoard>(
       `/api/boards/${boardId}`,
       {
         user_id: userId,
         board_name: boardName,
+        board_type: boardType
       },
       { signal: getSignal("updateBoard") }
     );

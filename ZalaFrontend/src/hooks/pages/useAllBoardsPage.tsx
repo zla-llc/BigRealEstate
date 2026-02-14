@@ -70,7 +70,7 @@ export const useAllBoardsPage = () => {
   const selectBoard = useCallback(
     (board: IKanbanBoard) =>
       (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => (
-        setSelectedBoard(board), animationProps.runAnimation(e)
+        setSelectedBoard(board), boardSettingsFuncs.setBoardType(board.boardType as IBoardType), animationProps.runAnimation(e)
       ),
     []
   );
@@ -104,7 +104,7 @@ export const useAllBoardsPage = () => {
         (step) => step.properties.length > 0 || step.leads.length > 0
       ) ?? false
     );
-    boardSettingsFuncs.setBoardType(inferBoardType);
+    boardSettingsFuncs.setBoardType((selectedBoard?.boardType ?? inferBoardType) as IBoardType);
     boardSettingsFuncs.setOnSave(onSettingsSave);
   };
 

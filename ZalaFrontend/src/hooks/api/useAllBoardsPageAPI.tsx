@@ -8,13 +8,14 @@ import {
   type AKanbanBoard,
   type IKanbanBoard,
 } from "../../interfaces";
-import { useAuthStore, useBoardStore } from "../../stores";
+import { useAuthStore, useBoardSettingsStore, useBoardStore } from "../../stores";
 import { produce } from "immer";
 import { DEFAULTS } from "../../config";
 
 export const useAllBoardsPageAPI = () => {
   const { board: selectedBoard, setBoard: setSelectedBoard } = useBoardStore();
   const user = useAuthStore((state) => state.user);
+  const {boardType} = useBoardSettingsStore()
   const {
     setSignal,
     updateBoard,
@@ -143,6 +144,7 @@ export const useAllBoardsPageAPI = () => {
     const { err, data } = await updateBoard({
       boardId: selectedBoard.boardId,
       boardName: newBoardName,
+      boardType: boardType,
       userId: user.userId,
     });
     updateBoardNameRef.current = false;
