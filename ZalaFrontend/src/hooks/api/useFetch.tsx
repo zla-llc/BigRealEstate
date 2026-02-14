@@ -77,7 +77,7 @@ export const useFetch = () => {
       ) {
         const errorObj = parsed as Record<string, unknown> | null;
         throw new Error(
-          (errorObj?.err as string) ?? (errorObj?.error as string) ?? "Error communicating with API"
+          (errorObj?.err as string) ?? (errorObj?.error as string) ?? (errorObj?.detail as string) ?? "Error communicating with API"
         );
       }
 

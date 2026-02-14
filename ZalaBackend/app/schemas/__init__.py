@@ -36,12 +36,19 @@ from .campaign_lead import (
     CampaignLeadDetailedPublic,
 )
 from .location import LocationFilter, DataSource
+from .email_verification import (
+    SendVerificationCodeRequest,
+    SendVerificationCodeResponse,
+    VerifyCodeRequest,
+    VerifyCodeResponse,
+)
 from .summaries import UserSummary, LeadSummary, PropertySummary, CampaignSummary # Add CampaignSummary
 from .team import (
     TeamBase,
     TeamCreate,
     TeamUpdate,
     TeamPublic,
+    TeamSummary,
     TeamLeaderboardEntry,
     TeamUserXPEntry,
 )
@@ -60,6 +67,7 @@ from .team import TeamSummary
 
 
 CampaignPublic.model_rebuild()
+PropertyPublic.model_rebuild()
 LeadPublic.model_rebuild()
 CampaignLeadPublic.model_rebuild()
 CampaignLeadDetailedPublic.model_rebuild()

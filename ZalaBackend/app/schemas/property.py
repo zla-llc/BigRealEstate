@@ -25,6 +25,8 @@ class PropertyCreate(PropertyBase):
     """
     Schema for Create Property
     """
+    # Optional server-derived creator id. Prefer deriving from auth rather than trusting client.
+    creator_id: Optional[int] = None
 
 
 class PropertyUpdate(BaseModel):
