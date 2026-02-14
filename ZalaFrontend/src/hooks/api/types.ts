@@ -141,6 +141,12 @@ export type VerifyCodeResponse = {
   message: string;
 };
 
+// Gmail Signature
+export type GmailSignatureResponse = {
+  signature: string;
+  send_as_email: string;
+};
+
 export type CreateBoardProps = {
   boardName: string;
   userId: number;

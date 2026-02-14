@@ -27,7 +27,7 @@ from .campaign_email import (
     CampaignEmailStatus,
     ContactMethod,
 )
-from .gmail import GmailSendRequest, GmailSendResponse
+from .gmail import GmailSendRequest, GmailSendResponse, GmailSignatureResponse
 from .campaign_lead import (
     CampaignLeadBase,
     CampaignLeadCreate,

@@ -168,7 +168,7 @@ BRAVE_API_KEY=<your_brave_api_key>
 # ─── Frontend OAuth Integration (for React/Vite) ────────
 VITE_GOOGLE_CLIENT_ID=<same_as_GOOGLE_CLIENT_ID_or_OAuth_client_id>
 VITE_GOOGLE_REDIRECT_URI=postmessage
-VITE_GOOGLE_SCOPES="openid email profile https://www.googleapis.com/auth/gmail.send"
+VITE_GOOGLE_SCOPES="openid email profile https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.settings.basic"
 ```
 
 ### How to Get These Values
@@ -226,10 +226,10 @@ VITE_GOOGLE_SCOPES="openid email profile https://www.googleapis.com/auth/gmail.s
    VITE_GOOGLE_REDIRECT_URI=postmessage
    ```
 
-8. Request the Gmail send scope so users can authorize email sending:
+8. Request the Gmail scopes so users can authorize email sending and signature access:
 
    ```
-   VITE_GOOGLE_SCOPES="openid email profile https://www.googleapis.com/auth/gmail.send"
+   VITE_GOOGLE_SCOPES="openid email profile https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.settings.basic"
    ```
 
 9. Generate a Fernet key and set `GOOGLE_TOKEN_ENCRYPTION_KEY` (see the **Gmail send flow** section) so refresh tokens are stored encrypted.
@@ -459,13 +459,35 @@ The Gmail integration now requires full OAuth consent with the `https://www.goog
 
    This key is used to encrypt Google access and refresh tokens at rest.
 
-2. Go to OAuth Consent Screen and select Data Access. Update it to include Gmail scopes and allow the `postmessage` redirect URI.
+2. Go to OAuth Consent Screen and select Data Access. Update it to include Gmail scopes:
+   - `https://www.googleapis.com/auth/gmail.send` — allows sending emails via Gmail
+   - `https://www.googleapis.com/auth/gmail.settings.basic` — allows reading the user's Gmail signature
+
+   Also allow the `postmessage` redirect URI.
 
 3. Sign in via Google from the login/signup pages on the application. The server exchanges the authorization code, stores encrypted refresh tokens, and the returned `UserPublic` now exposes a `gmail_connected` flag so the UI can reflect status.
 
 4. Open `/email-test` in the frontend to send a sample email. The page calls `POST /api/google-mail/send`, which relays the message through Gmail with the stored credentials.
 
 If Gmail stops working for a user, have them re-run Google sign-in so a new refresh token is issued. If the email fails to send due to an authentication scope error, go back to the APIs page and click on the Gmail API, then check if there's a service account under the credentials tab and if so disable or delete it.
+
+### Gmail signature auto-append
+
+When a user sends an email through Gmail (campaign emails or test emails), the backend automatically fetches their Gmail signature via the `gmail.settings.basic` scope and appends it to the bottom of the email body. If no signature is set or the fetch fails, the email sends without one.
+
+- **Fetch signature:** `GET /api/google-mail/signature/{user_id}` — returns the user's Gmail signature HTML
+- **Auto-append:** The `send_gmail_message` service automatically includes the signature when sending
+
+#### Troubleshooting signature permission errors
+
+1. Ensure `https://www.googleapis.com/auth/gmail.settings.basic` is added in **Google Cloud Console → OAuth consent screen → Data Access → Scopes**
+2. Ensure `VITE_GOOGLE_SCOPES` in the **frontend `.env`** includes `gmail.settings.basic`
+3. **Delete the user's stored credentials** so a fresh token with the new scope is obtained:
+   ```sql
+   DELETE FROM user_google_credentials WHERE user_id = <user_id>;
+   ```
+4. Also revoke the app from the user's Google account at https://myaccount.google.com/permissions
+5. Sign in with Google again — the consent screen will now ask for the new permission
 
 > **Note:** The Gmail API must be enabled for the same Google Cloud project that owns your OAuth client. Visit https://console.cloud.google.com/apis/api/gmail.googleapis.com/overview?project=<your_project_id> and click **Enable** (or re-enable) before testing email sends, otherwise Google will return `SERVICE_DISABLED / accessNotConfigured`.
 > **Account linking rule:** Connecting Gmail to an existing Zala account requires using the exact same email address during Google sign-in. If the emails do not match, the backend will reject the link so the wrong Google account cannot be attached.

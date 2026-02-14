@@ -35,6 +35,7 @@ import type {
   SendVerificationCodeResponse,
   VerifyCodeProps,
   VerifyCodeResponse,
+  GmailSignatureResponse,
 } from "./types";
 import { useFetch } from "./useFetch";
 import { useState } from "react";
@@ -476,6 +477,13 @@ export const useApi = () => {
     );
   };
 
+  const getGmailSignature = async (userId: number) => {
+    return await get<GmailSignatureResponse>(
+      `/api/google-mail/signature/${userId}`,
+      getSignal("getGmailSignature"),
+    );
+  };
+
   return {
     ...boardsApiRoutes,
     ...leadsContactsAddressApi,
@@ -522,5 +530,6 @@ export const useApi = () => {
     intakeCsv,
     sendVerificationCode,
     verifyCode,
+    getGmailSignature,
   };
 };
