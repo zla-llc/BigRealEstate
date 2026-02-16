@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuthStore, useNotificationStore, useTeamsStore } from "../../../stores";
 import { useApi } from "../../api";
+import { useSnack } from "../../utils";
 import { wsManager } from "../../../utils";
 import { CONFIG } from "../../../config";
 import type { Notification, TeamWithMembers } from "../../api/types";
@@ -15,8 +16,9 @@ export const useNotificationBell = () => {
     markAsRead,
     removeNotification,
   } = useNotificationStore();
-  const { addTeam, removeTeam } = useTeamsStore();
+  const { teams, addTeam, removeTeam } = useTeamsStore();
   const api = useApi();
+  const [, errorMsg] = useSnack();
 
   // UI State
   const [isOpen, setIsOpen] = useState(false);
@@ -124,20 +126,29 @@ export const useNotificationBell = () => {
   ) => {
     if (!user) return;
 
+    // Check if user is already in a team before accepting (users can only join 1 team)
+    if (accept && teams.length > 0) {
+      errorMsg("You're already on a team. Leave your current team first to join another.");
+      return;
+    }
+
     const response = await api.respondToInvitation({
       invitation_id: invitationId,
       accept,
       user_id: user.userId,
     });
 
-    if (!response.err) {
-      markAsRead(notificationId);
+    if (response.err) {
+      errorMsg(response.err);
+      return;
+    }
 
-      // Refresh notifications after accepting/declining
-      const refreshResponse = await api.getNotifications(user.userId);
-      if (refreshResponse.data) {
-        setNotifications(refreshResponse.data);
-      }
+    markAsRead(notificationId);
+
+    // Refresh notifications after accepting/declining
+    const refreshResponse = await api.getNotifications(user.userId);
+    if (refreshResponse.data) {
+      setNotifications(refreshResponse.data);
     }
   };
 
@@ -177,6 +188,9 @@ export const useNotificationBell = () => {
 
   const isRemoved = (notif: Notification) => notif.type === "team_removed";
 
+  // User can only join one team
+  const canJoinTeam = teams.length === 0;
+
   return {
     // User
     user,
@@ -189,6 +203,7 @@ export const useNotificationBell = () => {
     displayedNotifications,
     unreadCount,
     hasMoreNotifications,
+    canJoinTeam,
 
     // UI State
     isOpen,

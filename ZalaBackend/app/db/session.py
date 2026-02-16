@@ -55,7 +55,7 @@ def init_db():
         campaign,
         campaign_email,
         campaign_lead,
-        notification
+        notification,
     )
 
     print("Dropping all database tables...")

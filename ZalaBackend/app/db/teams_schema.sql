@@ -70,3 +70,19 @@ CREATE INDEX IF NOT EXISTS idx_team_invitations_team_id ON team_invitations(team
 CREATE INDEX IF NOT EXISTS idx_team_invitations_invitee_email ON team_invitations(invitee_email);
 CREATE INDEX IF NOT EXISTS idx_notifications_recipient_id ON notifications(recipient_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_invitation_id ON notifications(invitation_id);
+
+-- Create team_announcements table for admin announcements
+CREATE TABLE IF NOT EXISTS team_announcements (
+    announcement_id SERIAL PRIMARY KEY,
+    team_id         INTEGER NOT NULL REFERENCES teams(team_id) ON DELETE CASCADE,
+    author_id       INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    title           VARCHAR(255) NOT NULL,
+    message         TEXT NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMPTZ
+);
+
+-- Create indexes for announcements
+CREATE INDEX IF NOT EXISTS idx_team_announcements_team_id ON team_announcements(team_id);
+CREATE INDEX IF NOT EXISTS idx_team_announcements_author_id ON team_announcements(author_id);
+CREATE INDEX IF NOT EXISTS idx_team_announcements_created_at ON team_announcements(created_at DESC);

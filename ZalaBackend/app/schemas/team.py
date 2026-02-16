@@ -91,6 +91,16 @@ class TeamPublicWithInvitations(TeamPublic):
     invitations: List[TeamInvitationPublic] = []
 
 
+class TeamPublicWithProperties(TeamPublic):
+    """Schema for Team with its linked properties."""
+    pass
+
+
+class TeamPublicWithBoards(TeamPublic):
+    """Schema for Team with its linked boards."""
+    pass
+
+
 class TeamLeaderboardEntry(BaseModel):
     """Minimal data for leaderboard rows"""
     team_id: int
