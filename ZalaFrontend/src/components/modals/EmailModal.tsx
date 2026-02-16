@@ -23,7 +23,10 @@ export const EmailModal = ({
     setFrom,
     body,
     setBody,
+    signature,
+    setSignature,
     loading,
+    loadingSignature,
     onSubmit,
   } = useEmailModal({ leads, onSendEmail });
 
@@ -61,6 +64,18 @@ export const EmailModal = ({
             icon={Icons.User}
           />
           <RichTextEditor label="Body" value={body} onChange={setBody} />
+          <div className="space-y-1">
+            <label className="text-secondary text-sm font-semibold">
+              Signature {loadingSignature && <span className="text-xs text-gray-400">(loading...)</span>}
+            </label>
+            <div
+              className="rounded-[15px] border-2 border-secondary bg-white p-3 text-secondary text-sm focus-within:border-accent"
+              contentEditable
+              suppressContentEditableWarning
+              onInput={(e) => setSignature((e.target as HTMLDivElement).innerHTML)}
+              dangerouslySetInnerHTML={{ __html: signature }}
+            />
+          </div>
         </div>
 
         <div className="flex flex-row space-x-[15px]">

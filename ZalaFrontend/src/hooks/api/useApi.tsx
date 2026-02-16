@@ -31,6 +31,11 @@ import type {
   InviteToTeamRequest,
   RespondToInvitationRequest,
   UpdateTeamNameRequest,
+  SendVerificationCodeProps,
+  SendVerificationCodeResponse,
+  VerifyCodeProps,
+  VerifyCodeResponse,
+  GmailSignatureResponse,
 } from "./types";
 import { useFetch } from "./useFetch";
 import { useState } from "react";
@@ -456,6 +461,29 @@ export const useApi = () => {
     });
   };
 
+  const sendVerificationCode = async ({ email }: SendVerificationCodeProps) => {
+    return await post<SendVerificationCodeResponse>(
+      `/api/verify/send-code`,
+      { email },
+      { isFormData: false, signal: getSignal("sendVerificationCode") }
+    );
+  };
+
+  const verifyCode = async ({ email, code }: VerifyCodeProps) => {
+    return await post<VerifyCodeResponse>(
+      `/api/verify/confirm-code`,
+      { email, code },
+      { isFormData: false, signal: getSignal("verifyCode") }
+    );
+  };
+
+  const getGmailSignature = async (userId: number) => {
+    return await get<GmailSignatureResponse>(
+      `/api/google-mail/signature/${userId}`,
+      getSignal("getGmailSignature"),
+    );
+  };
+
   return {
     ...boardsApiRoutes,
     ...leadsContactsAddressApi,
@@ -500,5 +528,8 @@ export const useApi = () => {
     markNotificationRead,
     deleteNotification,
     intakeCsv,
+    sendVerificationCode,
+    verifyCode,
+    getGmailSignature,
   };
 };

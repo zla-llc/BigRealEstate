@@ -122,6 +122,31 @@ export type UpdateCampaignLeadProps = {
   contactMethods: string[];
 };
 
+export type SendVerificationCodeProps = {
+  email: string;
+};
+
+export type SendVerificationCodeResponse = {
+  message: string;
+  email: string;
+};
+
+export type VerifyCodeProps = {
+  email: string;
+  code: string;
+};
+
+export type VerifyCodeResponse = {
+  verified: boolean;
+  message: string;
+};
+
+// Gmail Signature
+export type GmailSignatureResponse = {
+  signature: string;
+  send_as_email: string;
+};
+
 export type CreateBoardProps = {
   boardName: string;
   userId: number;

@@ -14,3 +14,8 @@ class GmailSendRequest(BaseModel):
 class GmailSendResponse(BaseModel):
     id: str
     thread_id: Optional[str] = None
+
+
+class GmailSignatureResponse(BaseModel):
+    signature: str
+    send_as_email: str
