@@ -30,6 +30,9 @@ import type {
   CreateTeamRequest,
   InviteToTeamRequest,
   RespondToInvitationRequest,
+  TeamAnnouncement,
+  CreateAnnouncementRequest,
+  UpdateAnnouncementRequest,
   UpdateTeamNameRequest,
   SendVerificationCodeProps,
   SendVerificationCodeResponse,
@@ -448,6 +451,35 @@ export const useApi = () => {
     );
   };
 
+  // Team Announcements APIs
+  const createAnnouncement = async ({ team_id, author_id, title, message }: CreateAnnouncementRequest) => {
+    return await post<TeamAnnouncement>(
+      `/api/teams/${team_id}/announcements?author_id=${author_id}`,
+      { title, message },
+      { isFormData: false, signal: getSignal("createAnnouncement") }
+    );
+  };
+
+  const getTeamAnnouncements = async (teamId: number, userId: number, skip = 0, limit = 50) => {
+    return await get<TeamAnnouncement[]>(
+      `/api/teams/${teamId}/announcements?user_id=${userId}&skip=${skip}&limit=${limit}`,
+      getSignal("getTeamAnnouncements")
+    );
+  };
+
+  const updateAnnouncement = async ({ team_id, announcement_id, user_id, title, message }: UpdateAnnouncementRequest) => {
+    return await put<TeamAnnouncement>(
+      `/api/teams/${team_id}/announcements/${announcement_id}?user_id=${user_id}`,
+      { title, message },
+      { isFormData: false, signal: getSignal("updateAnnouncement") }
+    );
+  };
+
+  const deleteAnnouncement = async (teamId: number, announcementId: number, userId: number) => {
+    return await del<void>(
+      `/api/teams/${teamId}/announcements/${announcementId}?user_id=${userId}`,
+      getSignal("deleteAnnouncement")
+    );
   const intakeCsv = async ({ file }: { file: File }) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -527,6 +559,11 @@ export const useApi = () => {
     getNotifications,
     markNotificationRead,
     deleteNotification,
+    // Announcement APIs
+    createAnnouncement,
+    getTeamAnnouncements,
+    updateAnnouncement,
+    deleteAnnouncement,
     intakeCsv,
     sendVerificationCode,
     verifyCode,

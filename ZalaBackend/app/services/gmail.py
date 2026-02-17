@@ -31,6 +31,23 @@ _GMAIL_SETTINGS_URL = "https://gmail.googleapis.com/gmail/v1/users/me/settings/s
 _IMG_SRC_RE = re.compile(r'(<img\b[^>]*?\bsrc\s*=\s*["\'])([^"\']+)(["\'])', re.IGNORECASE)
 
 
+def fetch_gmail_signature(access_token: str, send_as_email: str) -> Optional[str]:
+    """Fetch the Gmail signature for a specific sendAs address."""
+    headers = {"Authorization": f"Bearer {access_token}"}
+    try:
+        response = requests.get(
+            f"{_GMAIL_SETTINGS_URL}/{send_as_email}",
+            headers=headers,
+            timeout=10,
+        )
+        response.raise_for_status()
+    except requests.RequestException:
+        return None
+
+    data = response.json()
+    return data.get("signature") or None
+
+
 def _build_from_header(user: User, from_name: Optional[str]) -> tuple[str, str]:
     email = None
     if user.authentication and user.authentication.provider_email:

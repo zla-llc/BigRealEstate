@@ -229,3 +229,36 @@ export type RespondToInvitationRequest = {
   accept: boolean;
   user_id: number;
 };
+
+// Team Announcements
+export type TeamAnnouncement = {
+  announcement_id: number;
+  team_id: number;
+  author_id: number;
+  title: string;
+  message: string;
+  author?: {
+    user_id: number;
+    username: string;
+    profile_pic?: string;
+    first_name?: string;
+    last_name?: string;
+  };
+  created_at: string;
+  updated_at?: string;
+};
+
+export type CreateAnnouncementRequest = {
+  team_id: number;
+  author_id: number;
+  title: string;
+  message: string;
+};
+
+export type UpdateAnnouncementRequest = {
+  team_id: number;
+  announcement_id: number;
+  user_id: number;
+  title?: string;
+  message?: string;
+};

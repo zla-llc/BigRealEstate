@@ -48,6 +48,8 @@ from .team import (
     TeamCreate,
     TeamUpdate,
     TeamPublic,
+    TeamPublicWithProperties,
+    TeamPublicWithBoards,
     TeamSummary,
     TeamLeaderboardEntry,
     TeamUserXPEntry,
@@ -64,6 +66,12 @@ from .notification import (
     NotificationPublic,
 )
 from .team import TeamSummary
+from .team_announcement import (
+    AnnouncementBase,
+    AnnouncementCreate,
+    AnnouncementUpdate,
+    AnnouncementPublic,
+)
 
 
 CampaignPublic.model_rebuild()
