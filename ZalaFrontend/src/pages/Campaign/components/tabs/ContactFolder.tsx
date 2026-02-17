@@ -22,6 +22,7 @@ export const ContactFolder = ({
   const campaign = useCampaignStore((state) => state.campaign);
   const campaignLead = campaign.leads.find((lead) => lead.leadId === viewing);
   const icons = useFolderIcons({ active: CampaignTab.Connect, showBackBtn });
+  const hasEmail = lead.contact.email === "" || lead.contact.email === null;
   return (
     <Folder
       icons={icons}
@@ -34,7 +35,7 @@ export const ContactFolder = ({
             onPress: onSecondary,
             disabled: disableSecondary,
           }}
-          primary={{ text: "Email", icon: Icons.Mail, onPress: onPrimary }}
+          primary={{ text: "Email", disabled:hasEmail, icon: Icons.Mail, onPress: onPrimary }}
         />
       }
     >
@@ -54,11 +55,12 @@ export const ContactFolder = ({
                       active={campaignLead?.contactMethods.includes(
                         CampaignContactMethod.Email
                       )}
-                      onClick={() =>
+                      onClick={hasEmail ? () => {return;} : () =>
                         onContactMethod(CampaignContactMethod.Email)
                       }
                       text="Email"
                       icon={Icons.Mail}
+                      disabled={hasEmail}
                     />
                     <ContactMethod
                       active={campaignLead?.contactMethods.includes(

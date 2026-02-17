@@ -16,7 +16,13 @@ import { useSignupState } from "../state";
 
 export const useSignupPage = () => {
   const { toLoginPage } = useAppNavigation();
-  const { createContact, createUser, linkContactToUser } = useApi();
+  const {
+    createContact,
+    createUser,
+    linkContactToUser,
+    sendVerificationCode,
+    verifyCode,
+  } = useApi();
   const loginUser = useAuthUser();
   const [successMsg, errorMsg] = useSnack();
   const googleAuthCallback = useGoogleAuthButtonCallback({
@@ -34,11 +40,26 @@ export const useSignupPage = () => {
     rePassword,
     errors,
     setErrors,
+    verificationStep,
+    setVerificationStep,
+    verificationCode,
+    emailVerified,
+    setEmailVerified,
+    setSendingCode,
+    setVerifyingCode,
   } = state;
 
   useEffect(() => {
     if (Object.keys(errors).length != 0) setErrors({});
   }, [userName, firstName, lastName, email, phone]);
+
+  // Reset verification when email changes
+  useEffect(() => {
+    if (verificationStep) {
+      setVerificationStep(false);
+      setEmailVerified(false);
+    }
+  }, [email]);
 
   const isCreateAccountValid = (): [boolean, { [key: string]: string }] => {
     if (userName.trim().length === 0)
@@ -62,10 +83,29 @@ export const useSignupPage = () => {
   };
 
   const onCreateClick = () => {
-    const [isValid, errors] = isCreateAccountValid();
-    setErrors(errors);
+    const [isValid, validationErrors] = isCreateAccountValid();
+    setErrors(validationErrors);
     if (!isValid) return;
 
+    // If email not yet verified, send verification code first
+    if (!emailVerified) {
+      (async () => {
+        setSendingCode(true);
+        const res = await sendVerificationCode({ email });
+        setSendingCode(false);
+
+        if (res.err || !res.data) {
+          errorMsg("Failed to send verification code. Please try again.");
+          return;
+        }
+
+        successMsg(`Verification code sent to ${email}`);
+        setVerificationStep(true);
+      })();
+      return;
+    }
+
+    // Email already verified — proceed with account creation
     (async () => {
       const user = await signupV1({
         userName,
@@ -82,6 +122,56 @@ export const useSignupPage = () => {
     })();
   };
 
+  const onVerifyCode = () => {
+    if (verificationCode.trim().length === 0) {
+      setErrors({ verificationCode: "Please enter the code" });
+      return;
+    }
+
+    (async () => {
+      setVerifyingCode(true);
+      const res = await verifyCode({ email, code: verificationCode });
+      setVerifyingCode(false);
+
+      if (res.err || !res.data || !res.data.verified) {
+        setErrors({ verificationCode: "Invalid or expired code" });
+        return;
+      }
+
+      setEmailVerified(true);
+      setVerificationStep(false);
+      successMsg("Email verified! Creating your account...");
+
+      // Automatically create the account now
+      const user = await signupV1({
+        userName,
+        email,
+        firstName,
+        lastName,
+        phone,
+        password,
+      });
+      if (!user) return;
+
+      successMsg(`Account created! Hello, ${user.contact?.firstName}`);
+      loginUser(user);
+    })();
+  };
+
+  const onResendCode = () => {
+    (async () => {
+      setSendingCode(true);
+      const res = await sendVerificationCode({ email });
+      setSendingCode(false);
+
+      if (res.err || !res.data) {
+        errorMsg("Failed to resend code. Please try again.");
+        return;
+      }
+      successMsg(`New verification code sent to ${email}`);
+    })();
+  };
+
   const signupV1 = async (
     body: Omit<IContact, "contactId"> & { userName: string; password: string }
   ) => {
@@ -94,8 +184,12 @@ export const useSignupPage = () => {
 
     if (contactRes.err || !contactRes.data) {
       console.log(`Internal error - Contact: ${stringify(contactRes)}`);
-      console.log(``);
-      errorMsg("Internal error - please try again later");
+      const detail = contactRes.err || "Unknown error";
+      if (detail.toLowerCase().includes("email already exists") || detail.toLowerCase().includes("phone already exists")) {
+        errorMsg(detail);
+      } else {
+        errorMsg("Failed to create contact — email or phone may already be in use.");
+      }
       return;
     }
 
@@ -109,8 +203,8 @@ export const useSignupPage = () => {
 
     if (blankUserRes.err || !blankUserRes.data) {
       console.log(`Internal error - User: ${stringify(blankUserRes)}`);
-      console.log(``);
-      errorMsg("Internal error - please try again later");
+      const detail = blankUserRes.err || "Failed to create user";
+      errorMsg(detail);
       return;
     }
 
@@ -139,6 +233,8 @@ export const useSignupPage = () => {
 
     onCreateClick,
     onLoginClick,
+    onVerifyCode,
+    onResendCode,
     googleAuthCallback,
   };
 };

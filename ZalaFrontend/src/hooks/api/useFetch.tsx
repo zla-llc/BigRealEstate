@@ -82,6 +82,7 @@ export const useFetch = () => {
           (errorObj?.err as string) ?? 
           (errorObj?.error as string) ?? 
           "Error communicating with API"
+          (errorObj?.err as string) ?? (errorObj?.error as string) ?? (errorObj?.detail as string) ?? "Error communicating with API"
         );
       }
 

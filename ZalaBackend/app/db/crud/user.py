@@ -15,6 +15,7 @@ from app.models.user_authentication import UserAuthentication
 from app.utils import security
 from app.db.crud import contact as contact_crud
 from app.db.crud import team_invitation as team_invitation_crud
+from app.db.crud import email_verification as ev_crud
 
 """GET FUNCTIONS"""
 
@@ -315,7 +316,22 @@ def create_user(db: Session, user: schemas.UserCreate):
 def create_user_with_contact(db: Session, user: schemas.UserSignup) -> User:
     """
     Create a new user along with a brand new contact atomically.
+    Requires the contact email to have been verified first.
     """
+    # ── Email verification gate ──────────────────────────────────
+    contact_email = user.contact.email if user.contact else None
+    if not contact_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="An email address is required to sign up.",
+        )
+    if not ev_crud.is_email_verified(db, contact_email):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email has not been verified. Please verify your email before signing up.",
+        )
+    # ─────────────────────────────────────────────────────────────
+
     existing_user = get_user_by_username(db, user.username)
     if existing_user:
         raise HTTPException(

@@ -22,7 +22,7 @@ export const CONFIG: IConfig = {
       redirectUri: import.meta.env.VITE_GOOGLE_REDIRECT_URI || "postmessage",
       scopes:
         import.meta.env.VITE_GOOGLE_SCOPES ||
-        "openid email profile https://www.googleapis.com/auth/gmail.send",
+        "openid email profile https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.settings.basic",
     },
   },
   maxBoardItemCards: 4,
