@@ -1,4 +1,13 @@
-# ... (Keep your existing rules) ...
+# Python bytecode
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+myenv/
+venv/
+.venv/
 
 # Postgres / Database local data
 pg_data/
