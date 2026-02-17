@@ -480,6 +480,8 @@ export const useApi = () => {
       `/api/teams/${teamId}/announcements/${announcementId}?user_id=${userId}`,
       getSignal("deleteAnnouncement")
     );
+  };
+
   const intakeCsv = async ({ file }: { file: File }) => {
     const formData = new FormData();
     formData.append("file", file);

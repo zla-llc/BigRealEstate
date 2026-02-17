@@ -2,7 +2,7 @@ import { TextInput } from "../../components";
 import { Icons, Icon } from "../../components/icons";
 import { useTeamInvitePage } from "../../hooks";
 import type { TeamWithMembers, TeamAnnouncement } from "../../hooks/api/types";
-import type { TeamMember, TeamWithMembers } from "../../interfaces";
+import type { TeamMember} from "../../interfaces";
 
 // Modal component for creating teams
 const CreateTeamModal = ({

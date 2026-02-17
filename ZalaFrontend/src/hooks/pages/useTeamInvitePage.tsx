@@ -13,7 +13,6 @@ import type {
   TeamInvitation,
   TeamAnnouncement,
 } from "../api/types";
-} from "../../interfaces";
 
 export const useTeamInvitePage = () => {
   const api = useApi();
@@ -40,11 +39,7 @@ export const useTeamInvitePage = () => {
 
   // State
   const [selectedTeam, setSelectedTeam] = useState<TeamWithMembers | null>(null);
-  const [invitations, setInvitations] = useState<TeamInvitation[]>([]);
   const [announcements, setAnnouncements] = useState<TeamAnnouncement[]>([]);
-  const [selectedTeam, setSelectedTeam] = useState<TeamWithMembers | null>(
-    null,
-  );
 
   const [teamMembersWithXp, _setTeamMembersWithXp, refreshTeamMembersWithXp] =
     useTeamMembersWithXp({ teamId: selectedTeam?.team_id ?? -1 });
@@ -77,9 +72,6 @@ export const useTeamInvitePage = () => {
   const [showInvitePanel, setShowInvitePanel] = useState(false);
   const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
   const [activeTab, setActiveTab] = useState<"members" | "invitations" | "announcements">("members");
-  const [activeTab, setActiveTab] = useState<"members" | "invitations">(
-    "members",
-  );
 
   // Load user's teams
   const loadTeams = async () => {
@@ -343,6 +335,8 @@ export const useTeamInvitePage = () => {
           setAnnouncements((prev) =>
             prev.filter((a) => a.announcement_id !== message.data.announcement_id)
           );
+        }
+
         if ((message.type as string).includes("member")) {
           loadInvitations(selectedTeam.team_id);
           refreshTeamMembersWithXp();
