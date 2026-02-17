@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app import schemas
 from app.models.team import Team
@@ -68,6 +68,30 @@ def get_teams_by_user(db: Session, user_id: int) -> List[Team]:
         .filter(UserTeam.user_id == user_id)
         .all()
     )
+
+
+def get_team_with_properties(db: Session, team_id: int):
+    return db.query(Team). \
+        options(selectinload(Team.properties)). \
+        filter(Team.team_id == team_id). \
+        first()
+
+
+def get_team_with_boards(db: Session, team_id: int):
+    return db.query(Team). \
+        options(selectinload(Team.boards)). \
+        filter(Team.team_id == team_id). \
+        first()
+
+
+def get_team_with_boards_and_properties(db: Session, team_id: int):
+    return db.query(Team). \
+        options(
+        selectinload(Team.properties),
+        selectinload(Team.boards)
+    ). \
+        filter(Team.team_id == team_id). \
+        first()
 
 
 def create_team(db: Session, team_in: schemas.TeamCreate) -> Team:
