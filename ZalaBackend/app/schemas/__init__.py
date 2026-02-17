@@ -36,6 +36,12 @@ from .campaign_lead import (
     CampaignLeadDetailedPublic,
 )
 from .location import LocationFilter, DataSource
+from .email_verification import (
+    SendVerificationCodeRequest,
+    SendVerificationCodeResponse,
+    VerifyCodeRequest,
+    VerifyCodeResponse,
+)
 from .summaries import UserSummary, LeadSummary, PropertySummary, CampaignSummary # Add CampaignSummary
 from .team import (
     TeamBase,

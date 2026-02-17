@@ -77,6 +77,29 @@ def _encode_message(from_header: str, to_email: str, subject: str, html: str) ->
     return base64.urlsafe_b64encode(message).decode("utf-8").rstrip("=")
 
 
+def fetch_gmail_signature(access_token: str, email: str) -> Optional[str]:
+    """
+    Fetch the Gmail signature for a specific send-as email address.
+    Returns the HTML signature string, or None if not set / on error.
+    """
+    url = f"{_GMAIL_SETTINGS_URL}/{email}"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            sig = data.get("signature", "")
+            return sig if sig else None
+        logger.warning("Gmail signature fetch failed (status %s): %s", response.status_code, response.text)
+        return None
+    except Exception as exc:
+        logger.warning("Failed to fetch Gmail signature: %s", exc)
+        return None
+
+
 def _decrypt_tokens(credentials):
     try:
         return google_credentials_crud.decrypt_tokens(credentials)
@@ -136,7 +159,8 @@ def send_gmail_message(
         )
 
     access_token = _resolve_access_token(db, credentials)
-    _, from_header = _build_from_header(user, request.from_name)
+    sender_email, from_header = _build_from_header(user, request.from_name)
+
     raw_message = _encode_message(
         from_header, request.to, request.subject, request.html
     )
