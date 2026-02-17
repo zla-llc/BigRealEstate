@@ -33,6 +33,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import GroupIcon from "@mui/icons-material/Group";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PendingIcon from "@mui/icons-material/Pending";
+import CampaignIcon from "@mui/icons-material/Campaign";
 import MapIcon from "@mui/icons-material/Map";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 
@@ -106,6 +107,8 @@ export const getMaterialIcon = (iconName: Icons) => {
       return (props: SvgIconProps) => <CheckCircleIcon {...props} />;
     case Icons.Pending:
       return (props: SvgIconProps) => <PendingIcon {...props} />;
+    case Icons.Announce:
+      return (props: SvgIconProps) => <CampaignIcon {...props} />;
     case Icons.Map:
       return (props: SvgIconProps) => <MapIcon {...props} />;
     case Icons.File:

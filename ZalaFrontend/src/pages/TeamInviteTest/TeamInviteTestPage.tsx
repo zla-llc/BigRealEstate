@@ -1,6 +1,7 @@
 import { TextInput } from "../../components";
 import { Icons, Icon } from "../../components/icons";
 import { useTeamInvitePage } from "../../hooks";
+import type { TeamWithMembers, TeamAnnouncement } from "../../hooks/api/types";
 import type { TeamMember, TeamWithMembers } from "../../interfaces";
 
 // Modal component for creating teams
@@ -109,6 +110,85 @@ const ConfirmModal = ({
   );
 };
 
+// Modal component for creating announcements
+const AnnouncementModal = ({
+  isOpen,
+  onClose,
+  onSubmit,
+  title,
+  setTitle,
+  message,
+  setMessage,
+  isLoading,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: () => void;
+  title: string;
+  setTitle: (val: string) => void;
+  message: string;
+  setMessage: (val: string) => void;
+  isLoading: boolean;
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+              <span className="text-xl">📢</span>
+            </div>
+            <h2 className="text-xl font-bold text-secondary">New Announcement</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-secondary-10 rounded-full transition-colors"
+          >
+            <Icon name={Icons.Close} size={20} className="text-secondary-50" />
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <TextInput
+            label="Title"
+            placeholder="Announcement title..."
+            value={title}
+            setValue={setTitle}
+          />
+          <div>
+            <label className="block text-sm font-medium text-secondary mb-2">Message</label>
+            <textarea
+              placeholder="Write your announcement message..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={4}
+              className="w-full px-4 py-3 rounded-xl border border-secondary-25 focus:border-accent focus:ring-1 focus:ring-accent outline-none resize-none transition-colors"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-6">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 px-4 rounded-xl border border-secondary-25 text-secondary font-medium hover:bg-secondary-10 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onSubmit}
+            disabled={isLoading || !title.trim() || !message.trim()}
+            className="flex-1 py-3 px-4 rounded-xl bg-accent text-white font-medium hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Posting..." : "Post Announcement"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Helper function to get status badge
 const getStatusBadge = (status: boolean | null) => {
   if (status === null) {
@@ -138,11 +218,13 @@ export const TeamInviteTestPage = () => {
     teams,
     selectedTeam,
     invitations,
+    announcements,
     loading,
     editMode,
     showCreateModal,
     showDeleteModal,
     showInvitePanel,
+    showAnnouncementModal,
     activeTab,
     forms,
     actions,
@@ -188,6 +270,17 @@ export const TeamInviteTestPage = () => {
         message={`Are you sure you want to delete "${selectedTeam?.team_name}"? All members will be removed and this action cannot be undone.`}
         confirmText="Delete Team"
         isLoading={loading.deletingTeam}
+      />
+
+      <AnnouncementModal
+        isOpen={showAnnouncementModal}
+        onClose={() => controls.setShowAnnouncementModal(false)}
+        onSubmit={actions.onPostAnnouncement}
+        title={forms.announcementTitle}
+        setTitle={forms.setAnnouncementTitle}
+        message={forms.announcementMessage}
+        setMessage={forms.setAnnouncementMessage}
+        isLoading={loading.postingAnnouncement}
       />
 
       {/* Header */}
@@ -303,6 +396,7 @@ export const TeamInviteTestPage = () => {
           <TeamDetailView
             selectedTeam={selectedTeam}
             invitations={invitations}
+            announcements={announcements}
             loading={loading}
             editMode={editMode}
             showInvitePanel={showInvitePanel}
@@ -351,6 +445,7 @@ export const TeamInviteTestPage = () => {
 const TeamDetailView = ({
   selectedTeam,
   invitations,
+  announcements,
   loading,
   editMode,
   showInvitePanel,
@@ -363,10 +458,11 @@ const TeamDetailView = ({
 }: {
   selectedTeam: TeamWithMembers;
   invitations: ReturnType<typeof useTeamInvitePage>["invitations"];
+  announcements: ReturnType<typeof useTeamInvitePage>["announcements"];
   loading: ReturnType<typeof useTeamInvitePage>["loading"];
   editMode: boolean;
   showInvitePanel: boolean;
-  activeTab: "members" | "invitations";
+  activeTab: "members" | "invitations" | "announcements";
   forms: ReturnType<typeof useTeamInvitePage>["forms"];
   actions: ReturnType<typeof useTeamInvitePage>["actions"];
   controls: ReturnType<typeof useTeamInvitePage>["controls"];
@@ -406,17 +502,26 @@ const TeamDetailView = ({
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
             {helpers.isCurrentUserAdmin(selectedTeam) && (
-              <button
-                onClick={controls.toggleInvitePanel}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors ${
-                  showInvitePanel
-                    ? "bg-accent text-white"
-                    : "bg-accent/10 text-accent hover:bg-accent/20"
-                }`}
-              >
-                <Icon name={Icons.Add} size={18} />
-                Invite
-              </button>
+              <>
+                <button
+                  onClick={() => controls.setShowAnnouncementModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-medium bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors"
+                >
+                  <Icon name={Icons.Announce} size={18} />
+                  Announce
+                </button>
+                <button
+                  onClick={controls.toggleInvitePanel}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition-colors ${
+                    showInvitePanel
+                      ? "bg-accent text-white"
+                      : "bg-accent/10 text-accent hover:bg-accent/20"
+                  }`}
+                >
+                  <Icon name={Icons.Add} size={18} />
+                  Invite
+                </button>
+              </>
             )}
             {helpers.isCurrentUserCreator(selectedTeam) && (
               <>
@@ -482,6 +587,16 @@ const TeamDetailView = ({
           >
             Members ({selectedTeam.members?.length ?? 0})
           </button>
+          <button
+            onClick={() => controls.setActiveTab("announcements")}
+            className={`py-3 border-b-2 font-medium transition-colors ${
+              activeTab === "announcements"
+                ? "border-accent text-accent"
+                : "border-transparent text-secondary-50 hover:text-secondary"
+            }`}
+          >
+            Announcements ({announcements.length})
+          </button>
           {helpers.isCurrentUserAdmin(selectedTeam) && (
             <button
               onClick={() => controls.setActiveTab("invitations")}
@@ -509,6 +624,18 @@ const TeamDetailView = ({
             helpers={helpers}
             controls={controls}
             user={user}
+          />
+        )}
+
+        {/* Announcements Tab */}
+        {activeTab === "announcements" && (
+          <AnnouncementsTab
+            announcements={announcements}
+            selectedTeam={selectedTeam}
+            loading={loading}
+            actions={actions}
+            helpers={helpers}
+            controls={controls}
           />
         )}
 
@@ -775,6 +902,122 @@ const InvitationsTab = ({
             >
               <Icon name={Icons.Add} size={18} />
               Invite Someone
+            </button>
+          )}
+        </div>
+      )}
+    </>
+  );
+};
+
+// Announcements Tab Component
+const AnnouncementsTab = ({
+  announcements,
+  selectedTeam,
+  loading,
+  actions,
+  helpers,
+  controls,
+}: {
+  announcements: TeamAnnouncement[];
+  selectedTeam: TeamWithMembers;
+  loading: ReturnType<typeof useTeamInvitePage>["loading"];
+  actions: ReturnType<typeof useTeamInvitePage>["actions"];
+  helpers: ReturnType<typeof useTeamInvitePage>["helpers"];
+  controls: ReturnType<typeof useTeamInvitePage>["controls"];
+}) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  return (
+    <>
+      {announcements.length > 0 ? (
+        <div className="space-y-4">
+          {announcements.map((announcement) => {
+            const author = selectedTeam.members?.find(
+              m => m.user.user_id === announcement.author_id
+            );
+            const authorName = author
+              ? `${author.user.first_name || ""} ${author.user.last_name || ""}`.trim() ||
+                author.user.username
+              : "Unknown";
+
+            return (
+              <div
+                key={announcement.announcement_id}
+                className="bg-white rounded-xl border border-secondary-10 p-5 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
+                      <Icon name={Icons.Announce} size={20} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-secondary text-lg">{announcement.title}</h3>
+                      <p className="text-xs text-secondary-50">
+                        Posted by {authorName} • {formatDate(announcement.created_at)}
+                        {announcement.updated_at !== announcement.created_at && (
+                          <span className="italic"> (edited)</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {helpers.isCurrentUserAdmin(selectedTeam) && (
+                    <button
+                      onClick={() => actions.onDeleteAnnouncement(announcement.announcement_id)}
+                      disabled={loading.deletingAnnouncement === announcement.announcement_id}
+                      className="p-2 text-secondary-50 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                      title="Delete announcement"
+                    >
+                      {loading.deletingAnnouncement === announcement.announcement_id ? (
+                        <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Icon name={Icons.Trash} size={18} />
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                <div className="pl-13">
+                  <p className="text-secondary whitespace-pre-wrap leading-relaxed">
+                    {announcement.message}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 mx-auto mb-4 bg-yellow-50 rounded-full flex items-center justify-center">
+            <Icon name={Icons.Announce} size={32} className="text-yellow-500" />
+          </div>
+          <p className="text-lg font-medium text-secondary mb-2">No announcements yet</p>
+          <p className="text-secondary-50 mb-4">
+            {helpers.isCurrentUserAdmin(selectedTeam)
+              ? "Post an announcement to share news with your team"
+              : "Your team admins will post announcements here"}
+          </p>
+          {helpers.isCurrentUserAdmin(selectedTeam) && (
+            <button
+              onClick={() => controls.setShowAnnouncementModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-xl font-medium hover:bg-yellow-600 transition-colors"
+            >
+              <Icon name={Icons.Announce} size={18} />
+              Post Announcement
             </button>
           )}
         </div>
