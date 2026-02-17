@@ -50,6 +50,7 @@ from .team import (
     TeamPublic,
     TeamPublicWithProperties,
     TeamPublicWithBoards,
+    TeamPublicWithPropertiesAndBoards,
     TeamSummary,
     TeamLeaderboardEntry,
     TeamUserXPEntry,

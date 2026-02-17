@@ -101,6 +101,11 @@ class TeamPublicWithBoards(TeamPublic):
     pass
 
 
+class TeamPublicWithPropertiesAndBoards(TeamPublic):
+    """Schema for Team with both properties and boards."""
+    pass
+
+
 class TeamLeaderboardEntry(BaseModel):
     """Minimal data for leaderboard rows"""
     team_id: int
