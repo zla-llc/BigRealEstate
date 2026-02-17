@@ -6,7 +6,6 @@ class ContactBase(BaseModel):
     """
     Shared fields for Contact
     """
-    # Changed to Optional
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
@@ -35,10 +34,6 @@ class ContactUpdate(ContactBase):
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = Field(default=None, max_length=20)
-    
-    # Note: We rely on the SQLAlchemy CheckConstraint to validate logic 
-    # during updates, as we cannot know the current DB state (the "other" field) 
-    # from the Pydantic model alone during a partial update.
 
 class ContactPublic(ContactBase):
     """

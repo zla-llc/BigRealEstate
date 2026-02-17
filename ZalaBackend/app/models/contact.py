@@ -7,7 +7,6 @@ class Contact(Base):
     __tablename__ = "contacts"
 
     contact_id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    # Changed nullable to True
     first_name: Mapped[str] = mapped_column(nullable=True) 
     last_name: Mapped[str] = mapped_column(nullable=True)
     email: Mapped[str] = mapped_column(String(255), nullable=True, unique=True, index=True)
