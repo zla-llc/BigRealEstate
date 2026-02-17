@@ -65,6 +65,17 @@ export const useEmailModal = ({ leads, onSendEmail }: UseEmailModalProps) => {
       const res = await getGmailSignature(user.userId);
       if (!cancelled && res.data?.signature) {
         setSignature(res.data.signature);
+        // Debug: log signature and any image sources found
+        // (helps verify what the frontend received from the backend)
+        // eslint-disable-next-line no-console
+        console.debug('Fetched Gmail signature (preview):', res.data.signature);
+        try {
+          const imgMatches = Array.from(String(res.data.signature).matchAll(/<img[^>]+src=['"]([^'\"]+)['"]/gi)).map((m) => m[1]);
+          // eslint-disable-next-line no-console
+          console.debug('Signature image sources:', imgMatches);
+        } catch (e) {
+          // ignore
+        }
       }
       setLoadingSignature(false);
     })();
@@ -86,6 +97,9 @@ export const useEmailModal = ({ leads, onSendEmail }: UseEmailModalProps) => {
     const finalHtml = signature.trim()
       ? `${body}<br><br>--<br>${signature}`
       : body;
+    // Debug: log a trimmed preview of the final HTML being sent
+    // eslint-disable-next-line no-console
+    console.debug('Sending final HTML preview (first 1000 chars):', finalHtml.slice(0, 1000));
 
     setLoading(true);
     const res = await sendCampaignEmail({
