@@ -1,34 +1,44 @@
-from typing import Optional
-from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, Self
+from pydantic import BaseModel, Field, EmailStr, field_validator, model_validator
 
 
 class ContactBase(BaseModel):
     """
     Shared fields for Contact
     """
-    first_name: str
+    # Changed to Optional
+    first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = Field(default=None, max_length=20)
-
 
 class ContactCreate(ContactBase):
     """
     Schema for creating a new Contact
     """
-    pass
-
+    @model_validator(mode='after')
+    def check_contact_method(self) -> Self:
+        if not self.email and not self.phone:
+            raise ValueError('Either email or phone must be provided.')
+        return self
+    @field_validator('email', mode='before')
+    def check_email(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
 
 class ContactUpdate(ContactBase):
     """
     Schema for updating an existing Contact
     """
-
-    first_name: Optional[str]
+    first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = Field(default=None, max_length=20)
-
+    
+    # Note: We rely on the SQLAlchemy CheckConstraint to validate logic 
+    # during updates, as we cannot know the current DB state (the "other" field) 
+    # from the Pydantic model alone during a partial update.
 
 class ContactPublic(ContactBase):
     """
