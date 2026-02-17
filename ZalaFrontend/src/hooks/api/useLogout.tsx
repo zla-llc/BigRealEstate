@@ -1,17 +1,14 @@
 import { useAuthStore } from "../../stores";
-import { useCookies } from "react-cookie";
-import { useAppNavigation } from "../utils";
+import { useAppNavigation, useSessionCookie } from "../utils";
 
 export const useLogout = () => {
   const { toLoginPage } = useAppNavigation();
   const setUser = useAuthStore((state) => state.setUser);
-
-  const [_cookies, setCookie] = useCookies(["userId"], {
-    doNotParse: true,
-  });
+  const [_getCookie, setCookie] = useSessionCookie();
 
   const onLogout = () => {
-    setCookie("userId", undefined);
+    setCookie("userId", "");
+    window.localStorage.removeItem("userId");
     setUser(undefined);
     toLoginPage();
   };
