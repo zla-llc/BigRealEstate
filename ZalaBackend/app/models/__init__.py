@@ -15,7 +15,7 @@ from .campaign import Campaign
 from .campaign_email import CampaignEmail
 from .lead import Lead
 from .team import Team
-
+from .team_deal import TeamDeal
 
 from .campaign_lead import CampaignLead
 from .email_verification import EmailVerificationCode
