@@ -110,31 +110,31 @@ def get_team_with_members(team_id: int, db: Session = Depends(get_db)):
     return team
 
 
-@router.get("/{team_id}/properties", response_model=schemas.TeamPublicWithProperties)
-def get_team_properties(team_id: int, db: Session = Depends(get_db)):
-    """Retrieve a team with its properties."""
-    team = team_crud.get_team_with_properties(db, team_id=team_id)
-    if not team:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
-    return team
-
-
-@router.get("/{team_id}/boards", response_model=schemas.TeamPublicWithBoards)
-def get_team_boards(team_id: int, db: Session = Depends(get_db)):
-    """Retrieve a team with its boards."""
-    team = team_crud.get_team_with_boards(db, team_id=team_id)
-    if not team:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
-    return team
-
-
-@router.get("/{team_id}/boardsproperties", response_model=schemas.TeamPublicWithPropertiesAndBoards)
-def get_team_boards_and_properties(team_id: int, db: Session = Depends(get_db)):
-    """Retrieve a team with BOTH properties and boards."""
-    team = team_crud.get_team_with_boards_and_properties(db, team_id=team_id)
-    if not team:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
-    return team
+# @router.get("/{team_id}/properties", response_model=schemas.TeamPublicWithProperties)
+# def get_team_properties(team_id: int, db: Session = Depends(get_db)):
+#     """Retrieve a team with its properties."""
+#     team = team_crud.get_team_with_properties(db, team_id=team_id)
+#     if not team:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+#     return team
+#
+#
+# @router.get("/{team_id}/boards", response_model=schemas.TeamPublicWithBoards)
+# def get_team_boards(team_id: int, db: Session = Depends(get_db)):
+#     """Retrieve a team with its boards."""
+#     team = team_crud.get_team_with_boards(db, team_id=team_id)
+#     if not team:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+#     return team
+#
+#
+# @router.get("/{team_id}/boardsproperties", response_model=schemas.TeamPublicWithPropertiesAndBoards)
+# def get_team_boards_and_properties(team_id: int, db: Session = Depends(get_db)):
+#     """Retrieve a team with BOTH properties and boards."""
+#     team = team_crud.get_team_with_boards_and_properties(db, team_id=team_id)
+#     if not team:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+#     return team
 
 
 @router.put("/{team_id}", response_model=schemas.TeamPublic)
