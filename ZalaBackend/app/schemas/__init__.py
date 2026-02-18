@@ -73,6 +73,13 @@ from .team_announcement import (
     AnnouncementPublic,
 )
 
+from .team_deal import (
+    TeamDealBase,
+    TeamDealCreate,
+    TeamDealCreateRequest,
+    TeamDealUpdate,
+    TeamDealPublic
+)
 
 CampaignPublic.model_rebuild()
 PropertyPublic.model_rebuild()
