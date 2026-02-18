@@ -21,6 +21,7 @@ class Team(Base):
     boards: Mapped[List["Board"]] = relationship(back_populates="team")
     invitations: Mapped[List["TeamInvitation"]] = relationship(back_populates="team", cascade="all, delete-orphan")
     announcements: Mapped[List["TeamAnnouncement"]] = relationship(back_populates="team", cascade="all, delete-orphan")
+    deals: Mapped[List["TeamDeal"]] = relationship(back_populates="team", cascade="all, delete-orphan")
 
     @property
     def admin_users(self):
