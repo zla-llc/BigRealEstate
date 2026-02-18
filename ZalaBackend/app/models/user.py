@@ -70,6 +70,8 @@ class User(Base):
         cascade="all, delete-orphan"
     )
 
+    deals: Mapped[List["TeamDeal"]] = relationship(back_populates="user")
+
     @property
     def gmail_connected(self) -> bool:
         # Use getattr so SQLAlchemy lazily loads credentials when needed.
