@@ -9,7 +9,7 @@ from .board_step import BoardStepBase, BoardStepCreate, BoardStepUpdate, BoardSt
 from .user import (
     UserBase, UserCreate, UserSignup, UserUpdate, UserPublic, 
     UserPublicWithProperties, UserPublicWithLeads, UserPublicWithLeadsAndProperties,
-    UserSummary
+    UserSummary, XPAdd, XPPublic
 )
 from .unit import UnitBase, UnitCreate, UnitUpdate, UnitPublic
 from .lead import LeadBase, LeadCreate, LeadUpdate, LeadPublic
