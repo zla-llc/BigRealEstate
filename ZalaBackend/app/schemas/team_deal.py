@@ -38,6 +38,12 @@ class TeamDealUpdate(BaseModel):
     notes: Optional[str] = None
 
 
+class UserDealXPPublic(BaseModel):
+    """total xp of user"""
+    user_id: int
+    total_xp: int
+
+
 class TeamDealPublic(TeamDealBase):
     """public schema"""
     deal_id: int
