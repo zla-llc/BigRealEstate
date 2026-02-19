@@ -13,7 +13,7 @@ class TeamDeal(Base):
     deal_id: Mapped[int] = mapped_column(primary_key=True)
     team_id: Mapped[int] = mapped_column(ForeignKey("teams.team_id"), nullable=False)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"), nullable=False)
-    property_id: Mapped[Optional[int]] = mapped_column(ForeignKey("properties.property_id"), nullable=True)
+    property_id: Mapped[Optional[int]] = mapped_column(ForeignKey("properties.property_id"), nullable=False, unique=True)
     lead_id: Mapped[Optional[int]] = mapped_column(ForeignKey("leads.lead_id"), nullable=True)
     sale_price: Mapped[Optional[float]] = mapped_column(nullable=True, default=0.0)
     closed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

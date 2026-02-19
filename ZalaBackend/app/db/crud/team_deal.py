@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.models.team_deal import TeamDeal
@@ -9,6 +10,13 @@ from app.models.team import Team
 
 
 def create_deal(db: Session, deal: schemas.TeamDealCreate) -> TeamDeal:
+    if deal.property_id:
+        existing_deal = db.query(TeamDeal).filter(TeamDeal.property_id == deal.property_id).first()
+        if existing_deal:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="This property is already linked to a closed deal."
+            )
     db_deal = TeamDeal(
         team_id=deal.team_id,
         user_id=deal.user_id,
