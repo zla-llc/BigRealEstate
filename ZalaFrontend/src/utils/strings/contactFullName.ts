@@ -1,10 +1,10 @@
-import type { IContact, TeamMember } from "../../interfaces";
+import type { IContact, ITeamMember } from "../../interfaces";
 
 export const contactFullName = (contact?: IContact) =>
   `${contact?.firstName} ${contact?.lastName}`.trim();
 
 export const teamMemberFullName = (
-  member: TeamMember | undefined,
+  member: ITeamMember | undefined,
   defaultTxt: string,
 ) => {
   const fullName =

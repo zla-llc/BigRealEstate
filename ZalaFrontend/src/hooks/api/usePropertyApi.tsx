@@ -262,8 +262,10 @@ export const usePropertyApi = (props: APIHookProps) => {
   };
 
   const getProperties = async () => {
-    // // TODO - Add API route to get properties created by a single user
-    // return await get(`/api/address`)
+    return await get<AProperty[]>(
+      `/api/properties`,
+      getSignal(`getProperties`),
+    );
   };
 
   const addPropertyImage = async ({

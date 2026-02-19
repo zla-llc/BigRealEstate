@@ -8,6 +8,9 @@ export const BoardCard = (props: BoardCardProps) => {
   const { size, expanded, steps, actions, calcStepItemsHeight } =
     useBoardCard(props);
 
+  const editableHeaders =
+    expandable?.editable !== undefined ? expandable.editable : expanded;
+
   return (
     <div
       id={componentId}
@@ -40,7 +43,7 @@ export const BoardCard = (props: BoardCardProps) => {
           value={expandable?.boardName ?? board.boardName}
           setValue={(v) => expandable?.onBoardNameChange(v)}
           actions={actions}
-          editable={expanded}
+          editable={editableHeaders}
         />
       </div>
       <div
@@ -61,7 +64,7 @@ export const BoardCard = (props: BoardCardProps) => {
             steps={steps}
             stepHeights={steps.map(calcStepItemsHeight)}
             editableStep={
-              expandable
+              editableHeaders && expandable
                 ? {
                     stepName: expandable.stepName,
                     stepNameId: expandable.stepNameId,

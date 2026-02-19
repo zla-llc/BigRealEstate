@@ -2,6 +2,9 @@ import type { Actions, ActionSide } from "./types";
 import { IconButton } from "../buttons";
 import { Icon, Icons } from "../icons";
 import { useEffect, useState } from "react";
+import clsx from "clsx";
+import { motion } from "motion/react";
+import { stringify } from "../../utils";
 
 type HeaderActionsProps = {
   actions?: (Actions | null)[];
@@ -32,20 +35,28 @@ export const HeaderActions = ({ actions = [], side }: HeaderActionsProps) => {
           : []) as (Actions | null)[],
       ),
     );
-  }, [addAmount]);
+  }, [addAmount, stringify(actions)]);
 
   return allActions.map((action, i) =>
     action && action.side === side ? (
-      action.type === "iconBtn" && action.iconBtnProps ? (
-        <IconButton key={i} {...action.iconBtnProps} />
-      ) : action.type === "invisible" ? (
-        <div key={i} className="opacity-0">
-          <IconButton name={Icons.Add} />
-        </div>
-      ) : (
-        action.type === "icon" &&
-        action.iconProps && <Icon key={i} {...action.iconProps} />
-      )
+      <motion.div
+        key={i}
+        className={clsx(
+          "transition-opacity duration-150",
+          action.visible === false ? "opacity-0" : "opacity-[100]",
+        )}
+      >
+        {action.type === "iconBtn" && action.iconBtnProps ? (
+          <IconButton {...action.iconBtnProps} />
+        ) : action.type === "invisible" ? (
+          <div key={i} className="opacity-0">
+            <IconButton name={Icons.Add} />
+          </div>
+        ) : (
+          action.type === "icon" &&
+          action.iconProps && <Icon key={i} {...action.iconProps} />
+        )}
+      </motion.div>
     ) : null,
   );
 };

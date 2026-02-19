@@ -7,7 +7,11 @@ export enum DashboardModalPages {
   CreateProperty = "CreateProperty",
   ViewPropertiesModal = "ViewPropertiesModal",
   CreateBoardModal = "CreateBoardModal",
+  CreateTeamBoardModal = "CreateTeamBoardModal",
   ViewBoardsModal = "ViewBoardsModal",
+  CreateAnnouncmentModal = "CreateAnnouncmentModal",
+  ViewAnnouncementModal = "ViewAnnouncementModal",
+  AddTeamProperties = "AddTeamProperties",
 }
 
 type IDashboardModalStore = {

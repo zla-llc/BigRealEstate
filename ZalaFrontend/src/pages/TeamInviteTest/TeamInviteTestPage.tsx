@@ -1,8 +1,7 @@
 import { TextInput } from "../../components";
 import { Icons, Icon } from "../../components/icons";
 import { useTeamInvitePage } from "../../hooks";
-import type { TeamWithMembers, TeamAnnouncement } from "../../hooks/api/types";
-import type { TeamMember} from "../../interfaces";
+import type { ITeamMember, ITeam, ITeamAnnouncement } from "../../interfaces";
 
 // Modal component for creating teams
 const CreateTeamModal = ({
@@ -140,7 +139,9 @@ const AnnouncementModal = ({
             <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
               <span className="text-xl">📢</span>
             </div>
-            <h2 className="text-xl font-bold text-secondary">New Announcement</h2>
+            <h2 className="text-xl font-bold text-secondary">
+              New Announcement
+            </h2>
           </div>
           <button
             onClick={onClose}
@@ -149,7 +150,7 @@ const AnnouncementModal = ({
             <Icon name={Icons.Close} size={20} className="text-secondary-50" />
           </button>
         </div>
-        
+
         <div className="space-y-4">
           <TextInput
             label="Title"
@@ -158,7 +159,9 @@ const AnnouncementModal = ({
             setValue={setTitle}
           />
           <div>
-            <label className="block text-sm font-medium text-secondary mb-2">Message</label>
+            <label className="block text-sm font-medium text-secondary mb-2">
+              Message
+            </label>
             <textarea
               placeholder="Write your announcement message..."
               value={message}
@@ -456,7 +459,7 @@ const TeamDetailView = ({
   helpers,
   user,
 }: {
-  selectedTeam: TeamWithMembers;
+  selectedTeam: ITeam;
   invitations: ReturnType<typeof useTeamInvitePage>["invitations"];
   announcements: ReturnType<typeof useTeamInvitePage>["announcements"];
   loading: ReturnType<typeof useTeamInvitePage>["loading"];
@@ -488,7 +491,7 @@ const TeamDetailView = ({
                   ? "you"
                   : (() => {
                       const creator = selectedTeam.members?.find(
-                        (m: TeamMember) =>
+                        (m: ITeamMember) =>
                           m.user.user_id === selectedTeam.created_by_user_id,
                       );
                       return creator
@@ -665,7 +668,7 @@ const MembersTab = ({
   controls,
   user,
 }: {
-  selectedTeam: TeamWithMembers;
+  selectedTeam: ITeam;
   editMode: boolean;
   loading: ReturnType<typeof useTeamInvitePage>["loading"];
   actions: ReturnType<typeof useTeamInvitePage>["actions"];
@@ -677,7 +680,7 @@ const MembersTab = ({
     <>
       {/* Members Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {selectedTeam.members?.map((member: TeamMember) => {
+        {selectedTeam.members?.map((member: ITeamMember) => {
           const displayName = helpers.getMemberDisplayName(member);
           const initials =
             displayName
@@ -823,7 +826,7 @@ const InvitationsTab = ({
   helpers,
   controls,
 }: {
-  selectedTeam: TeamWithMembers;
+  selectedTeam: ITeam;
   invitations: ReturnType<typeof useTeamInvitePage>["invitations"];
   loading: ReturnType<typeof useTeamInvitePage>["loading"];
   actions: ReturnType<typeof useTeamInvitePage>["actions"];
@@ -919,8 +922,8 @@ const AnnouncementsTab = ({
   helpers,
   controls,
 }: {
-  announcements: TeamAnnouncement[];
-  selectedTeam: TeamWithMembers;
+  announcements: ITeamAnnouncement[];
+  selectedTeam: ITeam;
   loading: ReturnType<typeof useTeamInvitePage>["loading"];
   actions: ReturnType<typeof useTeamInvitePage>["actions"];
   helpers: ReturnType<typeof useTeamInvitePage>["helpers"];
@@ -947,7 +950,7 @@ const AnnouncementsTab = ({
         <div className="space-y-4">
           {announcements.map((announcement) => {
             const author = selectedTeam.members?.find(
-              m => m.user.user_id === announcement.author_id
+              (m) => m.user.user_id === announcement.author_id,
             );
             const authorName = author
               ? `${author.user.first_name || ""} ${author.user.last_name || ""}`.trim() ||
@@ -962,13 +965,21 @@ const AnnouncementsTab = ({
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
-                      <Icon name={Icons.Announce} size={20} className="text-white" />
+                      <Icon
+                        name={Icons.Announce}
+                        size={20}
+                        className="text-white"
+                      />
                     </div>
                     <div>
-                      <h3 className="font-bold text-secondary text-lg">{announcement.title}</h3>
+                      <h3 className="font-bold text-secondary text-lg">
+                        {announcement.title}
+                      </h3>
                       <p className="text-xs text-secondary-50">
-                        Posted by {authorName} • {formatDate(announcement.created_at)}
-                        {announcement.updated_at !== announcement.created_at && (
+                        Posted by {authorName} •{" "}
+                        {formatDate(announcement.created_at)}
+                        {announcement.updated_at !==
+                          announcement.created_at && (
                           <span className="italic"> (edited)</span>
                         )}
                       </p>
@@ -977,12 +988,20 @@ const AnnouncementsTab = ({
 
                   {helpers.isCurrentUserAdmin(selectedTeam) && (
                     <button
-                      onClick={() => actions.onDeleteAnnouncement(announcement.announcement_id)}
-                      disabled={loading.deletingAnnouncement === announcement.announcement_id}
+                      onClick={() =>
+                        actions.onDeleteAnnouncement(
+                          announcement.announcement_id,
+                        )
+                      }
+                      disabled={
+                        loading.deletingAnnouncement ===
+                        announcement.announcement_id
+                      }
                       className="p-2 text-secondary-50 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                       title="Delete announcement"
                     >
-                      {loading.deletingAnnouncement === announcement.announcement_id ? (
+                      {loading.deletingAnnouncement ===
+                      announcement.announcement_id ? (
                         <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <Icon name={Icons.Trash} size={18} />
@@ -1005,7 +1024,9 @@ const AnnouncementsTab = ({
           <div className="w-16 h-16 mx-auto mb-4 bg-yellow-50 rounded-full flex items-center justify-center">
             <Icon name={Icons.Announce} size={32} className="text-yellow-500" />
           </div>
-          <p className="text-lg font-medium text-secondary mb-2">No announcements yet</p>
+          <p className="text-lg font-medium text-secondary mb-2">
+            No announcements yet
+          </p>
           <p className="text-secondary-50 mb-4">
             {helpers.isCurrentUserAdmin(selectedTeam)
               ? "Post an announcement to share news with your team"

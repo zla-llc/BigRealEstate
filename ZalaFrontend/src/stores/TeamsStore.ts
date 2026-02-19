@@ -1,31 +1,26 @@
 import { create } from "zustand";
-import type { TeamInvitation, TeamWithMembers } from "../interfaces";
+import type { ITeamInvitation, ITeam } from "../interfaces";
 
-type TeamsUpdater =
-  | TeamWithMembers[]
-  | ((prev: TeamWithMembers[]) => TeamWithMembers[]);
+type TeamsUpdater = ITeam[] | ((prev: ITeam[]) => ITeam[]);
 
 interface TeamsState {
-  teams: TeamWithMembers[];
+  teams: ITeam[];
   selectedTeamId: number | null;
   setTeams: (teamsOrUpdater: TeamsUpdater) => void;
 
-  invitations: TeamInvitation[];
-  setInvitations: (invitations: TeamInvitation[]) => void;
+  invitations: ITeamInvitation[];
+  setInvitations: (invitations: ITeamInvitation[]) => void;
 
   selectedMemberId: number;
   isInvitee: boolean;
   setSelectedMemberId: (selectedMemberId: number, isInvitee: boolean) => void;
 
-  addTeam: (team: TeamWithMembers) => void;
-  updateTeam: (team: TeamWithMembers) => void;
+  addTeam: (team: ITeam) => void;
+  updateTeam: (team: ITeam) => void;
   removeTeam: (teamId: number) => void;
   setSelectedTeamId: (teamId: number | null) => void;
   updateTeamMember: (teamId: number, userId: number, role: string) => void;
-  addTeamMember: (
-    teamId: number,
-    member: TeamWithMembers["members"][0],
-  ) => void;
+  addTeamMember: (teamId: number, member: ITeam["members"][0]) => void;
   removeTeamMember: (teamId: number, userId: number) => void;
 }
 

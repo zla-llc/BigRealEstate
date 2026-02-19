@@ -16,12 +16,13 @@ type ExpandedBoardProps = {
   boardName: string;
   stepName: string;
   stepNameId: number;
-  onTrashBtn: () => void;
+  editable?: boolean;
+  onTrashBtn?: () => void;
   onBoardNameChange: (val: string) => void;
   onBoardStepNameChange: (val: string, stepId: number) => void | Promise<void>;
   onBackBtn?: (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
-  onDeleteStep: (stepId: number) => void;
-  onSettingsBtn: () => void;
+  onDeleteStep?: (stepId: number) => void;
+  onSettingsBtn?: () => void;
   reloadBoards: () => Promise<void>;
 };
 
@@ -49,26 +50,30 @@ export const useBoardCard = ({ board, expandable }: BoardCardProps) => {
               },
             }
           : null,
-        {
-          type: "iconBtn",
-          side: "right",
-          iconBtnProps: {
-            name: Icons.Settings,
-            variant: IconButtonVariant.Secondary,
-            scale: CSSVars.icons.scale.normal,
-            onClick: expandable.onSettingsBtn,
-          },
-        },
-        {
-          type: "iconBtn",
-          side: "right",
-          iconBtnProps: {
-            name: Icons.Trash,
-            variant: IconButtonVariant.Secondary,
-            scale: CSSVars.icons.scale.normal,
-            onClick: expandable.onTrashBtn,
-          },
-        },
+        expandable.onSettingsBtn
+          ? {
+              type: "iconBtn",
+              side: "right",
+              iconBtnProps: {
+                name: Icons.Settings,
+                variant: IconButtonVariant.Secondary,
+                scale: CSSVars.icons.scale.normal,
+                onClick: expandable.onSettingsBtn,
+              },
+            }
+          : null,
+        expandable.onTrashBtn
+          ? {
+              type: "iconBtn",
+              side: "right",
+              iconBtnProps: {
+                name: Icons.Trash,
+                variant: IconButtonVariant.Secondary,
+                scale: CSSVars.icons.scale.normal,
+                onClick: expandable.onTrashBtn,
+              },
+            }
+          : null,
       ]
     : [];
 

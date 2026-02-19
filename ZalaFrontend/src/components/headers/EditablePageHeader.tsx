@@ -18,6 +18,7 @@ export type EditablePageHeaderProps = {
   variant?: EditablePageHeaderVariant;
 
   editable?: boolean;
+  hideInput?: boolean;
   centerText?: boolean;
   size?: EditablePageHeaderSize;
   disablePadding?: boolean;
@@ -36,6 +37,7 @@ export const EditablePageHeader = ({
   variant = EditablePageHeaderVariant.Card,
 
   editable = true,
+  hideInput = false,
   centerText,
   size = EditablePageHeaderSize.Large,
   disablePadding,
@@ -78,16 +80,13 @@ export const EditablePageHeader = ({
           <HeaderActions side="right" actions={actions} />
         </div>
 
-        {editable && (
-          <div>
-            <TextInput value={value} setValue={setValue} {...inputProps} />
-          </div>
-        )}
-
-        {!editable && nonEditableText && (
-          <div className="flex justify-center items-center">
-            <p className="font-bold text-xl">{nonEditableText}</p>
-          </div>
+        {!hideInput && (
+          <TextInput
+            value={value}
+            setValue={setValue}
+            disabled={!editable}
+            {...inputProps}
+          />
         )}
       </div>
     );

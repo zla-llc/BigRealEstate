@@ -6,9 +6,10 @@ import {
   type ACampaignEmail,
   type ACampaignEmailSendResponse,
   type ACampaignSummary,
-  type TeamInvitation,
-  type TeamWithMembers,
-  type TeamMemberWithXP,
+  type ITeamInvitation,
+  type ITeam,
+  type ITeamMemberWithXP,
+  type ITeamAnnouncement,
 } from "../../interfaces";
 import type {
   CreateUserProps,
@@ -30,7 +31,6 @@ import type {
   CreateTeamRequest,
   InviteToTeamRequest,
   RespondToInvitationRequest,
-  TeamAnnouncement,
   CreateAnnouncementRequest,
   UpdateAnnouncementRequest,
   UpdateTeamNameRequest,
@@ -321,7 +321,7 @@ export const useApi = () => {
     team_name,
     admin_user_id,
   }: CreateTeamRequest) => {
-    return await post<TeamWithMembers>(
+    return await post<ITeam>(
       `/api/teams/with-admin/${admin_user_id}`,
       { team_name },
       { isFormData: false, signal: getSignal("createTeam") },
@@ -333,7 +333,7 @@ export const useApi = () => {
     team_name,
     xp,
   }: UpdateTeamNameRequest) => {
-    return await put<TeamWithMembers>(
+    return await put<ITeam>(
       `/api/teams/${team_id}`,
       { team_name, xp },
       { isFormData: false, signal: getSignal("updateTeam") },
@@ -341,21 +341,21 @@ export const useApi = () => {
   };
 
   const getTeamsByUser = async (userId: number) => {
-    return await get<TeamWithMembers[]>(
+    return await get<ITeam[]>(
       `/api/teams/user/${userId}`,
       getSignal("getTeamsByUser"),
     );
   };
 
   const getTeamMembers = async (teamId: number) => {
-    return await get<TeamWithMembers>(
+    return await get<ITeam>(
       `/api/teams/${teamId}/members`,
       getSignal("getTeamMembers"),
     );
   };
 
   const getTeamMembersByXp = async (teamId: number) => {
-    return await get<TeamMemberWithXP[]>(`/api/teams/${teamId}/users/xp`);
+    return await get<ITeamMemberWithXP[]>(`/api/teams/${teamId}/users/xp`);
   };
 
   const inviteToTeam = async ({
@@ -363,7 +363,7 @@ export const useApi = () => {
     sender_id,
     recipient_email,
   }: InviteToTeamRequest) => {
-    return await post<TeamInvitation>(
+    return await post<ITeamInvitation>(
       `/api/teams/${team_id}/invitations?sender_id=${sender_id}`,
       { recipient_email },
       { isFormData: false, signal: getSignal("inviteToTeam") },
@@ -371,7 +371,7 @@ export const useApi = () => {
   };
 
   const getTeamInvitations = async (teamId: number, requesterId: number) => {
-    return await get<TeamInvitation[]>(
+    return await get<ITeamInvitation[]>(
       `/api/teams/${teamId}/invitations?requester_id=${requesterId}`,
       getSignal("getTeamInvitations"),
     );
@@ -407,7 +407,7 @@ export const useApi = () => {
   };
 
   const promoteToAdmin = async (teamId: number, userId: number) => {
-    return await post<TeamWithMembers>(
+    return await post<ITeam>(
       `/api/teams/${teamId}/admins/${userId}`,
       {},
       { isFormData: false, signal: getSignal("promoteToAdmin") },
@@ -415,7 +415,7 @@ export const useApi = () => {
   };
 
   const demoteFromAdmin = async (teamId: number, userId: number) => {
-    return await del<TeamWithMembers>(
+    return await del<ITeam>(
       `/api/teams/${teamId}/admins/${userId}`,
       getSignal("demoteFromAdmin"),
     );
@@ -452,33 +452,83 @@ export const useApi = () => {
   };
 
   // Team Announcements APIs
-  const createAnnouncement = async ({ team_id, author_id, title, message }: CreateAnnouncementRequest) => {
-    return await post<TeamAnnouncement>(
+  const createAnnouncement = async ({
+    team_id,
+    author_id,
+    title,
+    message,
+  }: CreateAnnouncementRequest) => {
+    return await post<ITeamAnnouncement>(
       `/api/teams/${team_id}/announcements?author_id=${author_id}`,
       { title, message },
-      { isFormData: false, signal: getSignal("createAnnouncement") }
+      { isFormData: false, signal: getSignal("createAnnouncement") },
     );
   };
 
-  const getTeamAnnouncements = async (teamId: number, userId: number, skip = 0, limit = 50) => {
-    return await get<TeamAnnouncement[]>(
+  const getTeamAnnouncements = async (
+    teamId: number,
+    userId: number,
+    skip = 0,
+    limit = 50,
+  ) => {
+    return await get<ITeamAnnouncement[]>(
       `/api/teams/${teamId}/announcements?user_id=${userId}&skip=${skip}&limit=${limit}`,
-      getSignal("getTeamAnnouncements")
+      getSignal("getTeamAnnouncements"),
     );
   };
 
-  const updateAnnouncement = async ({ team_id, announcement_id, user_id, title, message }: UpdateAnnouncementRequest) => {
-    return await put<TeamAnnouncement>(
+  const updateAnnouncement = async ({
+    team_id,
+    announcement_id,
+    user_id,
+    title,
+    message,
+  }: UpdateAnnouncementRequest) => {
+    return await put<ITeamAnnouncement>(
       `/api/teams/${team_id}/announcements/${announcement_id}?user_id=${user_id}`,
       { title, message },
-      { isFormData: false, signal: getSignal("updateAnnouncement") }
+      { isFormData: false, signal: getSignal("updateAnnouncement") },
     );
   };
 
-  const deleteAnnouncement = async (teamId: number, announcementId: number, userId: number) => {
+  const deleteAnnouncement = async (
+    teamId: number,
+    announcementId: number,
+    userId: number,
+  ) => {
     return await del<void>(
       `/api/teams/${teamId}/announcements/${announcementId}?user_id=${userId}`,
-      getSignal("deleteAnnouncement")
+      getSignal("deleteAnnouncement"),
+    );
+  };
+
+  const linkTeamProperty = async (teamId: number, propertyId: number) => {
+    return await post<ITeam>(
+      `/api/teams/${teamId}/properties/${propertyId}`,
+      {},
+      { signal: getSignal("linkTeamProperty") },
+    );
+  };
+
+  const unlinkTeamProperty = async (teamId: number, propertyId: number) => {
+    return await del<ITeam>(
+      `/api/teams/${teamId}/properties/${propertyId}`,
+      getSignal("unlinkTeamProperty"),
+    );
+  };
+
+  const linkTeamBoard = async (teamId: number, boardId: number) => {
+    return await post<ITeam>(
+      `/api/teams/${teamId}/boards/${boardId}`,
+      {},
+      { signal: getSignal("linkTeamBoard") },
+    );
+  };
+
+  const unlinkTeamBoard = async (teamId: number, propertyId: number) => {
+    return await del<ITeam>(
+      `/api/teams/${teamId}/boards/${propertyId}`,
+      getSignal("unlinkTeamBoard"),
     );
   };
 
@@ -499,7 +549,7 @@ export const useApi = () => {
     return await post<SendVerificationCodeResponse>(
       `/api/verify/send-code`,
       { email },
-      { isFormData: false, signal: getSignal("sendVerificationCode") }
+      { isFormData: false, signal: getSignal("sendVerificationCode") },
     );
   };
 
@@ -507,7 +557,7 @@ export const useApi = () => {
     return await post<VerifyCodeResponse>(
       `/api/verify/confirm-code`,
       { email, code },
-      { isFormData: false, signal: getSignal("verifyCode") }
+      { isFormData: false, signal: getSignal("verifyCode") },
     );
   };
 
@@ -557,6 +607,10 @@ export const useApi = () => {
     promoteToAdmin,
     demoteFromAdmin,
     deleteTeam,
+    linkTeamProperty,
+    unlinkTeamProperty,
+    linkTeamBoard,
+    unlinkTeamBoard,
     // Notification APIs
     getNotifications,
     markNotificationRead,
