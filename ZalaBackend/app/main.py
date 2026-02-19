@@ -19,7 +19,7 @@ from app.routes import (
     board,
     board_step,
     team,
-    # auth,
+    auth,
     campaigns,
     campaign_leads,
 #     campaign_emails,
@@ -53,7 +53,7 @@ def read_root():
 # Mount all routes under the /api prefix
 app.include_router(users.public_router, prefix="/api")  # signup
 # app.include_router(email_verification.router, prefix="/api")  # email verification
-# app.include_router(auth.router, prefix="/api")  # Login with google signin
+app.include_router(auth.router, prefix="/api")  # Login with google signin
 # app.include_router(
 #     location_filter.router, prefix="/api", include_in_schema=True
 # )  # search leads
