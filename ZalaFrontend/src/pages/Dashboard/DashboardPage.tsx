@@ -11,8 +11,9 @@ import {
 import { useDashboardPage } from "../../hooks";
 import { LoadingPage } from "../Loading";
 import { AdminCardList, InvitedCardList, TeamCardList } from "./components";
+import transition from "../../utils/transitions/transition";
 
-export const DashboardPage = () => {
+const DashboardPage = () => {
   const {
     newTeamName,
     setNewTeamName,
@@ -281,3 +282,4 @@ export const DashboardPage = () => {
     </div>
   );
 };
+export default transition(DashboardPage);

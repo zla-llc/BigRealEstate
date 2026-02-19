@@ -3,8 +3,9 @@ import { useParams } from "react-router";
 import { useAllBoardsPage, useAppNavigation } from "../../hooks";
 import { LoadingPage } from "../Loading";
 import { BoardCard, BoardModal } from "../../components";
+import transition from "../../utils/transitions/transition";
 
-export const SingleBoardPage = () => {
+const SingleBoardPage = () => {
   const routeParams = useParams();
   const boardId = parseInt(routeParams?.boardId ?? `-1`);
 
@@ -56,3 +57,5 @@ export const SingleBoardPage = () => {
     </div>
   );
 };
+
+export default transition(SingleBoardPage);

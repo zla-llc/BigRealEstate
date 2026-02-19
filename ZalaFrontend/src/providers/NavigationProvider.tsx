@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router";
+import { BrowserRouter, Navigate, Route, Routes,useLocation } from "react-router";
 import {
   SignupPage,
   LoginPage,
@@ -9,13 +9,15 @@ import {
   TestEmailPage,
   CampaignEmailDemoPage,
   PastCampaignsPage,
-  DashboardPage,
   SMTPTestPage,
-  TeamInviteTestPage,
-  SingleBoardPage,
+  TeamInviteTestPage
 } from "../pages";
 import { RootLayout } from "../layouts";
 import { useAuthStore } from "../stores";
+import DashboardPage from "../pages/Dashboard/DashboardPage";
+import SingleBoardPage from "../pages/SingleBoard/SingleBoardPage";
+import { useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
 
 export const NavigationProvider = () => {
   const user = useAuthStore((state) => state.user);
@@ -23,9 +25,14 @@ export const NavigationProvider = () => {
   const NavToDashboard = () => <Navigate to={"/dashboard"} />;
   const NavTo404 = () => <Navigate to={"/404"} />;
   const NavToLogin = () => <Navigate to={"/login"} />;
+  const location = useLocation();
+
+  useEffect(() => {console.log(location)}, [location.pathname]);
+
   return (
-    <BrowserRouter>
-      <Routes>
+    <AnimatePresence mode="wait">
+
+      <Routes location={location} key={location.pathname}>
         <Route element={<RootLayout />}>
           <Route
             path="/login"
@@ -61,6 +68,7 @@ export const NavigationProvider = () => {
           <Route path="*" element={<NavTo404 />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </AnimatePresence>
+
   );
 };
