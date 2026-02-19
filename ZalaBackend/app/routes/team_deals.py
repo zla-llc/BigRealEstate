@@ -9,8 +9,10 @@ from app.db.crud import team_deal as deal_crud
 router = APIRouter(tags=["Team Deals"])
 
 
-@router.post("/team/{team_id}/property/{property_id}/close", response_model=schemas.TeamDealPublic, status_code=status.HTTP_201_CREATED)
-def create_team_deal(deal_create: schemas.TeamDealCreateRequest, team_id: int, property_id: int, db: Session = Depends(get_db)):
+@router.post("/team/{team_id}/property/{property_id}/close", response_model=schemas.TeamDealPublic,
+             status_code=status.HTTP_201_CREATED)
+def create_team_deal(deal_create: schemas.TeamDealCreateRequest, team_id: int, property_id: int,
+                     db: Session = Depends(get_db)):
     """Create team deal with team id and property id"""
     deal_data = schemas.TeamDealCreate(
         team_id=team_id,
@@ -59,3 +61,12 @@ def delete_team_deal(deal_id: int, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(status_code=404, detail="Deal not found")
     return None
+
+
+@router.get("/user/{user_id}/xp", response_model=schemas.UserDealXPPublic)
+def get_user_total_deal_xp(user_id: int, db: Session = Depends(get_db)):
+    """
+    Get total XP from deals
+    """
+    total_xp = deal_crud.get_user_total_xp(db, user_id=user_id)
+    return {"user_id": user_id, "total_xp": total_xp}
