@@ -29,6 +29,11 @@ export const useAutoLogin = () => {
   };
 
   const autoLogin = () => {
+    const loggedOut = window.sessionStorage.getItem("loggedOut");
+    if (loggedOut === "true") {
+      return;
+    }
+
     const userId = getCookie("userId");
 
     if (user) {

@@ -8,7 +8,9 @@ export const useLogout = () => {
 
   const onLogout = () => {
     setCookie("userId", "");
+    window.sessionStorage.removeItem("userId");
     window.localStorage.removeItem("userId");
+    window.sessionStorage.setItem("loggedOut", "true");
     setUser(undefined);
     toLoginPage();
   };
