@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes,useLocation } from "react-router";
+import { Navigate, Route, Routes,useLocation } from "react-router";
 import {
   SignupPage,
   LoginPage,
@@ -16,7 +16,6 @@ import { RootLayout } from "../layouts";
 import { useAuthStore } from "../stores";
 import DashboardPage from "../pages/Dashboard/DashboardPage";
 import SingleBoardPage from "../pages/SingleBoard/SingleBoardPage";
-import { useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 
 export const NavigationProvider = () => {
@@ -26,8 +25,6 @@ export const NavigationProvider = () => {
   const NavTo404 = () => <Navigate to={"/404"} />;
   const NavToLogin = () => <Navigate to={"/login"} />;
   const location = useLocation();
-
-  useEffect(() => {console.log(location)}, [location.pathname]);
 
   return (
     <AnimatePresence mode="wait">

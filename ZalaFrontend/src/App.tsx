@@ -2,7 +2,6 @@ import { CookiesProvider } from "react-cookie";
 import "./App.css";
 import { NavigationProvider } from "./providers";
 import { SnackbarProvider } from "notistack";
-import { AnimatePresence } from "framer-motion";
 
 function App() {
   return (
