@@ -42,3 +42,4 @@ class Property(Base):
         order_by="PropertyImage.sort_order",
     )
     team: Mapped[Optional["Team"]] = relationship("Team", back_populates="properties")
+    deal: Mapped["TeamDeal"] = relationship("TeamDeal", back_populates="property", uselist=False)

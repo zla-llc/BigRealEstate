@@ -18,6 +18,7 @@ export type ActionSide = "left" | "right";
 export type Actions = {
   type: ActionType;
   side: ActionSide;
+  visible?: boolean;
   iconBtnProps?: IconButtonProps;
   iconProps?: IconProps;
 };

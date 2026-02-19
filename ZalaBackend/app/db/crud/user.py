@@ -610,3 +610,47 @@ def authenticate_user(db: Session, username: str, password: str) -> User | None:
 
     # If all checks pass, return the user
     return db_user
+
+
+"""XP FUNCTIONS"""
+
+
+def add_xp(db: Session, user_id: int, amount: int) -> User | None:
+    """
+    Add XP to a user. amount can be positive or negative.
+    UPDATE users SET xp = xp + {amount} WHERE user_id = {user_id}
+    """
+    db_user = db.query(User).filter(User.user_id == user_id).first()
+    if not db_user:
+        return None
+    db_user.xp = (db_user.xp or 0) + amount
+    if db_user.xp < 0:
+        db_user.xp = 0
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+def reset_xp(db: Session, user_id: int) -> User | None:
+    """
+    Reset a user's XP to 0.
+    UPDATE users SET xp = 0 WHERE user_id = {user_id}
+    """
+    db_user = db.query(User).filter(User.user_id == user_id).first()
+    if not db_user:
+        return None
+    db_user.xp = 0
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+def get_xp(db: Session, user_id: int) -> int | None:
+    """
+    Get the current XP for a user.
+    SELECT xp FROM users WHERE user_id = {user_id}
+    """
+    db_user = db.query(User).filter(User.user_id == user_id).first()
+    if not db_user:
+        return None
+    return db_user.xp

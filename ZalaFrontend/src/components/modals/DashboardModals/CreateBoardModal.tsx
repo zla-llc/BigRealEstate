@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useAllBoardsPage } from "../../../hooks";
+import { useAllBoardsPage, useDashboardPage } from "../../../hooks";
 import { ModalHeader } from "../../headers";
 import { Icons } from "../../icons";
 import { ModalCenterButtons } from "../../buttons";
 import { TextInput } from "../../inputs";
+import { DashboardModalPages, useDashboardModalStore } from "../../../stores";
 
 type CreateBoardModalProps = {
   onClose?: () => void;
@@ -15,7 +16,20 @@ export const CreateBoardModal = ({
   onConfirm,
 }: CreateBoardModalProps) => {
   const { createBoard } = useAllBoardsPage();
+  const { page } = useDashboardModalStore();
+  const { linkTeamBoard } = useDashboardPage();
+
   const [boardTitle, setBoardTitle] = useState("");
+
+  const isTeamBoard = page === DashboardModalPages.CreateTeamBoardModal;
+
+  const onSubmit = async () => {
+    const kanbanBoard = await createBoard(
+      boardTitle.length > 0 ? boardTitle : undefined,
+    );
+    if (isTeamBoard && kanbanBoard) await linkTeamBoard(kanbanBoard.boardId);
+    onConfirm();
+  };
   return (
     <div className="full p-6 flex flex-col space-y-[30px]">
       <ModalHeader
@@ -49,10 +63,7 @@ export const CreateBoardModal = ({
       <ModalCenterButtons
         primary={{
           text: "Create board",
-          onClick: async () => (
-            await createBoard(boardTitle.length > 0 ? boardTitle : undefined),
-            onConfirm()
-          ),
+          onClick: onSubmit,
         }}
       />
     </div>

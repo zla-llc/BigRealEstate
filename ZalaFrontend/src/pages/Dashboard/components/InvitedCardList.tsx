@@ -1,9 +1,9 @@
 import { UserListCard } from "../../../components";
-import type { TeamInvitation } from "../../../interfaces";
+import type { ITeamInvitation } from "../../../interfaces";
 import type { UserListCardProps, DashboardCardButtonProps } from "./types";
 
 type InvitedCardListProps = UserListCardProps & {
-  invitations: TeamInvitation[];
+  invitations: ITeamInvitation[];
   button: DashboardCardButtonProps;
 };
 

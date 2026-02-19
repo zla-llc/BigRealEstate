@@ -1,3 +1,4 @@
+import { OverflowText } from "../feedback";
 import { DashboardCard, type DashboardCardProps } from "./DashboardCard";
 import { LeaderboardItemCard } from "./LeaderboardItemCard";
 
@@ -31,13 +32,7 @@ export const LeaderBoardsCard = (props: LeaderBoardsCardProps) => {
           ))}
         </div>
 
-        {overflowCount > 0 ? (
-          <div className="flex justify-center items-center">
-            + {overflowCount} More
-          </div>
-        ) : (
-          <div />
-        )}
+        <OverflowText overflowCount={overflowCount} />
       </div>
     </DashboardCard>
   );

@@ -9,7 +9,7 @@ from .board_step import BoardStepBase, BoardStepCreate, BoardStepUpdate, BoardSt
 from .user import (
     UserBase, UserCreate, UserSignup, UserUpdate, UserPublic, 
     UserPublicWithProperties, UserPublicWithLeads, UserPublicWithLeadsAndProperties,
-    UserSummary
+    UserSummary, XPAdd, XPPublic
 )
 from .unit import UnitBase, UnitCreate, UnitUpdate, UnitPublic
 from .lead import LeadBase, LeadCreate, LeadUpdate, LeadPublic
@@ -48,6 +48,9 @@ from .team import (
     TeamCreate,
     TeamUpdate,
     TeamPublic,
+    TeamPublicWithProperties,
+    TeamPublicWithBoards,
+    TeamPublicWithPropertiesAndBoards,
     TeamSummary,
     TeamLeaderboardEntry,
     TeamUserXPEntry,
@@ -64,7 +67,21 @@ from .notification import (
     NotificationPublic,
 )
 from .team import TeamSummary
+from .team_announcement import (
+    AnnouncementBase,
+    AnnouncementCreate,
+    AnnouncementUpdate,
+    AnnouncementPublic,
+)
 
+from .team_deal import (
+    TeamDealBase,
+    TeamDealCreate,
+    TeamDealCreateRequest,
+    TeamDealUpdate,
+    TeamDealPublic,
+    UserDealXPPublic
+)
 
 CampaignPublic.model_rebuild()
 PropertyPublic.model_rebuild()

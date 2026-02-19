@@ -1,4 +1,7 @@
-export type Team = {
+import type { AKanbanBoard } from "./BoardV2";
+import type { AProperty } from "./Property";
+
+export type ITeamBase = {
   team_id: number;
   team_name: string;
   created_at: string;
@@ -6,14 +9,14 @@ export type Team = {
   xp: number;
 };
 
-export type TeamMemberWithXP = {
+export type ITeamMemberWithXP = {
   user_id: number;
   username: string;
   xp: number;
-  teamMember?: TeamMember;
+  teamMember?: ITeamMember;
 };
 
-export type TeamMember = {
+export type ITeamMember = {
   role: string;
   user: {
     user_id: number;
@@ -24,11 +27,13 @@ export type TeamMember = {
   };
 };
 
-export type TeamWithMembers = Team & {
-  members: TeamMember[];
+export type ITeam = ITeamBase & {
+  members: ITeamMember[];
+  properties: AProperty[];
+  boards: AKanbanBoard[];
 };
 
-export type TeamInvitation = {
+export type ITeamInvitation = {
   invitation_id: number;
   team_id: number;
   sender_id: number;
@@ -36,10 +41,27 @@ export type TeamInvitation = {
   recipient_email: string;
   status: boolean | null; // null = pending, true = accepted, false = declined
   created_at: string;
-  team?: Team;
+  team?: ITeamBase;
 };
 
-export type Notification = {
+export type ITeamAnnouncement = {
+  announcement_id: number;
+  team_id: number;
+  author_id: number;
+  title: string;
+  message: string;
+  author?: {
+    user_id: number;
+    username: string;
+    profile_pic?: string;
+    first_name?: string;
+    last_name?: string;
+  };
+  created_at: string;
+  updated_at?: string;
+};
+
+export type INotification = {
   notification_id: number;
   recipient_id: number;
   sender_id: number;

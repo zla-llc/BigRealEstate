@@ -232,3 +232,33 @@ def remove_property(user_id: int, property_id: int, db: Session = Depends(get_db
     except Exception:
         pass
     return db_user
+
+
+# ── XP Routes ────────────────────────────────────────────────
+
+
+@router.get("/{user_id}/xp", response_model=_schemas.XPPublic, summary="Get User XP", tags=["User XP"])
+def get_user_xp(user_id: int, db: Session = Depends(get_db)):
+    """Get the current XP for a user."""
+    xp = user_crud.get_xp(db, user_id=user_id)
+    if xp is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return {"user_id": user_id, "xp": xp}
+
+
+@router.post("/{user_id}/xp", response_model=_schemas.XPPublic, summary="Add XP", tags=["User XP"])
+def add_user_xp(user_id: int, body: _schemas.XPAdd, db: Session = Depends(get_db)):
+    """Add XP to a user. The frontend provides the amount."""
+    db_user = user_crud.add_xp(db, user_id=user_id, amount=body.amount)
+    if not db_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return {"user_id": db_user.user_id, "xp": db_user.xp}
+
+
+@router.delete("/{user_id}/xp", response_model=_schemas.XPPublic, summary="Reset XP", tags=["User XP"])
+def reset_user_xp(user_id: int, db: Session = Depends(get_db)):
+    """Reset a user's XP back to 0."""
+    db_user = user_crud.reset_xp(db, user_id=user_id)
+    if not db_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    return {"user_id": db_user.user_id, "xp": db_user.xp}

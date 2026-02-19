@@ -33,6 +33,7 @@ export enum Icons {
   Group = "Group",
   Check = "Check",
   Pending = "Pending",
+  Announce = "Announce",
   Map = "Map",
   File = "File",
 }

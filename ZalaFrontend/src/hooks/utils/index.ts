@@ -17,3 +17,4 @@ export * from "./useSetKeyInObject";
 export * from "./useIsAddressValid";
 export * from "./useIsClamped";
 export * from "./useOverflow";
+export * from "./useFireIfExists";

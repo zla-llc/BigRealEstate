@@ -1,5 +1,5 @@
 import {
-  AnnouncmentsCard,
+  DashboardAnnouncmentsCard,
   BoardsListCard,
   Button,
   DashboardModals,
@@ -29,6 +29,11 @@ const DashboardPage = () => {
     userProperties,
     userBoards,
 
+    teamProperties,
+    teamBoards,
+
+    announcements,
+
     openTeamInvitationModal,
     openViewMemberModal,
     openLeaderboardModal,
@@ -36,10 +41,17 @@ const DashboardPage = () => {
     openViewPropertiesModal,
     openCreateBoardModal,
     openViewBoardsModal,
+    openCreateAnnouncmentModal,
+    openViewAnnouncementsModal,
+    onAddTeamPropertyClick,
+    openViewTeamPropertiesModal,
 
     onPropertyCardClick,
     onCreateTeam,
     onBoardClick,
+    onDeleteAnnouncement,
+    onEditAnnouncementClick,
+    onAddTeamBoardClick,
 
     setSelectedMemberId,
 
@@ -188,17 +200,21 @@ const DashboardPage = () => {
 
           <div className="flex flex-row gap-x-[60px]">
             <div className="w-[70%]">
-              <AnnouncmentsCard
+              <DashboardAnnouncmentsCard
                 title="Announcments:"
-                messages={Array(1)
-                  .fill(1)
-                  .map((_, i) => ({
-                    messageId: i,
-                    title: "Coming soon...",
-                    message: `Hi! Just a quick update to share that an Announcements feature will be coming soon to the Zala team dashboard. This new addition will allow teams to post and view important updates in one central place, making communication clearer and more efficient across the team.`,
-                  }))}
-                // onAdd={() => {}}
-                // btnProps={{ text: "View all" }}
+                overflowCount={overflow.announcements}
+                messages={[...announcements].splice(
+                  0,
+                  sliceCount.announcements + 1,
+                )}
+                onAdd={openCreateAnnouncmentModal}
+                btnProps={
+                  overflow.announcements > 0
+                    ? { text: "View all", onClick: openViewAnnouncementsModal }
+                    : undefined
+                }
+                onEdit={onEditAnnouncementClick}
+                onTrash={onDeleteAnnouncement}
               />
             </div>
             <div className="flex-grow">
@@ -225,10 +241,21 @@ const DashboardPage = () => {
           <div className="flex flex-row gap-[60px]">
             <div className="flex-1">
               <PropertiesListCard
-                properties={[]}
+                overflowCount={overflow.teamProperties}
+                properties={[...teamProperties.current].splice(
+                  0,
+                  sliceCount.teamProperties + 1,
+                )}
                 title="Team Properties:"
-                // onAdd={() => {}}
-                // btnProps={{ text: "View all" }}
+                btnProps={
+                  overflow.teamProperties > 0
+                    ? {
+                        text: "View all",
+                        onClick: openViewTeamPropertiesModal,
+                      }
+                    : undefined
+                }
+                onAdd={onAddTeamPropertyClick}
               />
             </div>
             <div className="flex-1">
@@ -244,7 +271,7 @@ const DashboardPage = () => {
                   overflow.property > 0
                     ? {
                         text: "View all",
-                        onClick: openViewPropertiesModal(userProperties),
+                        onClick: openViewPropertiesModal,
                       }
                     : undefined
                 }
@@ -255,7 +282,12 @@ const DashboardPage = () => {
 
           <div className="flex flex-row gap-[60px]">
             <div className="flex-1">
-              <BoardsListCard boards={[]} title="Team Boards:" />
+              <BoardsListCard
+                boards={teamBoards.current}
+                title="Team Boards:"
+                onClick={onBoardClick}
+                onAdd={onAddTeamBoardClick}
+              />
             </div>
             <div className="flex-1">
               <BoardsListCard

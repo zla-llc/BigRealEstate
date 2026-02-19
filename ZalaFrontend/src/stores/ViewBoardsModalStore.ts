@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { IKanbanBoard } from "../interfaces";
+import type { ModalButtonProps } from "../components";
 
 type IViewBoardsModalStore = {
   boards: IKanbanBoard[];
@@ -10,6 +11,13 @@ type IViewBoardsModalStore = {
 
   onClick: (boardId: number) => void;
   setOnClick: (onClick: (boardId: number) => void) => void;
+
+  primarySubmit?: ModalButtonProps;
+  secondarySubmit?: ModalButtonProps;
+  setSubmitButtons: (
+    primary?: ModalButtonProps,
+    secondary?: ModalButtonProps,
+  ) => void;
 };
 
 export const useViewBoardsModalStore = create<IViewBoardsModalStore>()(
@@ -22,5 +30,10 @@ export const useViewBoardsModalStore = create<IViewBoardsModalStore>()(
 
     onClick: () => {},
     setOnClick: (onClick) => set({ onClick }),
+
+    primarySubmit: undefined,
+    secondarySubmit: undefined,
+    setSubmitButtons: (primary, secondary) =>
+      set({ primarySubmit: primary, secondarySubmit: secondary }),
   }),
 );

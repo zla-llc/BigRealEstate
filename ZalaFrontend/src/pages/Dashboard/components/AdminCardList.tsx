@@ -1,10 +1,10 @@
 import { UserListCard } from "../../../components";
 import type { DashboardCardButtonProps, UserListCardProps } from "./types";
-import type { TeamMember } from "../../../interfaces";
+import type { ITeamMember } from "../../../interfaces";
 import { abbreviateName } from "../../../utils";
 
 type AdminCardListProps = UserListCardProps & {
-  members: TeamMember[];
+  members: ITeamMember[];
   button: DashboardCardButtonProps;
 };
 

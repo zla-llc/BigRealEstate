@@ -120,8 +120,10 @@ export const useManualCreateLeadModalPage = ({
     const contactFormInfo = new Map(DEFAULT_CONTACT_MAP.entries());
     if (editingBoardItem.contact) {
       showContact =
-        Validation.Object.isDefined(editingBoardItem.contact.email) &&
-        editingBoardItem.contact.email.length > 0;
+        (Validation.Object.isDefined(editingBoardItem.contact.email) &&
+          editingBoardItem.contact.email.length > 0) ||
+        (Validation.Object.isDefined(editingBoardItem.contact.phone) &&
+          editingBoardItem.contact.phone.length > 0);
       contactFormInfo.set(
         "firstName",
         editingBoardItem.contact.firstName ?? ""
@@ -196,9 +198,11 @@ export const useManualCreateLeadModalPage = ({
         return onValidationFail("Missing contact first name", showSnack);
       if (!isValidString(getKeyInObject("lastName", "contact")))
         return onValidationFail("Missing contact last name", showSnack);
-      if (!isValidString(getKeyInObject("email", "contact")))
-        return onValidationFail("Missing contact email", showSnack);
-      if (!getKeyInObject("email", "contact").includes("@"))
+      const email = getKeyInObject("email", "contact");
+      const phone = getKeyInObject("phone", "contact");
+      if (!isValidString(email) && !isValidString(phone))
+        return onValidationFail("Contact must have an email or phone number", showSnack);
+      if (isValidString(email) && !email.includes("@"))
         return onValidationFail("Malformatted email", showSnack);
     }
 
@@ -216,7 +220,8 @@ export const useManualCreateLeadModalPage = ({
       if (
         isValidString(getKeyInObject("firstName", "contact")) &&
         isValidString(getKeyInObject("lastName", "contact")) &&
-        isValidString(getKeyInObject("email", "contact"))
+        (isValidString(getKeyInObject("email", "contact")) ||
+          isValidString(getKeyInObject("phone", "contact")))
       )
         isContactFilled = true;
 
@@ -235,7 +240,11 @@ export const useManualCreateLeadModalPage = ({
       allowContact = true;
     }
 
-    if (showBuisInputs && isValidString(getKeyInObject("email", "contact"))) {
+    if (
+      showBuisInputs &&
+      (isValidString(getKeyInObject("email", "contact")) ||
+        isValidString(getKeyInObject("phone", "contact")))
+    ) {
       allowContact = true;
     }
 
@@ -256,8 +265,8 @@ export const useManualCreateLeadModalPage = ({
             contactId: editingBoardItem?.contact?.contactId ?? -1,
             firstName: getKeyInObject("firstName", "contact"),
             lastName: getKeyInObject("lastName", "contact"),
-            email: getKeyInObject("email", "contact"),
-            phone: getKeyInObject("phone", "contact"),
+            email: getKeyInObject("email", "contact") || undefined,
+            phone: getKeyInObject("phone", "contact") || undefined,
           }
         : undefined,
       address: allowAddress

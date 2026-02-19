@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import type { TeamMember, TeamMemberWithXP } from "../../interfaces";
+import type { ITeamMember, ITeamMemberWithXP } from "../../interfaces";
 import { useApi } from "./useApi";
 
 export const useTeamMembersWithXp = ({
@@ -7,14 +7,14 @@ export const useTeamMembersWithXp = ({
   teamMembers = [],
 }: {
   teamId: number;
-  teamMembers?: TeamMember[];
+  teamMembers?: ITeamMember[];
 }): [
-  TeamMemberWithXP[],
-  React.Dispatch<React.SetStateAction<TeamMemberWithXP[]>>,
+  ITeamMemberWithXP[],
+  React.Dispatch<React.SetStateAction<ITeamMemberWithXP[]>>,
   () => Promise<void>,
 ] => {
   const [teamMembersWithXp, setTeamMembersWithXp] = useState<
-    TeamMemberWithXP[]
+    ITeamMemberWithXP[]
   >([]);
   const api = useApi();
 

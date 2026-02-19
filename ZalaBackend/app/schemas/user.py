@@ -74,6 +74,24 @@ class UserUpdate(BaseModel):
     role: Optional[str] = "user"
 
 
+class XPAdd(BaseModel):
+    """
+    Schema for adding XP to a user.
+    """
+    amount: int = Field(..., description="Amount of XP to add (positive or negative)")
+
+
+class XPPublic(BaseModel):
+    """
+    Schema for returning a user's XP.
+    """
+    user_id: int
+    xp: int
+
+    class Config:
+        from_attributes = True
+
+
 class UserPublic(UserBase):
     """
     Schema for GET user (read/return)

@@ -64,6 +64,14 @@ class User(Base):
         back_populates="sender"
     )
 
+    announcements_authored: Mapped[List["TeamAnnouncement"]] = relationship(
+        "TeamAnnouncement",
+        back_populates="author",
+        cascade="all, delete-orphan"
+    )
+
+    deals: Mapped[List["TeamDeal"]] = relationship(back_populates="user")
+
     @property
     def gmail_connected(self) -> bool:
         # Use getattr so SQLAlchemy lazily loads credentials when needed.

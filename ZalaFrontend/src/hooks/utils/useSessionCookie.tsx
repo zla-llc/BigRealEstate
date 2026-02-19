@@ -7,7 +7,7 @@ const getStoredValue = (key: CookieNames) => {
     return undefined;
   }
 
-  return window.localStorage?.getItem(key) ?? undefined;
+  return window.sessionStorage?.getItem(key) ?? undefined;
 };
 
 const setStoredValue = (key: CookieNames, value: string) => {
@@ -15,7 +15,7 @@ const setStoredValue = (key: CookieNames, value: string) => {
     return undefined;
   }
 
-  window.localStorage?.setItem(key, value);
+  window.sessionStorage?.setItem(key, value);
   return value;
 };
 

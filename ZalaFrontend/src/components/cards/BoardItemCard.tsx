@@ -16,6 +16,7 @@ export type DraggableBoardItemData = {
 type BoardItemCardProps = {
   type: BoardItemType;
   stepId: number;
+  selected?: boolean;
   expanded?: boolean;
   leadInfo?: ILead;
   propertyInfo?: IPropertyCard;
@@ -27,6 +28,7 @@ export const BoardItemCard = ({
   stepId,
   expanded,
   leadInfo,
+  selected,
   propertyInfo,
   onClick,
 }: BoardItemCardProps) => {
@@ -36,8 +38,8 @@ export const BoardItemCard = ({
     ? leadInfo.buisness.length > 0
       ? leadInfo.buisness
       : leadInfo.contact
-      ? `${leadInfo.contact.firstName} ${leadInfo.contact.lastName}`.trim()
-      : "Unnamed lead"
+        ? `${leadInfo.contact.firstName} ${leadInfo.contact.lastName}`.trim()
+        : "Unnamed lead"
     : propertyInfo?.propertyName;
   const subtitle = leadInfo ? leadInfo.notes : propertyInfo?.notes;
 
@@ -57,7 +59,7 @@ export const BoardItemCard = ({
             cardId: leadInfo?.leadId ?? propertyInfo?.propertyId,
             fromStepId: stepId,
             cardType: type,
-          })
+          }),
         );
       }}
       className={clsx(
@@ -66,7 +68,7 @@ export const BoardItemCard = ({
         isHovered
           ? "-translate-y-[5px] transition-transform duration-75 cursor-pointer"
           : "",
-        onClick ? "active:scale-[.95]" : ""
+        onClick ? "active:scale-[.95]" : "",
       )}
       onClick={onClick}
     >
@@ -86,7 +88,14 @@ export const BoardItemCard = ({
       </div>
 
       <div className="flex flex-col">
-        <span className="text-lg">{title}</span>
+        <span
+          className={clsx(
+            "text-lg",
+            selected ? "text-accent" : "text-secondary",
+          )}
+        >
+          {title}
+        </span>
         <span className="text-sm text-secondary-50">{subtitle}</span>
       </div>
     </div>

@@ -4,13 +4,15 @@ import { useSnack } from "../utils";
 import {
   useAuthStore,
   useDashboardModalStore,
+  useEditingFormStore,
   useTeamsStore,
 } from "../../stores";
 import { CONFIG } from "../../config";
 import type {
-  TeamWithMembers,
-  TeamMember,
-  TeamInvitation,
+  ITeam,
+  ITeamInvitation,
+  ITeamMember,
+  ITeamAnnouncement,
 } from "../../interfaces";
 
 export const useTeamInvitePage = () => {
@@ -30,6 +32,8 @@ export const useTeamInvitePage = () => {
     setSelectedMemberId,
   } = useTeamsStore();
 
+  const editingFormStore = useEditingFormStore();
+
   // Dashboard Modal Control
   const closeModal = useDashboardModalStore((state) => state.toggle);
 
@@ -37,9 +41,8 @@ export const useTeamInvitePage = () => {
   const hasFetchedTeams = useRef(false);
 
   // State
-  const [selectedTeam, setSelectedTeam] = useState<TeamWithMembers | null>(
-    null,
-  );
+  const [selectedTeam, setSelectedTeam] = useState<ITeam | null>(null);
+  const [announcements, setAnnouncements] = useState<ITeamAnnouncement[]>([]);
 
   const [teamMembersWithXp, _setTeamMembersWithXp, refreshTeamMembersWithXp] =
     useTeamMembersWithXp({ teamId: selectedTeam?.team_id ?? -1 });
@@ -56,18 +59,26 @@ export const useTeamInvitePage = () => {
     null,
   );
   const [editMode, setEditMode] = useState(false);
+  const [postingAnnouncement, setPostingAnnouncement] = useState(false);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(false);
+  const [deletingAnnouncement, setDeletingAnnouncement] = useState<
+    number | null
+  >(null);
 
   // Form state
   const [newTeamName, setNewTeamName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
+  const [announcementTitle, setAnnouncementTitle] = useState("");
+  const [announcementMessage, setAnnouncementMessage] = useState("");
 
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showInvitePanel, setShowInvitePanel] = useState(false);
-  const [activeTab, setActiveTab] = useState<"members" | "invitations">(
-    "members",
-  );
+  const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<
+    "members" | "invitations" | "announcements"
+  >("members");
 
   // Load user's teams
   const loadTeams = async () => {
@@ -86,9 +97,20 @@ export const useTeamInvitePage = () => {
     const response = await api.getTeamInvitations(teamId, user.userId);
     if (response.data) {
       setInvitations(
-        response.data.filter((invite: TeamInvitation) => !invite.status),
+        response.data.filter((invite: ITeamInvitation) => !invite.status),
       );
     }
+  };
+
+  // Load team announcements
+  const loadAnnouncements = async (teamId: number) => {
+    if (!user) return;
+    setLoadingAnnouncements(true);
+    const response = await api.getTeamAnnouncements(teamId, user.userId);
+    if (response.data) {
+      setAnnouncements(response.data);
+    }
+    setLoadingAnnouncements(false);
   };
 
   // Initial load - only once
@@ -99,10 +121,11 @@ export const useTeamInvitePage = () => {
     }
   }, [user]);
 
-  // Load invitations when team is selected
+  // Load invitations and announcements when team is selected
   useEffect(() => {
     if (selectedTeam) {
       loadInvitations(selectedTeam.team_id);
+      loadAnnouncements(selectedTeam.team_id);
     }
   }, [selectedTeam?.team_id]);
 
@@ -186,7 +209,7 @@ export const useTeamInvitePage = () => {
               if (t.team_id !== currentTeamId) return t;
               // Check if member already exists
               if (
-                t.members.some((m: TeamMember) => m.user.user_id === user_id)
+                t.members.some((m: ITeamMember) => m.user.user_id === user_id)
               ) {
                 return t;
               }
@@ -220,7 +243,7 @@ export const useTeamInvitePage = () => {
               return {
                 ...t,
                 members: t.members.filter(
-                  (m: TeamMember) => m.user.user_id !== removedUserId,
+                  (m: ITeamMember) => m.user.user_id !== removedUserId,
                 ),
               };
             }),
@@ -248,7 +271,7 @@ export const useTeamInvitePage = () => {
               if (t.team_id !== currentTeamId) return t;
               return {
                 ...t,
-                members: t.members.map((m: TeamMember) =>
+                members: t.members.map((m: ITeamMember) =>
                   m.user.user_id === changedUserId
                     ? { ...m, role: newRole }
                     : m,
@@ -280,6 +303,54 @@ export const useTeamInvitePage = () => {
           setEditMode(false);
         }
 
+        // Handle new announcements in real-time
+        if (message.type === "new_announcement") {
+          console.log("[TeamWS] New announcement received:", message.data);
+          const newAnnouncement: ITeamAnnouncement = {
+            announcement_id: message.data.announcement_id,
+            team_id: message.data.team_id,
+            author_id: message.data.author_id,
+            title: message.data.title,
+            message: message.data.message,
+            created_at: message.data.created_at,
+            author: {
+              user_id: message.data.author_id,
+              username: message.data.author_name,
+              profile_pic: message.data.author_profile_pic,
+            },
+          };
+
+          // Add to beginning of announcements list
+          setAnnouncements((prev) => [newAnnouncement, ...prev]);
+        }
+
+        // Handle announcement updates
+        if (message.type === "announcement_updated") {
+          console.log("[TeamWS] Announcement updated:", message.data);
+          setAnnouncements((prev) =>
+            prev.map((a) =>
+              a.announcement_id === message.data.announcement_id
+                ? {
+                    ...a,
+                    title: message.data.title,
+                    message: message.data.message,
+                    updated_at: message.data.updated_at,
+                  }
+                : a,
+            ),
+          );
+        }
+
+        // Handle announcement deletions
+        if (message.type === "announcement_deleted") {
+          console.log("[TeamWS] Announcement deleted:", message.data);
+          setAnnouncements((prev) =>
+            prev.filter(
+              (a) => a.announcement_id !== message.data.announcement_id,
+            ),
+          );
+        }
+
         if ((message.type as string).includes("member")) {
           loadInvitations(selectedTeam.team_id);
           refreshTeamMembersWithXp();
@@ -307,6 +378,14 @@ export const useTeamInvitePage = () => {
   const onCreateTeam = async () => {
     if (!user || !newTeamName.trim()) {
       errorMsg("Team name is required");
+      return;
+    }
+
+    // Check if user is already in a team (users can only join 1 team)
+    if (teams.length > 0) {
+      errorMsg(
+        "You're already on a team. Leave your current team first to create a new one.",
+      );
       return;
     }
 
@@ -387,7 +466,7 @@ export const useTeamInvitePage = () => {
         return {
           ...t,
           members: t.members.filter(
-            (m: TeamMember) => m.user.user_id !== memberId,
+            (m: ITeamMember) => m.user.user_id !== memberId,
           ),
         };
       }),
@@ -425,7 +504,7 @@ export const useTeamInvitePage = () => {
         if (t.team_id !== selectedTeam.team_id) return t;
         return {
           ...t,
-          members: t.members.map((m: TeamMember) =>
+          members: t.members.map((m: ITeamMember) =>
             m.user.user_id === memberId ? { ...m, role: "admin" } : m,
           ),
         };
@@ -463,7 +542,7 @@ export const useTeamInvitePage = () => {
         if (t.team_id !== selectedTeam.team_id) return t;
         return {
           ...t,
-          members: t.members.map((m: TeamMember) =>
+          members: t.members.map((m: ITeamMember) =>
             m.user.user_id === memberId ? { ...m, role: "member" } : m,
           ),
         };
@@ -471,8 +550,98 @@ export const useTeamInvitePage = () => {
     );
   };
 
+  const validateAnnouncement = () => {
+    if (!user || !selectedTeam) return false;
+
+    if (!announcementTitle.trim()) {
+      errorMsg("Please enter a title for your announcement");
+      return false;
+    }
+
+    if (!announcementMessage.trim()) {
+      errorMsg("Please enter a message for your announcement");
+      return false;
+    }
+
+    return true;
+  };
+
+  // Post announcement handler (admin only)
+  const onPostAnnouncement = async () => {
+    if (!validateAnnouncement()) return false;
+
+    setPostingAnnouncement(true);
+    const response = await api.createAnnouncement({
+      team_id: selectedTeam!.team_id,
+      author_id: user!.userId,
+      title: announcementTitle.trim(),
+      message: announcementMessage.trim(),
+    });
+    setPostingAnnouncement(false);
+
+    if (response.err || !response.data) {
+      errorMsg(response.err ?? "Failed to post announcement");
+      return false;
+    }
+
+    successMsg("Announcement posted!");
+    setAnnouncementTitle("");
+    setAnnouncementMessage("");
+    setShowAnnouncementModal(false);
+    return true;
+    // The WebSocket will add the announcement to the list in real-time
+  };
+
+  const onUpdateAnnouncement = async () => {
+    if (editingFormStore.announcementId === -1) return false;
+    if (!validateAnnouncement()) return false;
+
+    setPostingAnnouncement(true);
+    const response = await api.updateAnnouncement({
+      announcement_id: editingFormStore.announcementId,
+      team_id: selectedTeam!.team_id,
+      user_id: user!.userId,
+      title: announcementTitle.trim(),
+      message: announcementMessage.trim(),
+    });
+    setPostingAnnouncement(false);
+
+    if (response.err || !response.data) {
+      errorMsg(response.err ?? "Failed to post announcement");
+      return false;
+    }
+
+    successMsg("Announcement updated!");
+    setAnnouncementTitle("");
+    setAnnouncementMessage("");
+    setShowAnnouncementModal(false);
+    return true;
+    // The WebSocket will add the announcement to the list in real-time
+  };
+
+  // Delete announcement handler (admin only)
+  const onDeleteAnnouncement = async (announcementId: number) => {
+    if (!user || !selectedTeam) return;
+
+    setDeletingAnnouncement(announcementId);
+    const response = await api.deleteAnnouncement(
+      selectedTeam.team_id,
+      announcementId,
+      user.userId,
+    );
+    setDeletingAnnouncement(null);
+
+    if (response.err) {
+      errorMsg(response.err ?? "Failed to delete announcement");
+      return;
+    }
+
+    successMsg("Announcement deleted");
+    // The WebSocket will remove the announcement from the list in real-time
+  };
+
   // Helper to get display name for member
-  const getMemberDisplayName = (member: TeamWithMembers["members"][0]) => {
+  const getMemberDisplayName = (member: ITeam["members"][0]) => {
     const { first_name, last_name, username, user_id } = member.user || {};
 
     // Prefer first name + last name if available
@@ -485,7 +654,7 @@ export const useTeamInvitePage = () => {
   };
 
   // Check if current user is the team creator (original admin)
-  const isCurrentUserCreator = (team: TeamWithMembers | null): boolean => {
+  const isCurrentUserCreator = (team: ITeam | null): boolean => {
     if (!team || !user) return false;
     // If created_by_user_id is set, check if current user is the creator
     if (team.created_by_user_id) {
@@ -498,7 +667,7 @@ export const useTeamInvitePage = () => {
   };
 
   // Check if current user is any admin of the selected team
-  const isCurrentUserAdmin = (team: TeamWithMembers | null): boolean => {
+  const isCurrentUserAdmin = (team: ITeam | null): boolean => {
     if (!team || !user) return false;
     return team.members.some(
       (m) => m.user.user_id === user.userId && m.role === "admin",
@@ -551,7 +720,7 @@ export const useTeamInvitePage = () => {
   };
 
   // Select a team
-  const onSelectTeam = (team: TeamWithMembers) => {
+  const onSelectTeam = (team: ITeam) => {
     setSelectedTeam(team);
     setEditMode(false);
     setShowInvitePanel(false);
@@ -600,6 +769,7 @@ export const useTeamInvitePage = () => {
     selectedTeam,
     teamMembersWithXp,
     invitations,
+    announcements,
     selectedMemberId,
     isInvitee,
     setSelectedMemberId,
@@ -614,6 +784,9 @@ export const useTeamInvitePage = () => {
       demotingMember,
       deletingTeam,
       cancelingInvitation,
+      postingAnnouncement,
+      loadingAnnouncements,
+      deletingAnnouncement,
     },
 
     // UI states
@@ -621,6 +794,7 @@ export const useTeamInvitePage = () => {
     showCreateModal,
     showDeleteModal,
     showInvitePanel,
+    showAnnouncementModal,
     activeTab,
 
     // Form values
@@ -629,6 +803,10 @@ export const useTeamInvitePage = () => {
       setNewTeamName,
       inviteEmail,
       setInviteEmail,
+      announcementTitle,
+      setAnnouncementTitle,
+      announcementMessage,
+      setAnnouncementMessage,
     },
 
     // Actions
@@ -642,6 +820,9 @@ export const useTeamInvitePage = () => {
       onCancelInvitation,
       onSelectTeam,
       loadTeams,
+      onPostAnnouncement,
+      onDeleteAnnouncement,
+      onUpdateAnnouncement,
     },
 
     // Modal/UI controls
@@ -654,6 +835,7 @@ export const useTeamInvitePage = () => {
       toggleInvitePanel,
       setActiveTab,
       setShowInvitePanel,
+      setShowAnnouncementModal,
     },
 
     // Helper functions
@@ -661,6 +843,8 @@ export const useTeamInvitePage = () => {
       getMemberDisplayName,
       isCurrentUserCreator,
       isCurrentUserAdmin,
+      // User can only be in one team
+      canCreateOrJoinTeam: teams.length === 0,
     },
   };
 };

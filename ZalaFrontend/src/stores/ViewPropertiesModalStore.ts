@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { IProperty } from "../interfaces";
+import type { ModalButtonProps } from "../components";
 
 type IViewPropertiesModalStore = {
   properties: IProperty[];
@@ -10,6 +11,13 @@ type IViewPropertiesModalStore = {
 
   onClick: (propertyId: number) => void;
   setOnClick: (onClick: (propertyId: number) => void) => void;
+
+  primarySubmit?: ModalButtonProps;
+  secondarySubmit?: ModalButtonProps;
+  setSubmitButtons: (
+    primary?: ModalButtonProps,
+    secondary?: ModalButtonProps,
+  ) => void;
 };
 
 export const useViewPropertiesModalStore = create<IViewPropertiesModalStore>()(
@@ -22,5 +30,10 @@ export const useViewPropertiesModalStore = create<IViewPropertiesModalStore>()(
 
     onClick: () => {},
     setOnClick: (onClick) => set({ onClick }),
+
+    primarySubmit: undefined,
+    secondarySubmit: undefined,
+    setSubmitButtons: (primary, secondary) =>
+      set({ primarySubmit: primary, secondarySubmit: secondary }),
   }),
 );
