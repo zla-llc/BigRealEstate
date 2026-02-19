@@ -74,6 +74,14 @@ from .team_announcement import (
     AnnouncementPublic,
 )
 
+from .team_deal import (
+    TeamDealBase,
+    TeamDealCreate,
+    TeamDealCreateRequest,
+    TeamDealUpdate,
+    TeamDealPublic,
+    UserDealXPPublic
+)
 
 CampaignPublic.model_rebuild()
 PropertyPublic.model_rebuild()
