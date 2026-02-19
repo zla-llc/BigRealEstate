@@ -43,8 +43,8 @@ export const EmailModal = ({
   console.log(notHasEmail)
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="w-full h-full p-6 flex flex-col justify-between">
-        <div className="space-y-[5px]">
+      <div className="w-full max-h-[80vh] p-6 flex flex-col overflow-hidden">
+        <div className="space-y-[5px] mb-4 flex-shrink-0">
           <h2 className="text-2xl font-bold text-secondary">
             Email Lead{leads.length > 1 ? "s" : ""}
           </h2>
@@ -71,8 +71,7 @@ export const EmailModal = ({
             {notHasEmail.length > 3 ? `+${notHasEmail.length - 3} more` : ""}
           </p>
         </div>
-
-        <div className="space-y-[15px]">
+        <div className="space-y-[15px] flex-1 overflow-y-auto pr-2 min-h-0">
           <TextInput
             label="Subject"
             value={subject}
@@ -104,8 +103,7 @@ export const EmailModal = ({
             )}
           </div>
         </div>
-
-        <div className="flex flex-row space-x-[15px]">
+        <div className="flex flex-row space-x-[15px] mt-6 pt-2 border-t border-gray-100 flex-shrink-0">
           <Button
             text={"Cancel"}
             onClick={onClose}
