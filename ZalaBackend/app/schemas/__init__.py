@@ -78,7 +78,8 @@ from .team_deal import (
     TeamDealCreate,
     TeamDealCreateRequest,
     TeamDealUpdate,
-    TeamDealPublic
+    TeamDealPublic,
+    UserDealXPPublic
 )
 
 CampaignPublic.model_rebuild()
