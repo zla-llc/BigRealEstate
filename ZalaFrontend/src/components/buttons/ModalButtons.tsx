@@ -3,7 +3,7 @@ import type { Icons } from "../icons";
 import { ButtonVariant } from "./ButtonVariant";
 import clsx from "clsx";
 
-type ModalButtonProps = {
+export type ModalButtonProps = {
   text: string;
   icon?: Icons;
   disabled?: boolean;
@@ -21,7 +21,7 @@ export const ModalButtons = ({ primary, secondary }: ModalButtonsProps) => {
       <div
         className={clsx(
           "flex-1",
-          secondary ? "" : "opacity-0 pointer-events-none"
+          secondary ? "" : "opacity-0 pointer-events-none",
         )}
       >
         <Button

@@ -42,9 +42,8 @@ type BoardCardColumnProps = {
     center?: boolean;
     editable?: boolean;
   };
-  key: string;
 
-  actions?: Actions[];
+  actions?: (Actions | null)[];
   height?: number | string;
   expanded?: boolean;
 

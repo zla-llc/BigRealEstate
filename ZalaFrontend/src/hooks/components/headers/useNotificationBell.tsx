@@ -1,10 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { useAuthStore, useNotificationStore, useTeamsStore } from "../../../stores";
+import {
+  useAuthStore,
+  useNotificationStore,
+  useTeamsStore,
+} from "../../../stores";
 import { useApi } from "../../api";
 import { useSnack } from "../../utils";
 import { wsManager } from "../../../utils";
 import { CONFIG } from "../../../config";
-import type { Notification, TeamWithMembers } from "../../api/types";
+import type { Notification, ITeam } from "../../api/types";
 
 export const useNotificationBell = () => {
   const user = useAuthStore((state) => state.user);
@@ -29,7 +33,9 @@ export const useNotificationBell = () => {
 
   // Constants
   const PREVIEW_COUNT = 3;
-  const displayedNotifications = showAll ? notifications : notifications.slice(0, PREVIEW_COUNT);
+  const displayedNotifications = showAll
+    ? notifications
+    : notifications.slice(0, PREVIEW_COUNT);
   const hasMoreNotifications = notifications.length > PREVIEW_COUNT;
 
   // Load notifications on mount - only once
@@ -59,25 +65,37 @@ export const useNotificationBell = () => {
     wsConnected.current = true;
 
     // Listen for new notifications - WebSocket only pushes when events happen
-    const unsubscribe = wsManager.on<Notification>("notification", (message) => {
-      console.log("New notification received:", message);
-      addNotification(message.data as Notification);
-    });
+    const unsubscribe = wsManager.on<Notification>(
+      "notification",
+      (message) => {
+        console.log("New notification received:", message);
+        addNotification(message.data as Notification);
+      },
+    );
 
     // Listen for team_deleted events - remove team from My Teams in real-time
-    const unsubscribeTeamDeleted = wsManager.on<{ team_id: number; team_name: string }>("team_deleted", (message) => {
+    const unsubscribeTeamDeleted = wsManager.on<{
+      team_id: number;
+      team_name: string;
+    }>("team_deleted", (message) => {
       console.log("[NotificationBell] Team deleted:", message.data);
       removeTeam(message.data.team_id);
     });
 
     // Listen for team_joined events - add team to My Teams when user accepts invitation
-    const unsubscribeTeamJoined = wsManager.on<TeamWithMembers>("team_joined", (message) => {
-      console.log("[NotificationBell] Team joined:", message.data);
-      addTeam(message.data);
-    });
+    const unsubscribeTeamJoined = wsManager.on<ITeam>(
+      "team_joined",
+      (message) => {
+        console.log("[NotificationBell] Team joined:", message.data);
+        addTeam(message.data);
+      },
+    );
 
     // Listen for member_kicked events - remove team from My Teams when user is kicked
-    const unsubscribeMemberKicked = wsManager.on<{ team_id: number; team_name: string }>("member_kicked", (message) => {
+    const unsubscribeMemberKicked = wsManager.on<{
+      team_id: number;
+      team_name: string;
+    }>("member_kicked", (message) => {
       console.log("[NotificationBell] Kicked from team:", message.data);
       removeTeam(message.data.team_id);
     });
@@ -95,7 +113,10 @@ export const useNotificationBell = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
@@ -113,7 +134,7 @@ export const useNotificationBell = () => {
   };
 
   const onMarkAllAsRead = async () => {
-    for (const notif of displayedNotifications.filter(n => !n.viewed)) {
+    for (const notif of displayedNotifications.filter((n) => !n.viewed)) {
       await onMarkAsRead(notif.notification_id);
     }
   };
@@ -122,13 +143,15 @@ export const useNotificationBell = () => {
     invitationId: number,
     accept: boolean,
     notificationId: number,
-    _teamId?: number
+    _teamId?: number,
   ) => {
     if (!user) return;
 
     // Check if user is already in a team before accepting (users can only join 1 team)
     if (accept && teams.length > 0) {
-      errorMsg("You're already on a team. Leave your current team first to join another.");
+      errorMsg(
+        "You're already on a team. Leave your current team first to join another.",
+      );
       return;
     }
 
@@ -180,13 +203,14 @@ export const useNotificationBell = () => {
     }
   };
 
-  const isInvitePending = (notif: Notification) =>
+  const isInvitePending = (notif: INotification) =>
     notif.type === "team_invite" && notif.invitation_id && !notif.viewed;
 
-  const isInviteResponded = (notif: Notification) =>
-    notif.type === "team_invite_accepted" || notif.type === "team_invite_declined";
+  const isInviteResponded = (notif: INotification) =>
+    notif.type === "team_invite_accepted" ||
+    notif.type === "team_invite_declined";
 
-  const isRemoved = (notif: Notification) => notif.type === "team_removed";
+  const isRemoved = (notif: INotification) => notif.type === "team_removed";
 
   // User can only join one team
   const canJoinTeam = teams.length === 0;

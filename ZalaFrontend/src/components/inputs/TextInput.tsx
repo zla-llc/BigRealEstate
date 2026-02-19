@@ -23,6 +23,7 @@ export type TextInputProps = {
   secure?: boolean;
   type?: React.InputHTMLAttributes<HTMLInputElement>["type"];
   optional?: boolean;
+  disabled?: boolean;
 
   onKeyPressProps?: UseOnKeyPressProps;
   errorMsg?: string;
@@ -35,6 +36,7 @@ export const TextInput = ({
   optional,
   placeholder,
   value,
+  disabled,
   setValue,
 
   icon,
@@ -63,6 +65,7 @@ export const TextInput = ({
         className={clsx(
           "flex flex-row relative rounded-[15px] border-2 box-shadow-sm",
           "bg-white focus-within:border-accent",
+          disabled ? "cursor-not-allowed" : "",
           errorMsg
             ? "border-error"
             : optional
@@ -74,7 +77,8 @@ export const TextInput = ({
           ref={inputRef}
           className={clsx(
             "peer flex-1 outline-none text-xl rounded-[15px]",
-            "px-2.5 cursor-text",
+            "px-2.5 ",
+            disabled ? "cursor-not-allowed" : "cursor-text",
             "focus:outline-none",
             "placeholder:text-secondary-50",
             optional ? "text-secondary-50" : "text-secondary",
@@ -86,6 +90,7 @@ export const TextInput = ({
           onBlur={toggleFocus}
           onChange={onChange}
           onKeyDown={onKeyPress}
+          disabled={disabled}
         />
 
         <div

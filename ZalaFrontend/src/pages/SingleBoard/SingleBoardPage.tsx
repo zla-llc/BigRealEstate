@@ -1,8 +1,20 @@
 import { useEffect } from "react";
 import { useParams } from "react-router";
-import { useAllBoardsPage, useAppNavigation } from "../../hooks";
+import {
+  useAllBoardsPage,
+  useAppNavigation,
+  useDashboardPage,
+  useTimeoutEffect,
+} from "../../hooks";
 import { LoadingPage } from "../Loading";
-import { BoardCard, BoardModal } from "../../components";
+import {
+  BoardCard,
+  BoardModal,
+  Button,
+  ButtonVariant,
+  Icons,
+} from "../../components";
+import { useAuthStore } from "../../stores";
 
 export const SingleBoardPage = () => {
   const routeParams = useParams();
@@ -16,14 +28,27 @@ export const SingleBoardPage = () => {
     setSelectedBoardName,
     stepName,
     stepNameId,
+    boardsLoading,
     getBoards,
     onDeleteBoardBtn,
     onStepNameChange,
     onRemoveBoardStep,
     onSettingsBtn,
+    onAddBoardStep,
   } = useAllBoardsPage();
+  const { user } = useAuthStore();
 
-  const { goBack } = useAppNavigation();
+  const { teamBoards, isUserAdmin, unlinkTeamBoard } = useDashboardPage();
+  const isTeamBoard = teamBoards.current
+    .map((board) => board.boardId)
+    .includes(selectedBoard?.boardId ?? -1);
+  const isUserBoardCreator = selectedBoard?.userId === user?.userId;
+
+  const canUserMakeAdminChanges = isTeamBoard
+    ? isUserAdmin || isUserBoardCreator
+    : true;
+
+  const { toDashboard, goBack, toNotFound } = useAppNavigation();
 
   useEffect(() => {
     if (boards.length <= 0) return;
@@ -31,10 +56,28 @@ export const SingleBoardPage = () => {
     if (board) setSelectedBoard(board);
   }, [boards.length]);
 
+  useTimeoutEffect(
+    () => {
+      if (!selectedBoard && !boardsLoading) toNotFound();
+    },
+    [boardsLoading, selectedBoard],
+    500,
+  );
+
+  const onRemoveBoard = async () => {
+    if (!selectedBoard) return;
+
+    if (isTeamBoard) await unlinkTeamBoard(selectedBoard.boardId);
+
+    await onDeleteBoardBtn();
+
+    toDashboard();
+  };
+
   if (!selectedBoard?.boardId) return <LoadingPage text="" />;
 
   return (
-    <div className="flex flex-col gap-y-[60px] flex-1 overflow-y-scroll">
+    <div className="flex relative flex-col gap-y-[60px] flex-1 overflow-y-scroll">
       <BoardCard
         board={selectedBoard}
         expandable={{
@@ -42,15 +85,29 @@ export const SingleBoardPage = () => {
           boardName: selectedBoardName,
           stepName,
           stepNameId,
+          editable: canUserMakeAdminChanges,
           onBoardStepNameChange: onStepNameChange,
           onBoardNameChange: setSelectedBoardName,
-          onTrashBtn: onDeleteBoardBtn,
+          onTrashBtn: canUserMakeAdminChanges ? onRemoveBoard : undefined,
           onBackBtn: goBack,
-          onDeleteStep: onRemoveBoardStep,
-          onSettingsBtn,
+          onDeleteStep: canUserMakeAdminChanges ? onRemoveBoardStep : undefined,
+          onSettingsBtn: canUserMakeAdminChanges ? onSettingsBtn : undefined,
           reloadBoards: getBoards,
         }}
       />
+
+      {canUserMakeAdminChanges && (
+        <div className="fixed pointer-events-none bottom-0 left-0 right-0 z-[10] flex flex-row justify-end pb-[30px] pr-[30px]">
+          <div className="flex-[.15] pointer-events-auto flex justify-center items-center flex-row">
+            <Button
+              variant={ButtonVariant.Primary}
+              text="Add Step"
+              icon={Icons.Add}
+              onClick={onAddBoardStep}
+            />
+          </div>
+        </div>
+      )}
 
       <BoardModal onAddLeads={() => getBoards()} />
     </div>

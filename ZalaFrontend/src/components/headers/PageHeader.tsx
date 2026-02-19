@@ -14,6 +14,7 @@ export const PageHeader = (props: PageHeaderProps) => {
       value=""
       {...props}
       editable={false}
+      hideInput
       setValue={() => {}}
     />
   );

@@ -17,3 +17,5 @@ export * from "./LeaderboardModalStore";
 export * from "./CreatePropertyStore";
 export * from "./ViewPropertiesModalStore";
 export * from "./ViewBoardsModalStore";
+export * from "./EditingFormStore";
+export * from "./SelectedIdsStore";
