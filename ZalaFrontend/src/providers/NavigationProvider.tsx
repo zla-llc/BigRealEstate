@@ -1,21 +1,19 @@
 import { Navigate, Route, Routes,useLocation } from "react-router";
-import {
-  SignupPage,
-  LoginPage,
-  KanbanBoardPage,
-  LeadSearchPage,
-  CampaignPage,
-  NotFoundPage,
-  TestEmailPage,
-  CampaignEmailDemoPage,
-  PastCampaignsPage,
-  SMTPTestPage,
-  TeamInviteTestPage
-} from "../pages";
+import TeamInviteTestPage from "../pages/TeamInviteTest/TeamInviteTestPage";
 import { RootLayout } from "../layouts";
 import { useAuthStore } from "../stores";
 import DashboardPage from "../pages/Dashboard/DashboardPage";
 import SingleBoardPage from "../pages/SingleBoard/SingleBoardPage";
+import LeadSearchPage from "../pages/LeadSearch/LeadSearchPage";
+import LoginPage from "../pages/Auth/Login/LoginPage";
+import SignupPage from "../pages/Auth/Signup/SignupPage";
+import KanbanBoardPage from "../pages/Boards/KanbanBoardPage";
+import CampaignPage from "../pages/Campaign/CampaignPage";
+import NotFoundPage from "../pages/NotFound/NotFoundPage";
+import TestEmailPage from "../pages/TestEmail/TestEmailPage";
+import CampaignEmailDemoPage from "../pages/CampaignEmailDemo/CampaignEmailDemoPage";
+import PastCampaignsPage from "../pages/PastCampaigns/PastCampaignsPage";
+import SMTPTestPage from "../pages/SMTPTest/SMTPTestPage";
 import { AnimatePresence } from "framer-motion";
 
 export const NavigationProvider = () => {

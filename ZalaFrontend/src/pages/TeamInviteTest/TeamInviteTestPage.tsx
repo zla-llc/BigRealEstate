@@ -2,7 +2,7 @@ import { TextInput } from "../../components";
 import { Icons, Icon } from "../../components/icons";
 import { useTeamInvitePage } from "../../hooks";
 import type { TeamMember, TeamWithMembers } from "../../interfaces";
-
+import transition from "../../utils/transitions/transition";
 // Modal component for creating teams
 const CreateTeamModal = ({
   isOpen,
@@ -132,7 +132,7 @@ const getStatusBadge = (status: boolean | null) => {
   );
 };
 
-export const TeamInviteTestPage = () => {
+const TeamInviteTestPage = () => {
   const {
     user,
     teams,
@@ -782,3 +782,5 @@ const InvitationsTab = ({
     </>
   );
 };
+
+export default transition(TeamInviteTestPage);

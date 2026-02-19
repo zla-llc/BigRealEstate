@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import { TextInput, Button, Icons, IconButtonVariant } from "../../components";
 import { useApi } from "../../hooks";
 import { useSnack } from "../../hooks/utils";
-
+import transition from "../../utils/transitions/transition";
 type SMTPConfig = {
   configured: boolean;
   host: string | null;
   port: number;
 };
 
-export const SMTPTestPage = () => {
+const SMTPTestPage = () => {
   const { smtpGetConfig, smtpSendEmail } = useApi();
   const [successMsg, errorMsg] = useSnack();
 
@@ -156,3 +156,4 @@ export const SMTPTestPage = () => {
   );
 };
 
+export default transition(SMTPTestPage);

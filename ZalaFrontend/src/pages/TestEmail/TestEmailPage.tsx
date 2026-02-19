@@ -10,8 +10,9 @@ import {
 import { useApi } from "../../hooks";
 import { useAuthStore } from "../../stores";
 import { useGoogleAuthButtonCallback, useSnack } from "../../hooks/utils";
+import transition from "../../utils/transitions/transition";
 
-export const TestEmailPage = () => {
+const TestEmailPage = () => {
   const user = useAuthStore((state) => state.user);
   const gmailConnected = user?.gmailConnected ?? false;
 
@@ -164,3 +165,4 @@ export const TestEmailPage = () => {
     </div>
   );
 };
+export default transition(TestEmailPage);

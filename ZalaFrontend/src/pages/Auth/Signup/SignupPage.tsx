@@ -5,8 +5,9 @@ import {
 } from "../../../components";
 import { useSignupPage } from "../../../hooks";
 import { CardPage } from "../components";
+import transition from "../../../utils/transitions/transition";
 
-export const SignupPage = () => {
+const SignupPage = () => {
   const {
     state: {
       userName,
@@ -186,3 +187,4 @@ export const SignupPage = () => {
     </CardPage>
   );
 };
+export default transition(SignupPage);
