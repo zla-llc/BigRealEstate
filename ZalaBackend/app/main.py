@@ -9,7 +9,7 @@ load_dotenv()
 
 from app.routes import (
     csv_intake,
-    # location_filter,
+    location_filter,
     contacts,
     addresses,
     properties,
@@ -22,8 +22,8 @@ from app.routes import (
     auth,
     campaigns,
     campaign_leads,
-#     campaign_emails,
-#     google_mail,
+    campaign_emails,
+    google_mail,
     smtp,
     notifications,
     websocket,
@@ -52,19 +52,19 @@ def read_root():
 
 # Mount all routes under the /api prefix
 app.include_router(users.public_router, prefix="/api")  # signup
-# app.include_router(email_verification.router, prefix="/api")  # email verification
+app.include_router(email_verification.router, prefix="/api")  # email verification
 app.include_router(auth.router, prefix="/api")  # Login with google signin
-# app.include_router(
-#     location_filter.router, prefix="/api", include_in_schema=True
-# )  # search leads
-# app.include_router(
-#     google_mail.router, prefix="/api", include_in_schema=True
-# )  # Google Mail Integration
-#
-# app.include_router(
-#     campaign_emails.send_router, prefix="/api", include_in_schema=True
-# )  # Send Campaign Email
-# app.include_router(campaign_emails.router, prefix="/api", include_in_schema=True)
+app.include_router(
+    location_filter.router, prefix="/api", include_in_schema=True
+)  # search leads
+app.include_router(
+    google_mail.router, prefix="/api", include_in_schema=True
+)  # Google Mail Integration
+
+app.include_router(
+    campaign_emails.send_router, prefix="/api", include_in_schema=True
+)  # Send Campaign Email
+app.include_router(campaign_emails.router, prefix="/api", include_in_schema=True)
 app.include_router(campaign_leads.router, prefix="/api", include_in_schema=True)
 app.include_router(team.router, prefix="/api", include_in_schema=True)
 
