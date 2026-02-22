@@ -2,12 +2,13 @@ import { useAuthStore } from "../../stores";
 import { useApi } from "../api";
 import { AUserToIUser, type IUser } from "../../interfaces";
 import { useAppNavigation, useSessionCookie, useTimeoutEffect } from "../utils";
+import { CookieKeys } from "../../interfaces/CookieKeys";
 
 export const useAutoLogin = () => {
   const { user, setUser } = useAuthStore();
 
   const { toLoginPage } = useAppNavigation();
-  const [getCookie, setCookie] = useSessionCookie();
+  const [getCookie, _setCookie, removeCookie] = useSessionCookie();
 
   const { getUser } = useApi();
 
@@ -16,7 +17,7 @@ export const useAutoLogin = () => {
       autoLogin();
     },
     [],
-    250
+    250,
   );
 
   const onUserFound = (user: IUser) => {
@@ -24,17 +25,17 @@ export const useAutoLogin = () => {
   };
 
   const onUserNotFound = () => {
-    setCookie("userId", "");
+    removeCookie(CookieKeys.UserId);
     toLoginPage();
   };
 
   const autoLogin = () => {
-    const loggedOut = window.sessionStorage.getItem("loggedOut");
+    const loggedOut = getCookie(CookieKeys.LoggedOut);
     if (loggedOut === "true") {
       return;
     }
 
-    const userId = getCookie("userId");
+    const userId = getCookie(CookieKeys.UserId);
 
     if (user) {
       return;

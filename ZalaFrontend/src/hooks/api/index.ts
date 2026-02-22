@@ -11,4 +11,5 @@ export * from "./useTeamMembersWithXp";
 export * from "./useUserProperties";
 export * from "./useUserBoards";
 export * from "./useGetBoard";
+export * from "./useAlterUserXp";
 export * from "./useProperties";

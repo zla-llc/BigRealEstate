@@ -10,6 +10,7 @@ import {
   type ITeam,
   type ITeamMemberWithXP,
   type ITeamAnnouncement,
+  type AUserIdXp,
 } from "../../interfaces";
 import type {
   CreateUserProps,
@@ -88,6 +89,28 @@ export const useApi = () => {
       isFormData: false,
       signal: getSignal("createUser"),
     });
+  };
+
+  const getUserXp = async (userId: number) => {
+    return await get<AUserIdXp>(
+      `/api/users/${userId}/xp`,
+      getSignal("getUserXp"),
+    );
+  };
+
+  const addUserXP = async (userId: number, xp: number) => {
+    return await post<AUserIdXp>(
+      `/api/users/${userId}/xp`,
+      { amount: xp },
+      { isFormData: false, signal: getSignal("addUserXP") },
+    );
+  };
+
+  const restoreUserXp = async (userId: number) => {
+    return await del<AUserIdXp>(
+      `/api/users/${userId}/xp`,
+      getSignal("restoreUserXp"),
+    );
   };
 
   const createCampaign = async ({
@@ -574,6 +597,9 @@ export const useApi = () => {
     ...propertyApiRoutes,
     apiResponseError,
     createUser,
+    getUserXp,
+    addUserXP,
+    restoreUserXp,
     linkContactToUser,
     loginAPI,
     getUser,

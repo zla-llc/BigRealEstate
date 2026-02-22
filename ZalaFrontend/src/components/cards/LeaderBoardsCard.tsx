@@ -15,13 +15,12 @@ type LeaderBoardsCardProps = DashboardCardProps & {
 
 export const LeaderBoardsCard = (props: LeaderBoardsCardProps) => {
   const { users, overflowCount, onClick = () => {} } = props;
-  const sortedUsers = users.sort((a, b) => a.xp - b.xp);
 
   return (
     <DashboardCard {...props}>
       <div className="w-full flex flex-col gap-y-[15px]">
         <div className="flex flex-col gap-y-[30px]">
-          {sortedUsers.map((usr, i) => (
+          {users.map((usr, i) => (
             <LeaderboardItemCard
               key={i}
               title={usr.title}

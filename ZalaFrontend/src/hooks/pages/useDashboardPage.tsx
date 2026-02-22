@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTeamInvitePage } from "./useTeamInvitePage";
 import {
   useAppNavigation,
@@ -25,7 +25,7 @@ import {
   type LeaderboardItem,
 } from "../../interfaces";
 import { stringify, teamMemberFullName } from "../../utils";
-import { useUserBoards, useUserProperties } from "../api";
+import { useAlterUserXp, useUserBoards, useUserProperties } from "../api";
 import { Icons } from "../../components";
 
 const MAX_ADMIN_COUNT = 4;
@@ -77,6 +77,7 @@ export const useDashboardPage = () => {
   } = useTeamInvitePage();
 
   const [successMsg, errorMsg] = useSnack();
+  const alterUserXP = useAlterUserXp();
 
   const {
     isOpen,
@@ -128,7 +129,7 @@ export const useDashboardPage = () => {
   const isUserAdmin =
     adminMembers.find((member) => member.user.user_id === user?.userId) !==
     undefined;
-  const leaderboardMembers: LeaderboardItem[] = teamMembersWithXp.map(
+  const leaderboardMembersMapped: LeaderboardItem[] = teamMembersWithXp.map(
     (member) => ({
       id: member.user_id,
       xp: member.xp,
@@ -138,6 +139,16 @@ export const useDashboardPage = () => {
       ),
     }),
   );
+  const [leaderboardMembers, setLeaderboardMembers] = useState<
+    LeaderboardItem[]
+  >([]);
+
+  useEffect(() => {
+    const sorted = [...leaderboardMembersMapped].sort((a, b) => b.xp - a.xp);
+    setLeaderboardMembers(sorted);
+    console.log(sorted);
+    console.log(``);
+  }, [leaderboardMembersMapped.length]);
 
   const [
     invitationsOverflow,
@@ -189,6 +200,10 @@ export const useDashboardPage = () => {
   useEffect(() => {
     userPropertiesRef.current = userProperties;
   }, [stringify(userProperties)]);
+
+  useEffect(() => {
+    if (user?.userId) (async () => await alterUserXP.getUserXp())();
+  }, [user?.userId]);
 
   useEffect(() => {
     const editingAnnouncment = announcements.find(
