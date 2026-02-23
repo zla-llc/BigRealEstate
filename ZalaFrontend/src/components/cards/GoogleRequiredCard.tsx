@@ -28,7 +28,7 @@ export const GoogleRequiredCard = ({ user }: GoogleRequiredCardProps) => {
       </p>
       <p className="text-sm text-secondary-50">
         {user.gmailConnected
-          ? "You're ready to send Gmail campaigns from Zala."
+          ? "You're ready to send Gmail campaigns from ZLA."
           : "Sign in with Google to enable Gmail sending from campaigns and test emails."}
       </p>
 

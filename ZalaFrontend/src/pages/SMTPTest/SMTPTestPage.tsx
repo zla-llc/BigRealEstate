@@ -19,9 +19,9 @@ export const SMTPTestPage = () => {
   // Form state
   const [toEmail, setToEmail] = useState("");
   const [name, setName] = useState("");
-  const [subject, setSubject] = useState("You're Invited to Join Zala!");
+  const [subject, setSubject] = useState("You're Invited to Join ZLA!");
   const [body, setBody] = useState(
-    "You've been invited to join a team on Zala. Click the link below to get started."
+    "You've been invited to join a team on ZLA. Click the link below to get started."
   );
   const [sending, setSending] = useState(false);
 

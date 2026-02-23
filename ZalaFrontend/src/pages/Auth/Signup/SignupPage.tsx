@@ -41,7 +41,7 @@ export const SignupPage = () => {
     <CardPage
       text={{
         pre: "Signup on ",
-        highlight: "Zala CRM ",
+        highlight: "ZLA CRM ",
         end: "to connect with leads for free! Today!",
       }}
       primaryBtn={{

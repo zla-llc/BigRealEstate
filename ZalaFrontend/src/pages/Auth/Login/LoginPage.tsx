@@ -14,7 +14,7 @@ export const LoginPage = () => {
     <CardPage
       text={{
         pre: "Login to ",
-        highlight: "Zala CRM ",
+        highlight: "ZLA CRM ",
         end: "to connect with leads!",
       }}
       primaryBtn={{
