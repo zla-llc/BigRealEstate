@@ -351,6 +351,50 @@ export const useTeamInvitePage = () => {
           );
         }
 
+        // Handle team info updates (name, xp) in real-time
+        if (message.type === "team_updated") {
+          console.log("[TeamWS] Team updated:", message.data);
+          const { team_name, xp } = message.data;
+
+          setSelectedTeam((prev) => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              ...(team_name !== undefined && { team_name }),
+              ...(xp !== undefined && { xp }),
+            };
+          });
+
+          setTeams((prev) =>
+            prev.map((t) => {
+              if (t.team_id !== currentTeamId) return t;
+              return {
+                ...t,
+                ...(team_name !== undefined && { team_name }),
+                ...(xp !== undefined && { xp }),
+              };
+            }),
+          );
+        }
+
+        // Handle property linked/unlinked — reload teams to get fresh data
+        if (
+          message.type === "team_property_linked" ||
+          message.type === "team_property_unlinked"
+        ) {
+          console.log("[TeamWS] Team property changed:", message.type, message.data);
+          loadTeams();
+        }
+
+        // Handle board linked/unlinked — reload teams to get fresh data
+        if (
+          message.type === "team_board_linked" ||
+          message.type === "team_board_unlinked"
+        ) {
+          console.log("[TeamWS] Team board changed:", message.type, message.data);
+          loadTeams();
+        }
+
         if ((message.type as string).includes("member")) {
           loadInvitations(selectedTeam.team_id);
           refreshTeamMembersWithXp();

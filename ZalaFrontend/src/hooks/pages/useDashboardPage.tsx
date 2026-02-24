@@ -222,8 +222,8 @@ export const useDashboardPage = () => {
       const team = teams[0];
       onSelectTeam(team);
       setNewTeamName(team.team_name);
-      teamProperties.current = team.properties.map(APropertyToIProperty);
-      teamBoards.current = team.boards.map(AKanbanBoardToIKanbanBoard);
+      teamProperties.current = (team.properties ?? []).map(APropertyToIProperty);
+      teamBoards.current = (team.boards ?? []).map(AKanbanBoardToIKanbanBoard);
     }
   }, [stringify(teams)]);
 
