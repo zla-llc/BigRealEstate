@@ -764,7 +764,7 @@ export const useTeamInvitePage = () => {
   };
 
   // Select a team
-  const onSelectTeam = (team: ITeam) => {
+  const onSelectTeam = (team: ITeam | null) => {
     setSelectedTeam(team);
     setEditMode(false);
     setShowInvitePanel(false);

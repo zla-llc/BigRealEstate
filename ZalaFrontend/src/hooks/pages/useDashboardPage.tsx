@@ -224,6 +224,12 @@ export const useDashboardPage = () => {
       setNewTeamName(team.team_name);
       teamProperties.current = (team.properties ?? []).map(APropertyToIProperty);
       teamBoards.current = (team.boards ?? []).map(AKanbanBoardToIKanbanBoard);
+    } else {
+      // User was removed from team or team was deleted — clear the dashboard
+      onSelectTeam(null);
+      setNewTeamName("");
+      teamProperties.current = [];
+      teamBoards.current = [];
     }
   }, [stringify(teams)]);
 

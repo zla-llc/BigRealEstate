@@ -5,6 +5,7 @@ type AvatarCardProps = {
   size?: number;
   onClick?: () => void;
   hoverable?: boolean;
+  borderColor?: string;
 };
 
 export const AvatarCard = ({
@@ -12,6 +13,7 @@ export const AvatarCard = ({
   hoverable,
   title,
   size = 75,
+  borderColor,
 }: AvatarCardProps) => {
   const avatarSize = size;
   return (
@@ -21,6 +23,7 @@ export const AvatarCard = ({
         minWidth: avatarSize,
         height: avatarSize,
         borderRadius: avatarSize,
+        ...(borderColor ? { borderColor, borderWidth: 3 } : {}),
       }}
       className={clsx(
         "flex items-center justify-center card-base-secondary text-xl font-bold",
