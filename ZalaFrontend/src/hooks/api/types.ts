@@ -160,6 +160,7 @@ export type CreateBoardStepProps = {
 
 export type UpdateBoardProps = CreateBoardProps & {
   boardId: number;
+  boardType: string;
 };
 
 export type CreateManualLeadProps = {

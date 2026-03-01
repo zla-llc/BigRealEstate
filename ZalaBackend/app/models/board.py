@@ -15,8 +15,8 @@ class Board(Base):
     board_id: Mapped[int] = mapped_column(primary_key=True)
     board_name: Mapped[str] = mapped_column(nullable=False)
     user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.user_id"), nullable=True)
+    board_type: Mapped[str] = mapped_column(nullable=False)
     team_id: Mapped[int] = mapped_column(ForeignKey("teams.team_id"), nullable=True)
-
     user: Mapped[Optional["User"]] = relationship("User", back_populates="boards")
     team: Mapped[Optional["User"]] = relationship("Team", back_populates="boards")
     board_steps: Mapped[List["BoardStep"]] = relationship(

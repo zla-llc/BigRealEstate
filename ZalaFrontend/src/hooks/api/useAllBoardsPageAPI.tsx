@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSnack, useTimeoutEffect } from "../utils";
 import { useApi } from "./useApi";
 import {
@@ -8,13 +8,18 @@ import {
   type AKanbanBoard,
   type IKanbanBoard,
 } from "../../interfaces";
-import { useAuthStore, useBoardStore } from "../../stores";
+import {
+  useAuthStore,
+  useBoardSettingsStore,
+  useBoardStore,
+} from "../../stores";
 import { produce } from "immer";
 import { DEFAULTS } from "../../config";
 
 export const useAllBoardsPageAPI = () => {
   const { board: selectedBoard, setBoard: setSelectedBoard } = useBoardStore();
   const user = useAuthStore((state) => state.user);
+  const { boardType } = useBoardSettingsStore();
   const {
     setSignal,
     updateBoard,
@@ -42,6 +47,14 @@ export const useAllBoardsPageAPI = () => {
   const [abortController, _setAbortController] = useState(
     new AbortController(),
   );
+
+  useEffect(() => {
+    if (
+      selectedBoard?.boardName &&
+      selectedBoard.boardName !== selectedBoardName
+    )
+      setSelectedBoardName(selectedBoard.boardName);
+  }, [selectedBoard?.boardName]);
 
   useTimeoutEffect(
     () => {
@@ -149,6 +162,7 @@ export const useAllBoardsPageAPI = () => {
     const { err, data } = await updateBoard({
       boardId: selectedBoard.boardId,
       boardName: newBoardName,
+      boardType: boardType,
       userId: user.userId,
     });
     updateBoardNameRef.current = false;
@@ -216,6 +230,10 @@ export const useAllBoardsPageAPI = () => {
   const selectedBoardAPIResponse = (data: AKanbanBoard) => {
     const board = AKanbanBoardToIKanbanBoard(data);
 
+    console.log(`Response Board:`);
+    console.log(board);
+    console.log(``);
+
     setBoards((prev) =>
       produce(prev, (draft) => {
         const index = draft.findIndex(
@@ -228,6 +246,7 @@ export const useAllBoardsPageAPI = () => {
         }
       }),
     );
+    setSelectedBoard(board);
   };
 
   const selectedBoardStepAPIResponse = (data: ABoardStepCard) => {

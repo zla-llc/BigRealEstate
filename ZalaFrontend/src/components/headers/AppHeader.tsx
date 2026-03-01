@@ -4,6 +4,11 @@ import { Icons } from "../icons";
 import { TextInput } from "../inputs";
 import { NotificationBell } from "./NotificationBell";
 
+/**
+ * The header of the app once you log in. Includes the search bar and top buttons.
+ *
+ * @returns {AppHeader}
+ */
 export const AppHeader = () => {
   const {
     query,

@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes,useLocation } from "react-router";
+import { Navigate, Route, Routes, useLocation } from "react-router";
 import TeamInviteTestPage from "../pages/TeamInviteTest/TeamInviteTestPage";
 import { RootLayout } from "../layouts";
 import { useAuthStore } from "../stores";
@@ -8,7 +8,7 @@ import LeadSearchPage from "../pages/LeadSearch/LeadSearchPage";
 import LoginPage from "../pages/Auth/Login/LoginPage";
 import SignupPage from "../pages/Auth/Signup/SignupPage";
 import KanbanBoardPage from "../pages/Boards/KanbanBoardPage";
-import CampaignPage from "../pages/Campaign/CampaignPage";
+import { CampaignPage } from "../pages/Campaign/CampaignPage";
 import NotFoundPage from "../pages/NotFound/NotFoundPage";
 import TestEmailPage from "../pages/TestEmail/TestEmailPage";
 import CampaignEmailDemoPage from "../pages/CampaignEmailDemo/CampaignEmailDemoPage";
@@ -16,6 +16,11 @@ import PastCampaignsPage from "../pages/PastCampaigns/PastCampaignsPage";
 import SMTPTestPage from "../pages/SMTPTest/SMTPTestPage";
 import { AnimatePresence } from "framer-motion";
 
+/**
+ * Handles which components and pages to show from URL.
+ *
+ * @returns {BrowserRouter}
+ */
 export const NavigationProvider = () => {
   const user = useAuthStore((state) => state.user);
   // const NavToLeadSearch = () => <Navigate to={"/search"} />;
@@ -26,7 +31,6 @@ export const NavigationProvider = () => {
 
   return (
     <AnimatePresence mode="wait">
-
       <Routes location={location} key={location.pathname}>
         <Route element={<RootLayout />}>
           <Route
@@ -64,6 +68,5 @@ export const NavigationProvider = () => {
         </Route>
       </Routes>
     </AnimatePresence>
-
   );
 };

@@ -6,7 +6,7 @@ class ContactBase(BaseModel):
     """
     Shared fields for Contact
     """
-    first_name: str
+    first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = Field(default=None, max_length=20)
@@ -42,8 +42,7 @@ class ContactUpdate(ContactBase):
     """
     Schema for updating an existing Contact
     """
-
-    first_name: Optional[str]
+    first_name: Optional[str] = None
     last_name: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = Field(default=None, max_length=20)
