@@ -20,7 +20,7 @@ export const useNotificationBell = () => {
     markAsRead,
     removeNotification,
   } = useNotificationStore();
-  const { teams, addTeam, removeTeam } = useTeamsStore();
+  const { teams, addTeam, removeTeam, setTeams } = useTeamsStore();
   const api = useApi();
   const [, errorMsg] = useSnack();
 
@@ -172,6 +172,14 @@ export const useNotificationBell = () => {
     const refreshResponse = await api.getNotifications(user.userId);
     if (refreshResponse.data) {
       setNotifications(refreshResponse.data);
+    }
+
+    // If accepted, reload teams so the dashboard gets full team data (properties, boards, etc.)
+    if (accept) {
+      const teamsResponse = await api.getTeamsByUser(user.userId);
+      if (teamsResponse.data) {
+        setTeams(teamsResponse.data);
+      }
     }
   };
 

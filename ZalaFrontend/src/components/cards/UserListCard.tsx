@@ -6,6 +6,7 @@ import { AvatarCard } from "./AvatarCard";
 type UserCircle = {
   title: string;
   tooltip?: { title: string; subtitle?: string };
+  borderColor?: string;
 };
 
 type UserListCardProps = DashboardCardProps & {
@@ -59,7 +60,7 @@ const UserCard = ({
                 : undefined
             }
           >
-            <AvatarCard onClick={onClick} title={user.title} />
+            <AvatarCard onClick={onClick} title={user.title} borderColor={user.borderColor} />
           </TooltipContainer>
         )}
         {title && !user && <AvatarCard title={title} />}

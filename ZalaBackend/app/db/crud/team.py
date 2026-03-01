@@ -38,6 +38,22 @@ def get_team_with_members(db: Session, team_id: int) -> Optional[Team]:
     return get_team_by_id(db, team_id)
 
 
+def get_team_full(db: Session, team_id: int) -> Optional[Team]:
+    """Return a single team by id with members, properties, and boards all eagerly loaded."""
+    return (
+        db.query(Team)
+        .options(
+            joinedload(Team.member_links)
+            .joinedload(UserTeam.user)
+            .joinedload(User.contact),
+            selectinload(Team.properties),
+            selectinload(Team.boards),
+        )
+        .filter(Team.team_id == team_id)
+        .first()
+    )
+
+
 def get_teams(db: Session, skip: int = 0, limit: int = 100) -> List[Team]:
     """Return a paginated list of teams."""
 
