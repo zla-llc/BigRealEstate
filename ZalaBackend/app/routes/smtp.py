@@ -11,6 +11,8 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
 
+from app.utils.email_signature import get_signature_html, attach_signature_logo
+
 router = APIRouter(prefix="/smtp", tags=["SMTP"])
 
 
@@ -37,7 +39,7 @@ def get_smtp_config() -> dict:
         "password": os.getenv("SMTP_PASSWORD", ""),
         "use_tls": os.getenv("SMTP_USE_TLS", "true").lower() == "true",
         "from_email": os.getenv("SMTP_FROM_EMAIL", ""),
-        "from_name": os.getenv("SMTP_FROM_NAME", "Zala"),
+        "from_name": os.getenv("SMTP_FROM_NAME", "ZLA CRM"),
     }
 
 
@@ -91,6 +93,9 @@ async def send_email(request: SendEmailRequest):
     # Plain text version
     text_content = full_body
     
+    # Build signature
+    signature_html = get_signature_html()
+
     # HTML version
     html_content = f"""
     <html>
@@ -98,15 +103,19 @@ async def send_email(request: SendEmailRequest):
         <div style="max-width: 600px; margin: 0 auto;">
           <p style="color: #333; font-size: 16px;">Hi {request.name},</p>
           <p style="color: #333; line-height: 1.6;">{request.body}</p>
-          <br>
-          <p style="color: #666; font-size: 14px;">— {from_name}</p>
+          {signature_html}
         </div>
       </body>
     </html>
     """
-    
+
+    # Use "related" subtype so the CID-referenced logo renders inline
+    msg_related = MIMEMultipart("related")
+    msg_related.attach(MIMEText(html_content, "html"))
+    attach_signature_logo(msg_related)
+
     msg.attach(MIMEText(text_content, "plain"))
-    msg.attach(MIMEText(html_content, "html"))
+    msg.attach(msg_related)
     
     try:
         # Connect and send

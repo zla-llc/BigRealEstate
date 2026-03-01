@@ -6,6 +6,11 @@
 export type WebSocketEventType =
   | "notification"
   | "team_update"
+  | "team_updated"
+  | "team_property_linked"
+  | "team_property_unlinked"
+  | "team_board_linked"
+  | "team_board_unlinked"
   | "invitation_update"
   | "member_joined"
   | "member_removed"

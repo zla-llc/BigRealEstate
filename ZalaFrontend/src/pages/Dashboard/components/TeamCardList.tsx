@@ -34,6 +34,7 @@ export const TeamCardList = ({
                 ? `${member.user.first_name} ${member.user.last_name}`.trim()
                 : undefined,
           },
+          borderColor: member.role === "admin" ? "#F59E0B" : "#3B82F6",
         }))
         .splice(0, spliceCount)}
       onClick={onClick}

@@ -19,6 +19,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+from app.utils.email_signature import get_signature_html, attach_signature_logo
+
 
 def _get_smtp_config():
     host = os.getenv("SMTP_HOST", "smtp.gmail.com")
@@ -40,7 +42,8 @@ def send_verification_email(to_email: str, code: str) -> bool:
         print("[EMAIL SERVICE] SMTP_USER or SMTP_PASSWORD not set – skipping email send")
         return False
 
-    subject = "Zala CRM – Verify Your Email"
+    subject = "ZLA CRM – Verify Your Email"
+    signature_html = get_signature_html()
     html_body = f"""
     <div style="font-family: Arial, sans-serif; max-width: 480px; margin: auto; padding: 24px;">
         <h2 style="color: #333;">Verify your email</h2>
@@ -58,15 +61,21 @@ def send_verification_email(to_email: str, code: str) -> bool:
         <p style="color: #666; font-size: 14px;">
             This code expires in 10 minutes. If you didn't request this, you can ignore this email.
         </p>
+        {signature_html}
     </div>
     """
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = f"Zala CRM <{from_addr}>"
+    msg["From"] = f"ZLA CRM <{from_addr}>"
     msg["To"] = to_email
-    msg.attach(MIMEText(f"Your Zala CRM verification code is: {code}", "plain"))
-    msg.attach(MIMEText(html_body, "html"))
+    msg.attach(MIMEText(f"Your ZLA CRM verification code is: {code}", "plain"))
+
+    # Wrap HTML + logo in a "related" part so the CID image renders inline
+    msg_related = MIMEMultipart("related")
+    msg_related.attach(MIMEText(html_body, "html"))
+    attach_signature_logo(msg_related)
+    msg.attach(msg_related)
 
     try:
         if port == 465:
