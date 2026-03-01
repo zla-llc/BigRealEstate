@@ -45,7 +45,7 @@ export const DashboardPage = () => {
     onAddTeamPropertyClick,
     openViewTeamPropertiesModal,
 
-    onPropertyCardClick,
+    onUserPropertyClick,
     onCreateTeam,
     onBoardClick,
     onDeleteAnnouncement,
@@ -276,7 +276,7 @@ export const DashboardPage = () => {
                       }
                     : undefined
                 }
-                onClick={onPropertyCardClick}
+                onClick={onUserPropertyClick}
               />
             </div>
           </div>

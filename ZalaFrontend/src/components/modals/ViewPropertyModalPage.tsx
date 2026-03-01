@@ -11,8 +11,16 @@ type ViewPropertyModalPageProps = {
 export const ViewPropertyModalPage = ({
   onClose,
 }: ViewPropertyModalPageProps) => {
-  const { title, property, primaryBtn, secondaryBtn, images, onEdit, toUrl } =
-    useViewPropertyModalPage();
+  const {
+    title,
+    isClosed,
+    property,
+    primaryBtn,
+    secondaryBtn,
+    images,
+    onEdit,
+    toUrl,
+  } = useViewPropertyModalPage();
 
   return (
     <div className="full p-6 flex flex-col space-y-7.5">
@@ -51,6 +59,13 @@ export const ViewPropertyModalPage = ({
               />
             </div>
             <div className="flex-1">
+              {isClosed && (
+                <div className="">
+                  <div className="border-2 bg-white rounded-md flex flex-row justify-center items-center">
+                    <p className="text-md ">Sold</p>
+                  </div>
+                </div>
+              )}
               <p className="text-xl text-secondary">{property.propertyName}</p>
               <p className="text-lg text-secondary-50">{property.notes}</p>
             </div>

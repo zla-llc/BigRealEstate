@@ -249,7 +249,7 @@ export type CloseTeamDealProps = {
   teamId: number;
   propertyId: number;
   user_id: number;
-  lead_id?: number;
+  lead_id: number | null;
   sale_price: number;
   notes: string;
   closed_at: string;

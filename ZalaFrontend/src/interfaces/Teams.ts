@@ -31,6 +31,7 @@ export type ITeam = ITeamBase & {
   members: ITeamMember[];
   properties: AProperty[];
   boards: AKanbanBoard[];
+  deals: ITeamDeal[];
 };
 
 export type ITeamInvitation = {

@@ -12,10 +12,12 @@ type IViewPropertyModalControlButtonKeys =
 
 type IViewPropertyModalControlStore = IViewPropertyModalControlButtons & {
   title: string;
+  isClosed: boolean;
 
   onEdit?: () => void;
 
   setTitle: (title: string) => void;
+  setIsClosed: (isClosed: boolean) => void;
   setOnEdit: (onEdit?: () => void) => void;
 
   setActionBtn: (
@@ -28,8 +30,10 @@ type IViewPropertyModalControlStore = IViewPropertyModalControlButtons & {
 export const useViewPropertyModalControlStore =
   create<IViewPropertyModalControlStore>()((set, get) => ({
     title: "",
+    isClosed: false,
 
     setTitle: (title) => set({ title }),
+    setIsClosed: (isClosed) => set({ isClosed }),
     setOnEdit: (onEdit) => set({ onEdit }),
 
     setActionBtn: (key, btn) =>
