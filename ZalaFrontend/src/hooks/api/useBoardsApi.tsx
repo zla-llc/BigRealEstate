@@ -14,7 +14,14 @@ export const useBoardsApi = ({ getSignal }: APIHookProps) => {
     // TODO: Should we send in user id so that we only get current user's boards
     return await get<AKanbanBoard[]>(
       `/api/boards?limit=50`,
-      getSignal("getUserBoards")
+      getSignal("getUserBoards"),
+    );
+  };
+
+  const getBoard = async ({ boardId }: { boardId: number }) => {
+    return await get<AKanbanBoard>(
+      `/api/boards/${boardId}`,
+      getSignal("getBoard"),
     );
   };
 
@@ -26,7 +33,7 @@ export const useBoardsApi = ({ getSignal }: APIHookProps) => {
         board_name: boardName,
         board_type: "lead"
       },
-      { signal: getSignal("createBoard") }
+      { signal: getSignal("createBoard") },
     );
   };
 
@@ -54,7 +61,7 @@ export const useBoardsApi = ({ getSignal }: APIHookProps) => {
       {
         step_name: name,
       },
-      { isFormData: false, signal: getSignal("updateBoardStepName") }
+      { isFormData: false, signal: getSignal("updateBoardStepName") },
     );
   };
 
@@ -68,7 +75,7 @@ export const useBoardsApi = ({ getSignal }: APIHookProps) => {
     return await put<ABoardStepCard>(
       `/api/board-steps/${stepId}`,
       { lead_ids: leadIds },
-      { isFormData: false, signal: getSignal("updateBoardStepLeads") }
+      { isFormData: false, signal: getSignal("updateBoardStepLeads") },
     );
   };
 
@@ -82,7 +89,7 @@ export const useBoardsApi = ({ getSignal }: APIHookProps) => {
     return await put<ABoardStepCard>(
       `/api/board-steps/${stepId}`,
       { property_ids: propertyIds },
-      { isFormData: false, signal: getSignal("updateBoardStepProperties") }
+      { isFormData: false, signal: getSignal("updateBoardStepProperties") },
     );
   };
 
@@ -99,7 +106,7 @@ export const useBoardsApi = ({ getSignal }: APIHookProps) => {
         board_name: boardName,
         board_type: boardType
       },
-      { signal: getSignal("updateBoard") }
+      { signal: getSignal("updateBoard") },
     );
   };
 
@@ -112,6 +119,7 @@ export const useBoardsApi = ({ getSignal }: APIHookProps) => {
   };
 
   return {
+    getBoard,
     getUserBoards,
     createBoard,
     createBoardStep,

@@ -4,10 +4,18 @@ import {
 } from "./EditablePageHeader";
 
 type PageHeaderProps = Omit<
-  Omit<EditablePageHeaderProps, "setValue">,
+  Omit<Omit<EditablePageHeaderProps, "value">, "setValue">,
   "editable"
->;
+> & { value?: string };
 
 export const PageHeader = (props: PageHeaderProps) => {
-  return <EditablePageHeader {...props} editable={false} setValue={() => {}} />;
+  return (
+    <EditablePageHeader
+      value=""
+      {...props}
+      editable={false}
+      hideInput
+      setValue={() => {}}
+    />
+  );
 };

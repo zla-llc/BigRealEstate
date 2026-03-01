@@ -30,7 +30,7 @@ export const useFetch = () => {
 
   const fetchWithParams = async <T,>(
     apiEndpoint: string,
-    method: "POST" | "GET" | "PUT" | "DELETE",
+    method: "POST" | "GET" | "PUT" | "DELETE" | "PATCH",
     body: unknown,
     { signal, isFormData }: RequestOptions = {}
   ): Promise<APIResponse<T>> => {
@@ -76,8 +76,13 @@ export const useFetch = () => {
         (parsed && typeof parsed === "object" && ((parsed as Record<string, unknown>).err || (parsed as Record<string, unknown>).error))
       ) {
         const errorObj = parsed as Record<string, unknown> | null;
+        // FastAPI returns errors with "detail" key, also check for "err" and "error"
         throw new Error(
-          (errorObj?.err as string) ?? (errorObj?.error as string) ?? "Error communicating with API"
+          (errorObj?.detail as string) ?? 
+          (errorObj?.err as string) ?? 
+          (errorObj?.error as string) ?? 
+          "Error communicating with API"
+          (errorObj?.err as string) ?? (errorObj?.error as string) ?? (errorObj?.detail as string) ?? "Error communicating with API"
         );
       }
 
@@ -123,5 +128,13 @@ export const useFetch = () => {
     });
   };
 
-  return { get, post, put, del };
+  const patch = async <T,>(
+    apiEndpoint: string,
+    body: unknown,
+    options: RequestOptions = {}
+  ): Promise<APIResponse<T>> => {
+    return await fetchWithParams<T>(apiEndpoint, "PATCH", body, options);
+  };
+
+  return { get, post, put, del, patch };
 };

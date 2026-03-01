@@ -23,31 +23,55 @@ export const EmailModal = ({
     setFrom,
     body,
     setBody,
+    signature,
+    setSignature,
     loading,
+    loadingSignature,
     onSubmit,
   } = useEmailModal({ leads, onSendEmail });
-
+  const hasEmail = [];
+  const notHasEmail = [];
+  for(const i of leads){
+    if(i['contact']['email']){
+      hasEmail.push(i)
+    }
+    else{
+      notHasEmail.push(i)
+    }
+  }
+  console.log(hasEmail)
+  console.log(notHasEmail)
   return (
     <Modal open={open} onClose={onClose}>
-      <div className="w-full h-full p-6 flex flex-col justify-between">
-        <div className="space-y-[5px]">
+      <div className="w-full max-h-[80vh] p-6 flex flex-col overflow-hidden">
+        <div className="space-y-[5px] mb-4 flex-shrink-0">
           <h2 className="text-2xl font-bold text-secondary">
             Email Lead{leads.length > 1 ? "s" : ""}
           </h2>
           <p className="text-secondary-50 text-sm line-clamp-2">
-            Send an email to{" "}
-            {leads.slice(0, Math.min(leads.length, 3)).map((lead) => (
-              <span className="font-bold text-secondary">{`${
+            {hasEmail.length < 1 ? '' : 'Send an email to'}{" "}
+            {hasEmail.slice(0, Math.min(leads.length, 3)).map((lead) => (
+              <span key={lead.leadId ?? lead.contact.email} className="font-bold text-secondary">{`${
                 lead.contact.firstName
               } ${lead.contact.lastName} (${
                 lead.contact.email ?? lead.contact.phone
               })`}</span>
-            ))}{" "}
-            {leads.length > 3 ? `+${leads.length - 3} more` : ""}
+            ))} {" "}
+            {hasEmail.length > 3 ? `+${hasEmail.length - 3} more` : ""}
+          </p>
+          <p className="text-secondary-50 text-sm line-clamp-2">
+            {hasEmail.length < 1 ?'Cannot Email' : ''}{" "}
+            {notHasEmail.slice(0, Math.min(leads.length, 3)).map((lead) => (
+              <span key={lead.leadId ?? lead.contact.email} className="font-bold text-secondary" style={{ color: 'red' }}>{`${
+                lead.contact.firstName
+              } ${lead.contact.lastName} (${
+                lead.contact.email ?? lead.contact.phone
+              })`}</span>
+            ))} {" "}
+            {notHasEmail.length > 3 ? `+${notHasEmail.length - 3} more` : ""}
           </p>
         </div>
-
-        <div className="space-y-[15px]">
+        <div className="space-y-[15px] flex-1 overflow-y-auto pr-2 min-h-0">
           <TextInput
             label="Subject"
             value={subject}
@@ -61,9 +85,25 @@ export const EmailModal = ({
             icon={Icons.User}
           />
           <RichTextEditor label="Body" value={body} onChange={setBody} />
+          <div className="space-y-1">
+            <label className="text-secondary text-sm font-semibold">
+              Signature {loadingSignature && <span className="text-xs text-gray-400">(loading...)</span>}
+            </label>
+            <div
+              className="rounded-[15px] border-2 border-secondary bg-white p-3 text-secondary text-sm focus-within:border-accent [&_img]:max-w-full [&_img]:h-auto [&_img]:inline-block"
+              contentEditable
+              suppressContentEditableWarning
+              onInput={(e) => setSignature((e.target as HTMLDivElement).innerHTML)}
+              dangerouslySetInnerHTML={{ __html: signature }}
+            />
+            {signature.includes("<img") && (
+              <p className="text-xs text-gray-400">
+                Images in your signature may not preview here but will appear in the sent email.
+              </p>
+            )}
+          </div>
         </div>
-
-        <div className="flex flex-row space-x-[15px]">
+        <div className="flex flex-row space-x-[15px] mt-6 pt-2 border-t border-gray-100 flex-shrink-0">
           <Button
             text={"Cancel"}
             onClick={onClose}
@@ -73,7 +113,7 @@ export const EmailModal = ({
           <Button
             text={loading ? "Sending..." : "Send Campaign"}
             onClick={onSubmit}
-            disabled={loading}
+            disabled={loading || hasEmail.length < 1}
             icon={Icons.Mail}
           />
         </div>

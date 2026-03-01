@@ -1,9 +1,9 @@
 import { Loader } from "../../components";
 
-export const LoadingPage = () => {
+export const LoadingPage = ({ text }: { text?: string }) => {
   return (
     <div className="full flex items-center justify-center">
-      <Loader darkMode />
+      <Loader darkMode text={text} />
     </div>
   );
 };

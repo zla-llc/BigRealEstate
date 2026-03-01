@@ -48,3 +48,6 @@ class Lead(Base):
         cascade="all, delete-orphan",
         order_by="LeadImage.sort_order",
     )
+
+    deals: Mapped[List["TeamDeal"]] = relationship("TeamDeal", back_populates="lead")
+

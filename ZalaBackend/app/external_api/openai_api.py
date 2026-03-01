@@ -1,14 +1,13 @@
 import requests, sys, re, pprint, json
+import os
+import httpx
 from openai import OpenAI
 from . import OPENAI_API_KEY, BRAVE_API_KEY
 from .to_leads import openai_to_leads
 from .usage_tracker import reserve_call
 import time
-import os
-import httpx
 
 client = OpenAI(api_key=OPENAI_API_KEY, http_client=httpx.Client(trust_env=False))
-
 
 gpt_model = "gpt-5-mini"
 

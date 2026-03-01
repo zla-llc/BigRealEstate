@@ -1,10 +1,12 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Any
 
 from app.models.contact import Contact
 from app.schemas.contact import ContactPublic, ContactBase, ContactCreate
 from app.schemas.summaries import LeadSummary
+from app.schemas.notification import NotificationPublic
+from app.schemas.team_invitation import TeamInvitationPublic
 
 
 class UserSummary(BaseModel):
@@ -13,9 +15,27 @@ class UserSummary(BaseModel):
     username: str
     profile_pic: Optional[str] = None
     role: Optional[str] = "user"
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
 
     class Config:
         from_attributes = True
+    
+    @model_validator(mode='before')
+    @classmethod
+    def extract_contact_info(cls, data: Any) -> Any:
+        """Extract first_name and last_name from the nested contact relationship."""
+        if hasattr(data, 'contact') and data.contact:
+            # SQLAlchemy model with contact relationship
+            return {
+                'user_id': data.user_id,
+                'username': data.username,
+                'profile_pic': data.profile_pic,
+                'role': data.role,
+                'first_name': data.contact.first_name if data.contact else None,
+                'last_name': data.contact.last_name if data.contact else None,
+            }
+        return data
 
 
 class UserBase(BaseModel):
@@ -52,6 +72,24 @@ class UserUpdate(BaseModel):
     username: Optional[str] = Field(max_length=15)
     profile_pic: Optional[str]
     role: Optional[str] = "user"
+
+
+class XPAdd(BaseModel):
+    """
+    Schema for adding XP to a user.
+    """
+    amount: int = Field(..., description="Amount of XP to add (positive or negative)")
+
+
+class XPPublic(BaseModel):
+    """
+    Schema for returning a user's XP.
+    """
+    user_id: int
+    xp: int
+
+    class Config:
+        from_attributes = True
 
 
 class UserPublic(UserBase):
@@ -91,3 +129,13 @@ class UserPublicWithLeadsAndProperties(UserPublic):
     """
     leads_created: List[LeadSummary] = []
     properties: List[int] = []
+
+
+class UserPublicWithNotifications(UserPublic):
+    notifications_received: List[NotificationPublic] = Field(default=[], alias="notifications_received")
+    notifications_sent: List[NotificationPublic] = Field(default=[], alias="notifications_sent")
+
+
+class UserPublicWithInvitations(UserPublic):
+    invitations_received: List[TeamInvitationPublic] = Field(default=[], alias="invitations_received")
+    invitations_sent: List[TeamInvitationPublic] = Field(default=[], alias="invitations_sent")

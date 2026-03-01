@@ -14,6 +14,8 @@ from app import schemas
 from app.models.user_authentication import UserAuthentication
 from app.utils import security
 from app.db.crud import contact as contact_crud
+from app.db.crud import team_invitation as team_invitation_crud
+from app.db.crud import email_verification as ev_crud
 
 """GET FUNCTIONS"""
 
@@ -37,6 +39,7 @@ def get_user_by_email(db: Session, email: str):
     Get a single user by their email address
     SELECT * FROM users JOIN contacts WHERE contact.email = {email}
     """
+    from sqlalchemy import func
     return (
         db.query(User)
         .join(Contact)
@@ -46,7 +49,7 @@ def get_user_by_email(db: Session, email: str):
             joinedload(User.google_credentials),
             joinedload(User.authentication),
         )
-        .filter(Contact.email == email)
+        .filter(func.lower(Contact.email) == email.lower())
         .first()
     )
 
@@ -232,6 +235,12 @@ def _create_user_from_google_profile(db: Session, profile: dict) -> User:
 
     db.commit()
     db.refresh(db_user)
+    
+    # Link any pending team invitations sent to this email
+    email = profile.get("email")
+    if email:
+        team_invitation_crud.link_pending_invitations_to_user(db, db_user.user_id, email)
+    
     return db_user
 
 
@@ -307,7 +316,22 @@ def create_user(db: Session, user: schemas.UserCreate):
 def create_user_with_contact(db: Session, user: schemas.UserSignup) -> User:
     """
     Create a new user along with a brand new contact atomically.
+    Requires the contact email to have been verified first.
     """
+    # ── Email verification gate ──────────────────────────────────
+    contact_email = user.contact.email if user.contact else None
+    if not contact_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="An email address is required to sign up.",
+        )
+    if not ev_crud.is_email_verified(db, contact_email):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email has not been verified. Please verify your email before signing up.",
+        )
+    # ─────────────────────────────────────────────────────────────
+
     existing_user = get_user_by_username(db, user.username)
     if existing_user:
         raise HTTPException(
@@ -388,6 +412,12 @@ def create_user_with_contact(db: Session, user: schemas.UserSignup) -> User:
     # ensure relationship resolved without extra DB hits later
     if db_user.contact is None:
         db_user.contact = db_contact
+
+    # Link any pending team invitations sent to this email
+    if contact_in.email:
+        print(f"[Signup] Checking for pending invitations for email: {contact_in.email}")
+        linked = team_invitation_crud.link_pending_invitations_to_user(db, db_user.user_id, contact_in.email)
+        print(f"[Signup] Linked {len(linked)} invitations")
 
     return db_user
 
@@ -580,3 +610,47 @@ def authenticate_user(db: Session, username: str, password: str) -> User | None:
 
     # If all checks pass, return the user
     return db_user
+
+
+"""XP FUNCTIONS"""
+
+
+def add_xp(db: Session, user_id: int, amount: int) -> User | None:
+    """
+    Add XP to a user. amount can be positive or negative.
+    UPDATE users SET xp = xp + {amount} WHERE user_id = {user_id}
+    """
+    db_user = db.query(User).filter(User.user_id == user_id).first()
+    if not db_user:
+        return None
+    db_user.xp = (db_user.xp or 0) + amount
+    if db_user.xp < 0:
+        db_user.xp = 0
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+def reset_xp(db: Session, user_id: int) -> User | None:
+    """
+    Reset a user's XP to 0.
+    UPDATE users SET xp = 0 WHERE user_id = {user_id}
+    """
+    db_user = db.query(User).filter(User.user_id == user_id).first()
+    if not db_user:
+        return None
+    db_user.xp = 0
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+def get_xp(db: Session, user_id: int) -> int | None:
+    """
+    Get the current XP for a user.
+    SELECT xp FROM users WHERE user_id = {user_id}
+    """
+    db_user = db.query(User).filter(User.user_id == user_id).first()
+    if not db_user:
+        return None
+    return db_user.xp

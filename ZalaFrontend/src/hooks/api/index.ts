@@ -7,3 +7,8 @@ export * from "./useCampaignPageAPI";
 export * from "./useAllBoardsPageAPI";
 export * from "./useGetCampaignLeads";
 export * from "./usePropertyUnits";
+export * from "./useTeamMembersWithXp";
+export * from "./useUserProperties";
+export * from "./useUserBoards";
+export * from "./useGetBoard";
+export * from "./useProperties";

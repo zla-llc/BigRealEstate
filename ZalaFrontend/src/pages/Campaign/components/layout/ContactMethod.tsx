@@ -8,6 +8,7 @@ type ContactMethodProps = {
   text: string;
   active?: boolean;
   onClick?: () => void;
+  disabled?: boolean;
 };
 
 export const ContactMethod = ({
@@ -15,9 +16,27 @@ export const ContactMethod = ({
   text,
   active,
   onClick,
+  disabled,
 }: ContactMethodProps) => {
   const [isHovered, hoverProps] = useHover({ onClick });
   const isActive = isHovered || active;
+  let style;
+  let color;
+  let textColor;
+  let borderColor;
+  if(disabled){
+    style = { cursor: 'not-allowed' };
+    color = COLORS.secondary50
+    textColor = "text-secondary-50"
+    borderColor = "border-secondary-50"
+    onClick = () => {return;}
+  }
+  else{
+    style = {}
+    color = isActive ? COLORS.accent : COLORS.secondary50
+    textColor = isActive ? "text-accent" : "text-secondary-50"
+    borderColor = isActive ? "border-accent" : "border-secondary-50"
+  }
   return (
     <div
       {...hoverProps}
@@ -25,18 +44,19 @@ export const ContactMethod = ({
         "w-[135px] h-[135px] rounded-[15px]",
         "flex flex-col items-center justify-center space-y-[10px] cursor-pointer",
         "border-4 border-dashed",
-        isActive ? "border-accent" : "border-secondary-50"
+        borderColor
       )}
+      style={style}
     >
       <Icon
         name={icon}
-        color={isActive ? COLORS.accent : COLORS.secondary50}
+        color={color}
         scale={1.5}
       />
       <p
         className={clsx(
           "text-base font-bold",
-          isActive ? "text-accent" : "text-secondary-50"
+          textColor
         )}
       >
         {text}

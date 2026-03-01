@@ -1,8 +1,9 @@
 import { IconButtonVariant, Icons, TextInput } from "../../../components";
 import { useLoginPage } from "../../../hooks";
 import { CardPage } from "../components";
+import transition from "../../../utils/transitions/transition";
 
-export const LoginPage = () => {
+const LoginPage = () => {
   const {
     state: { userName, setUserName, password, setPassword, errors },
     onLoginClick,
@@ -58,3 +59,4 @@ export const LoginPage = () => {
     </CardPage>
   );
 };
+export default transition(LoginPage);

@@ -40,6 +40,38 @@ class User(Base):
     campaigns: Mapped[List["Campaign"]] = relationship("Campaign", back_populates="user")
     boards: Mapped[List["Board"]] = relationship("Board", back_populates="user")
 
+    team_links: Mapped[List["UserTeam"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+
+    notifications_received: Mapped[List["Notification"]] = relationship(
+        "Notification",
+        foreign_keys="[Notification.recipient_id]",
+        back_populates="recipient"
+    )
+    notifications_sent: Mapped[List["Notification"]] = relationship(
+        "Notification",
+        foreign_keys="[Notification.sender_id]",
+        back_populates="sender"
+    )
+
+    invitations_received: Mapped[List["TeamInvitation"]] = relationship(
+        "TeamInvitation",
+        foreign_keys="[TeamInvitation.recipient_id]",
+        back_populates="recipient"
+    )
+    invitations_sent: Mapped[List["TeamInvitation"]] = relationship(
+        "TeamInvitation",
+        foreign_keys="[TeamInvitation.sender_id]",
+        back_populates="sender"
+    )
+
+    announcements_authored: Mapped[List["TeamAnnouncement"]] = relationship(
+        "TeamAnnouncement",
+        back_populates="author",
+        cascade="all, delete-orphan"
+    )
+
+    deals: Mapped[List["TeamDeal"]] = relationship(back_populates="user")
+
     @property
     def gmail_connected(self) -> bool:
         # Use getattr so SQLAlchemy lazily loads credentials when needed.

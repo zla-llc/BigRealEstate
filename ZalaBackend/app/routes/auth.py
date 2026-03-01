@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.db.crud import user as user_crud
 from app.db.crud import google_credentials as google_credentials_crud
+from app.db.crud import team_invitation as team_invitation_crud
 from app.schemas import UserPublic, Login, GoogleLogin
 from app.utils.google_oauth import (
     GoogleTokenVerificationError,
@@ -33,6 +34,11 @@ def login(login_data: Login, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED
         )
+
+    # Check for any pending invitations for this user's email and link them
+    # This handles the case where invitations were sent before the user created their account
+    if user.contact and user.contact.email:
+        team_invitation_crud.link_pending_invitations_to_user(db, user.user_id, user.contact.email)
 
     return user
 
@@ -86,6 +92,11 @@ def login_with_google(login_data: GoogleLogin, db: Session = Depends(get_db)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to process Google sign-in.",
         )
+    
+    # Check for any pending invitations for this user's email and link them
+    # This handles the case where invitations were sent before the user created their account
+    if google_email:
+        team_invitation_crud.link_pending_invitations_to_user(db, user.user_id, google_email)
 
     if target_user and user.user_id != target_user.user_id:
         raise HTTPException(
