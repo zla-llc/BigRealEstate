@@ -1,14 +1,20 @@
 import { useAuthStore } from "../../stores";
 import { useApi } from "../api";
 import { AUserToIUser, type IUser } from "../../interfaces";
-import { useAppNavigation, useSessionCookie, useTimeoutEffect } from "../utils";
+import {
+  useAppNavigation,
+  useAuthUser,
+  useSessionCookie,
+  useTimeoutEffect,
+} from "../utils";
 import { CookieKeys } from "../../interfaces/CookieKeys";
 
 export const useAutoLogin = () => {
-  const { user, setUser } = useAuthStore();
+  const { user } = useAuthStore();
 
   const { toLoginPage } = useAppNavigation();
   const [getCookie, _setCookie, removeCookie] = useSessionCookie();
+  const authenticateUser = useAuthUser();
 
   const { getUser } = useApi();
 
@@ -21,7 +27,7 @@ export const useAutoLogin = () => {
   );
 
   const onUserFound = (user: IUser) => {
-    setUser(user);
+    authenticateUser(user);
   };
 
   const onUserNotFound = () => {

@@ -17,6 +17,7 @@ import { Icons } from "../icons";
 import {
   BoardModalPage,
   useAddBoardStepLeadStore,
+  useAuthStore,
   useBoardModalControlStore,
   useBoardSettingsStore,
   useBoardStore,
@@ -24,8 +25,13 @@ import {
 } from "../../stores";
 import { CONFIG } from "../../config";
 import { useCallback, useState } from "react";
-import { getBoardItemId, getItemIdsFromStep, stringify } from "../../utils";
-import { useApi, useStepItems } from "../../hooks";
+import {
+  getBoardItemId,
+  getItemIdsFromStep,
+  stringify,
+  XPMsg,
+} from "../../utils";
+import { useApi, useSnack, useStepItems } from "../../hooks";
 
 export type BoardEditStepProps = {
   stepName: string;
@@ -72,8 +78,12 @@ export const BoardCardColumn = ({
   const { setSelectedBoardItemIds, setEditBoardItemId } =
     useAddBoardStepLeadStore();
   const { setEditingProperty } = useCreatePropertyStore();
+  const { user } = useAuthStore();
 
-  const { updateBoardStepLeads, updateBoardStepProperties } = useApi();
+  const { updateBoardStepLeads, updateBoardStepProperties, addUserXP } =
+    useApi();
+
+  const [successMsg] = useSnack();
 
   const {
     boardItems: allItems,
@@ -138,11 +148,9 @@ export const BoardCardColumn = ({
   ) => {
     if (!board) return;
 
-    const fromStep = board.boardSteps.find(
-      (step) => step.boardStepId === fromStepId,
-    );
-    const toStep = board.boardSteps.find(
-      (step) => step.boardStepId === toStepId,
+    const { fromStep, toStep, xpValue } = getMovedCardXPValue(
+      fromStepId,
+      toStepId,
     );
 
     if (!fromStep || !toStep) return;
@@ -161,7 +169,39 @@ export const BoardCardColumn = ({
 
     await boardItemApiSetter(fromStepId, newFromStepItemIds);
     await boardItemApiSetter(toStepId, newToStepItemIds);
+    await awardMovedXPValue(xpValue);
     onReloadBoards();
+  };
+
+  const getMovedCardXPValue = (fromStepId: number, toStepId: number) => {
+    let xpValue = 0;
+    const boardSteps = board!.boardSteps;
+
+    const fromStepIndex = boardSteps.findIndex(
+      (step) => step.boardStepId === fromStepId,
+    );
+    const toStepIndex = boardSteps.findIndex(
+      (step) => step.boardStepId === toStepId,
+    );
+
+    const fromStep = boardSteps[fromStepIndex];
+    const toStep = boardSteps[toStepIndex];
+
+    const stepDifference = toStepIndex - fromStepIndex;
+    if (stepDifference > 0) {
+      // Is moving forward
+      const multiplier = boardType === "lead" ? 10 : 100;
+      xpValue = multiplier * stepDifference;
+    }
+
+    return { fromStep, toStep, xpValue };
+  };
+
+  const awardMovedXPValue = async (xpValue: number) => {
+    if (xpValue === 0 || !user) return;
+
+    await addUserXP(user.userId, xpValue);
+    successMsg(XPMsg(xpValue, `Moving ${boardType} forward!`));
   };
 
   const onAddLeadProperty = () => {
