@@ -19,7 +19,7 @@ import type {
 import transition from "../../utils/transitions/transition";
 
 const DEFAULT_HTML =
-  "<p>Hi there,<br/>Here is a quick update from the Zala team.</p>";
+  "<p>Hi there,<br/>Here is a quick update from the ZLA team.</p>";
 
 type DraftFormState = {
   campaignId: string;

@@ -23,9 +23,9 @@ const TestEmailPage = () => {
   });
 
   const [to, setTo] = useState("");
-  const [subject, setSubject] = useState("Welcome to Zala!");
+  const [subject, setSubject] = useState("Welcome to ZLA!");
   const [html, setHtml] = useState(
-    "<p>Hi there,<br/>This is a test email from Zala.</p>"
+    "<p>Hi there,<br/>This is a test email from ZLA.</p>"
   );
   const [fromName, setFromName] = useState("");
   const [sending, setSending] = useState(false);
@@ -103,7 +103,7 @@ const TestEmailPage = () => {
                 Connect Google to enable Gmail sending.
               </p>
               <p className="text-sm text-secondary-50">
-                Sign in with your Google account so Zala can securely send email
+                Sign in with your Google account so ZLA can securely send email
                 on your behalf via Gmail.
               </p>
               <div className="max-w-xs">
