@@ -5,8 +5,9 @@ import { CampaignFolders } from "./components";
 import { LoadingPage } from "../Loading";
 import { useCampaignPage } from "../../hooks";
 import { CampaignContactMethod } from "../../interfaces";
+import transition from "../../utils/transitions/transition";
 
-export const CampaignPage = () => {
+const CampaignPage = () => {
   const {
     pageLoading,
 
@@ -119,3 +120,4 @@ export const CampaignPage = () => {
     </div>
   );
 };
+export default transition(CampaignPage);

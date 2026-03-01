@@ -11,8 +11,9 @@ import { SideNavControlVariant, useSearchQueryStore } from "../../stores";
 import clsx from "clsx";
 import { CampaignCard } from "./components";
 import { COLORS } from "../../config";
+import transition from "../../utils/transitions/transition";
 
-export const LeadSearchPage = () => {
+const LeadSearchPage = () => {
   const {
     showLeads,
     openSideNav,
@@ -115,3 +116,4 @@ export const LeadSearchPage = () => {
     </div>
   );
 };
+export default transition(LeadSearchPage);

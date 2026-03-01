@@ -16,7 +16,7 @@ export const AppHeader = () => {
   } = useAppHeader();
 
   return (
-    <div className="w-full z-10 flex flex-row items-center justify-between p-4 px-[100px] bg-[var(--color-primary)] box-shadow">
+    <div className="w-full z-[101] flex flex-row items-center justify-between p-4 px-[100px] bg-[var(--color-primary)] box-shadow">
       <div>
         <button
           className="text-5xl font-bold cursor-pointer grenze"
