@@ -72,3 +72,15 @@ export type INotification = {
   invitation_id?: number;
   team_id?: number;
 };
+
+export type ITeamDeal = {
+  sale_price: number;
+  notes: string;
+  deal_id: number;
+  team_id: number;
+  user_id: number;
+  property_id: number;
+  lead_id: number;
+  xp_earned: number;
+  closed_at: string;
+};

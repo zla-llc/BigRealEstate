@@ -244,3 +244,13 @@ export type UpdateAnnouncementRequest = {
   title?: string;
   message?: string;
 };
+
+export type CloseTeamDealProps = {
+  teamId: number;
+  propertyId: number;
+  user_id: number;
+  lead_id?: number;
+  sale_price: number;
+  notes: string;
+  closed_at: string;
+};

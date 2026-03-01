@@ -133,8 +133,6 @@ def remove_property_image(address_id: int, property_id: int, db: Session = Depen
 
 @properties_public.get("/", response_model=List[PropertyPublic], summary="List properties (optionally filter by creator)")
 def list_properties(created_by: int = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """List properties across addresses. If `created_by` is provided, return properties linked to that user."""
-    if created_by is not None:
-        return user_crud.get_properties_for_user(db=db, user_id=created_by)
+    """List all properties. If `created_by` is provided, return properties linked to that user."""
     # No creator filter: return empty list to avoid returning huge dataset without address scope
-    return []
+    return property_crud.get_properties_no_scope(db=db, skip=skip, limit=limit, creator_id=created_by)

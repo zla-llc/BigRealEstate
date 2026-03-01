@@ -11,6 +11,7 @@ import {
   type ITeamMemberWithXP,
   type ITeamAnnouncement,
   type AUserIdXp,
+  type ITeamDeal,
 } from "../../interfaces";
 import type {
   CreateUserProps,
@@ -40,6 +41,7 @@ import type {
   VerifyCodeProps,
   VerifyCodeResponse,
   GmailSignatureResponse,
+  CloseTeamDealProps,
 } from "./types";
 import { useFetch } from "./useFetch";
 import { useState } from "react";
@@ -381,6 +383,27 @@ export const useApi = () => {
     return await get<ITeamMemberWithXP[]>(`/api/teams/${teamId}/users/xp`);
   };
 
+  const closeTeamDeal = async ({
+    teamId,
+    propertyId,
+    user_id,
+    notes,
+    sale_price,
+    closed_at,
+    lead_id = 0,
+  }: CloseTeamDealProps) => {
+    return await post<ITeamDeal>(
+      `/api/team/${teamId}/property/${propertyId}/close`,
+      {
+        user_id,
+        notes,
+        sale_price,
+        closed_at,
+        lead_id,
+      },
+    );
+  };
+
   const inviteToTeam = async ({
     team_id,
     sender_id,
@@ -625,6 +648,7 @@ export const useApi = () => {
     updateTeam,
     getTeamsByUser,
     getTeamMembers,
+    closeTeamDeal,
     inviteToTeam,
     getTeamInvitations,
     respondToInvitation,

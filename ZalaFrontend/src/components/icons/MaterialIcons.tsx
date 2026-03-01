@@ -36,6 +36,9 @@ import PendingIcon from "@mui/icons-material/Pending";
 import CampaignIcon from "@mui/icons-material/Campaign";
 import MapIcon from "@mui/icons-material/Map";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import ImageIcon from "@mui/icons-material/Image";
+import PaidIcon from "@mui/icons-material/Paid";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
 export const getMaterialIcon = (iconName: Icons) => {
   switch (iconName) {
@@ -113,6 +116,12 @@ export const getMaterialIcon = (iconName: Icons) => {
       return (props: SvgIconProps) => <MapIcon {...props} />;
     case Icons.File:
       return (props: SvgIconProps) => <AttachFileIcon {...props} />;
+    case Icons.Image:
+      return (props: SvgIconProps) => <ImageIcon {...props} />;
+    case Icons.Coin:
+      return (props: SvgIconProps) => <PaidIcon {...props} />;
+    case Icons.ChevronLeft:
+      return (props: SvgIconProps) => <ChevronLeftIcon {...props} />;
     default:
       return null;
   }

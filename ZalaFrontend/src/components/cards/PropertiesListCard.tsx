@@ -12,7 +12,7 @@ export const PropertiesListCard = (props: PropertiesListCardProps) => {
   const { properties, overflowCount = 0, onClick = () => {} } = props;
   return (
     <DashboardCard {...props}>
-      <div className="grid grid-cols-2 gap-x-[15px]">
+      <div className="grid grid-cols-2 gap-x-3.75">
         {properties.map((property) => (
           <div key={property.propertyId} className="">
             <BoardItemCard
