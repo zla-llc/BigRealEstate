@@ -33,6 +33,7 @@ export const AdminCardList = ({
                 ? `${member.user.first_name} ${member.user.last_name}`.trim()
                 : undefined,
           },
+          borderColor: "#F59E0B",
         }))
         .splice(0, spliceCount)}
       onClick={onClick}

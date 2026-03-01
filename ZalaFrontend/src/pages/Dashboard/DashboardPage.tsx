@@ -207,7 +207,7 @@ export const DashboardPage = () => {
                   0,
                   sliceCount.announcements + 1,
                 )}
-                onAdd={openCreateAnnouncmentModal}
+                onAdd={isUserAdmin ? openCreateAnnouncmentModal : undefined}
                 btnProps={
                   overflow.announcements > 0
                     ? { text: "View all", onClick: openViewAnnouncementsModal }
@@ -255,7 +255,7 @@ export const DashboardPage = () => {
                       }
                     : undefined
                 }
-                onAdd={onAddTeamPropertyClick}
+                onAdd={isUserAdmin ? onAddTeamPropertyClick : undefined}
                 onClick={onTeamPropertyClick}
               />
             </div>
@@ -287,7 +287,7 @@ export const DashboardPage = () => {
                 boards={teamBoards.current}
                 title="Team Boards:"
                 onClick={onBoardClick}
-                onAdd={onAddTeamBoardClick}
+                onAdd={isUserAdmin ? onAddTeamBoardClick : undefined}
               />
             </div>
             <div className="flex-1">

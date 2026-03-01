@@ -138,12 +138,27 @@ def get_team_with_members(team_id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{team_id}", response_model=schemas.TeamPublic)
-def update_team(team_id: int, team_in: schemas.TeamUpdate, db: Session = Depends(get_db)):
+async def update_team(team_id: int, team_in: schemas.TeamUpdate, db: Session = Depends(get_db)):
     """Update mutable team fields."""
 
     team = team_crud.update_team(db, team_id, team_in)
     if not team:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Team not found")
+
+    # Broadcast team update to all team channel subscribers
+    try:
+        await send_team_update(
+            team_id,
+            "team_updated",
+            {
+                "team_id": team.team_id,
+                "team_name": team.team_name,
+                "xp": team.xp,
+            }
+        )
+    except Exception as e:
+        print(f"[WebSocket] Failed to broadcast team update: {e}")
+
     return team
 
 
@@ -685,8 +700,8 @@ async def respond_to_invitation(
             from app.db.crud import user as user_crud
             joined_user = user_crud.get_user_by_id(db, user_id)
 
-            # Get the team with members for the joining user
-            joined_team = team_crud.get_team_with_members(db, invitation.team_id)
+            # Get the full team (members + properties + boards) for the joining user
+            joined_team = team_crud.get_team_full(db, invitation.team_id)
 
             await send_team_update(
                 invitation.team_id,
@@ -705,26 +720,9 @@ async def respond_to_invitation(
 
             # Send team_joined to the user who accepted so their "My Teams" updates
             if joined_team:
-                team_data = {
-                    "team_id": joined_team.team_id,
-                    "team_name": joined_team.team_name,
-                    "xp": joined_team.xp,
-                    "created_by_user_id": joined_team.created_by_user_id,
-                    "members": [
-                        {
-                            "user": {
-                                "user_id": link.user.user_id,
-                                "email": link.user.authentication.provider_email if link.user.authentication else None,
-                                "username": link.user.username,
-                                "profile_pic": link.user.profile_pic,
-                                "first_name": link.user.contact.first_name if link.user.contact else None,
-                                "last_name": link.user.contact.last_name if link.user.contact else None
-                            },
-                            "role": link.role
-                        }
-                        for link in joined_team.member_links
-                    ]
-                }
+                team_data = schemas.TeamPublic.model_validate(joined_team).model_dump(
+                    mode="json", by_alias=True
+                )
                 await send_team_update_to_users(
                     [user_id],
                     "team_joined",
@@ -1028,39 +1026,83 @@ async def delete_announcement(
 
 @router.post("/{team_id}/properties/{property_id}", response_model=schemas.TeamPublicWithProperties,
              summary="Link Property", tags=["Team Properties Link"])
-def add_property(team_id: int, property_id: int, db: Session = Depends(get_db)):
+async def add_property(team_id: int, property_id: int, db: Session = Depends(get_db)):
     """Assign a Property to a Team."""
     db_team = team_crud.add_property_to_team(db=db, team_id=team_id, property_id=property_id)
     if not db_team:
         raise HTTPException(status_code=404, detail="Team or Property not found")
+
+    # Broadcast property linked event to team channel
+    try:
+        await send_team_update(
+            team_id,
+            "team_property_linked",
+            {"team_id": team_id, "property_id": property_id}
+        )
+    except Exception as e:
+        print(f"[WebSocket] Failed to broadcast property linked: {e}")
+
     return db_team
 
 
 @router.delete("/{team_id}/properties/{property_id}", response_model=schemas.TeamPublicWithProperties,
                summary="Unlink Property", tags=["Team Properties Link"])
-def remove_property(team_id: int, property_id: int, db: Session = Depends(get_db)):
+async def remove_property(team_id: int, property_id: int, db: Session = Depends(get_db)):
     """Unassign a Property from a Team."""
     db_team = team_crud.remove_property_from_team(db=db, team_id=team_id, property_id=property_id)
     if not db_team:
         raise HTTPException(status_code=404, detail="Team or Property not found")
+
+    # Broadcast property unlinked event to team channel
+    try:
+        await send_team_update(
+            team_id,
+            "team_property_unlinked",
+            {"team_id": team_id, "property_id": property_id}
+        )
+    except Exception as e:
+        print(f"[WebSocket] Failed to broadcast property unlinked: {e}")
+
     return db_team
 
 
 @router.post("/{team_id}/boards/{board_id}", response_model=schemas.TeamPublicWithBoards, summary="Link Board",
              tags=["Team Properties Link"])
-def add_board(team_id: int, board_id: int, db: Session = Depends(get_db)):
+async def add_board(team_id: int, board_id: int, db: Session = Depends(get_db)):
     """Assign a Board to a Team."""
     db_team = team_crud.add_board_to_team(db=db, team_id=team_id, board_id=board_id)
     if not db_team:
         raise HTTPException(status_code=404, detail="Team or Board not found")
+
+    # Broadcast board linked event to team channel
+    try:
+        await send_team_update(
+            team_id,
+            "team_board_linked",
+            {"team_id": team_id, "board_id": board_id}
+        )
+    except Exception as e:
+        print(f"[WebSocket] Failed to broadcast board linked: {e}")
+
     return db_team
 
 
 @router.delete("/{team_id}/boards/{board_id}", response_model=schemas.TeamPublicWithBoards, summary="Unlink Board",
                tags=["Team Properties Link"])
-def remove_board(team_id: int, board_id: int, db: Session = Depends(get_db)):
+async def remove_board(team_id: int, board_id: int, db: Session = Depends(get_db)):
     """Unassign a Board from a Team."""
     db_team = team_crud.remove_board_from_team(db=db, team_id=team_id, board_id=board_id)
     if not db_team:
         raise HTTPException(status_code=404, detail="Team or Board not found")
+
+    # Broadcast board unlinked event to team channel
+    try:
+        await send_team_update(
+            team_id,
+            "team_board_unlinked",
+            {"team_id": team_id, "board_id": board_id}
+        )
+    except Exception as e:
+        print(f"[WebSocket] Failed to broadcast board unlinked: {e}")
+
     return db_team

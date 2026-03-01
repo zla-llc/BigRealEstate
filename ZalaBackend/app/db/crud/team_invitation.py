@@ -187,16 +187,32 @@ def link_pending_invitations_to_user(db: Session, user_id: int, email: str) -> L
     Returns the list of updated invitations.
     """
     from app.db.crud import notification as notification_crud
+    from app.models.notification import Notification
     
     print(f"[TeamInvitation] Checking for pending invitations for email: {email}")
     pending_invitations = get_pending_invitations_by_email(db, email)
     print(f"[TeamInvitation] Found {len(pending_invitations)} pending invitations")
     
     for invitation in pending_invitations:
+        # Skip if already linked to this user
+        if invitation.recipient_id == user_id:
+            print(f"[TeamInvitation] Invitation {invitation.invitation_id} already linked to user {user_id}, skipping")
+            continue
+
         # Update the invitation with the user's ID
         invitation.recipient_id = user_id
         
         team_name = invitation.team.team_name if invitation.team else "a team"
+
+        # Only create notification if one doesn't already exist for this invitation
+        existing_notification = db.query(Notification).filter(
+            Notification.invitation_id == invitation.invitation_id
+        ).first()
+
+        if existing_notification:
+            print(f"[TeamInvitation] Notification already exists for invitation {invitation.invitation_id}, skipping")
+            continue
+
         print(f"[TeamInvitation] Creating notification for team: {team_name}")
         
         # Create notification for each pending invitation
