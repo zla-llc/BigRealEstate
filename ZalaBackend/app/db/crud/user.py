@@ -12,10 +12,12 @@ from app.models.user import user_properties
 from app import schemas
 
 from app.models.user_authentication import UserAuthentication
+from app.models.user_tutorial import UserTutorial
 from app.utils import security
 from app.db.crud import contact as contact_crud
 from app.db.crud import team_invitation as team_invitation_crud
 from app.db.crud import email_verification as ev_crud
+
 
 """GET FUNCTIONS"""
 
@@ -233,6 +235,10 @@ def _create_user_from_google_profile(db: Session, profile: dict) -> User:
     )
     db.add(db_auth)
 
+    # create tutorial for user
+    db_tutorial = UserTutorial(user_id=db_user.user_id)
+    db.add(db_tutorial)
+
     db.commit()
     db.refresh(db_user)
     
@@ -306,6 +312,10 @@ def create_user(db: Session, user: schemas.UserCreate):
         auth_provider="local",
     )
     db.add(db_auth)
+
+    # create tutorial for user
+    db_tutorial = UserTutorial(user_id=db_user.user_id)
+    db.add(db_tutorial)
 
     db.commit()
     db.refresh(db_user)
@@ -412,6 +422,10 @@ def create_user_with_contact(db: Session, user: schemas.UserSignup) -> User:
     # ensure relationship resolved without extra DB hits later
     if db_user.contact is None:
         db_user.contact = db_contact
+
+    # create tutorial for user
+    db_tutorial = UserTutorial(user_id=db_user.user_id)
+    db.add(db_tutorial)
 
     # Link any pending team invitations sent to this email
     if contact_in.email:
