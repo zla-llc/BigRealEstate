@@ -34,9 +34,8 @@ export const useAllBoardsPage = () => {
 
   useEffect(() => {
     if (!selectedBoard) return;
-    apiFunctions.setSelectedBoardName(selectedBoard.boardName ?? "");
     setBoardSettingsState();
-  }, [selectedBoard?.boardName]);
+  }, [selectedBoard?.boardName, selectedBoard?.boardType]);
 
   useTimeoutEffect(
     () => {
@@ -71,6 +70,7 @@ export const useAllBoardsPage = () => {
     (board: IKanbanBoard) =>
       (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => (
         setSelectedBoard(board),
+        boardSettingsFuncs.setBoardType(board.boardType as IBoardType),
         animationProps.runAnimation(e)
       ),
     [],
@@ -99,23 +99,27 @@ export const useAllBoardsPage = () => {
   };
 
   const setBoardSettingsState = () => {
+    if (!selectedBoard) return;
+
     boardSettingsFuncs.setBoardName(selectedBoard?.boardName ?? "");
     boardSettingsFuncs.setBoardTypeDisabled(
       selectedBoard?.boardSteps.some(
         (step) => step.properties.length > 0 || step.leads.length > 0,
       ) ?? false,
     );
-    boardSettingsFuncs.setBoardType(inferBoardType);
+    boardSettingsFuncs.setBoardType(
+      (selectedBoard?.boardType ?? inferBoardType) as IBoardType,
+    );
     boardSettingsFuncs.setOnSave(onSettingsSave);
   };
 
   const onSettingsBtn = () => {
-    setBoardSettingsState();
     sideNavFuncs.open(SideNavControlVariant.BoardSettings);
   };
 
-  const onSettingsSave = () => {
-    apiFunctions.updateBoardName(boardSettingsFuncs.boardName);
+  const onSettingsSave = async () => {
+    console.log(`On settings saved`);
+    await apiFunctions.updateBoardName(boardSettingsFuncs.boardName);
   };
 
   return {

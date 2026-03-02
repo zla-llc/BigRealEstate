@@ -83,6 +83,13 @@ from .team_deal import (
     UserDealXPPublic
 )
 
+from .user_tutorial import (
+    UserTutorialBase,
+    UserTutorialCreate,
+    UserTutorialUpdate,
+    UserTutorialPublic
+)
+
 CampaignPublic.model_rebuild()
 PropertyPublic.model_rebuild()
 LeadPublic.model_rebuild()

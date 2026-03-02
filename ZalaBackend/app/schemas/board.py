@@ -16,6 +16,7 @@ class BoardBase(BaseModel):
 
     board_name: str
     user_id: Optional[int] = None
+    board_type: str
 
 
 class BoardCreate(BoardBase):
@@ -31,6 +32,7 @@ class BoardUpdate(BaseModel):
 
     board_name: Optional[str] = None
     user_id: Optional[int] = None
+    board_type: Optional[str] = None
 
 
 class BoardPublic(BoardBase):

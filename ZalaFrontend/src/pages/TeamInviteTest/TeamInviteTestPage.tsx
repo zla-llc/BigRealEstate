@@ -1,6 +1,8 @@
 import { TextInput } from "../../components";
 import { Icons, Icon } from "../../components/icons";
 import { useTeamInvitePage } from "../../hooks";
+import type { TeamMember, TeamWithMembers } from "../../interfaces";
+import transition from "../../utils/transitions/transition";
 import type { ITeamMember, ITeam, ITeamAnnouncement } from "../../interfaces";
 
 // Modal component for creating teams
@@ -215,7 +217,7 @@ const getStatusBadge = (status: boolean | null) => {
   );
 };
 
-export const TeamInviteTestPage = () => {
+const TeamInviteTestPage = () => {
   const {
     user,
     teams,
@@ -913,6 +915,7 @@ const InvitationsTab = ({
   );
 };
 
+export default transition(TeamInviteTestPage);
 // Announcements Tab Component
 const AnnouncementsTab = ({
   announcements,

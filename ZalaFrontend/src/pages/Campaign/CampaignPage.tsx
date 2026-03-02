@@ -5,8 +5,14 @@ import { CampaignFolders } from "./components";
 import { LoadingPage } from "../Loading";
 import { useCampaignPage } from "../../hooks";
 import { CampaignContactMethod } from "../../interfaces";
+import transition from "../../utils/transitions/transition";
 
-export const CampaignPage = () => {
+/**
+ * Container of all leads in a campaign.
+ *
+ * @returns {CampaignPage}
+ */
+export const CampaignPage = transition(() => {
   const {
     pageLoading,
 
@@ -100,7 +106,7 @@ export const CampaignPage = () => {
                   if (draft.includes(lead.leadId))
                     return draft.filter((v) => v !== lead.leadId);
                   else draft.push(lead.leadId);
-                })
+                }),
               ),
           },
         })}
@@ -110,7 +116,7 @@ export const CampaignPage = () => {
         leads={leads.filter((lead) =>
           multiEmail
             ? selectedLeads.includes(lead.leadId)
-            : lead.leadId === viewingLeadId
+            : lead.leadId === viewingLeadId,
         )}
         open={showEmail}
         onClose={() => setShowEmail(false)}
@@ -118,4 +124,4 @@ export const CampaignPage = () => {
       />
     </div>
   );
-};
+});

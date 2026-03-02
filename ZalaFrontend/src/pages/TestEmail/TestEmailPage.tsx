@@ -10,8 +10,9 @@ import {
 import { useApi } from "../../hooks";
 import { useAuthStore } from "../../stores";
 import { useGoogleAuthButtonCallback, useSnack } from "../../hooks/utils";
+import transition from "../../utils/transitions/transition";
 
-export const TestEmailPage = () => {
+const TestEmailPage = () => {
   const user = useAuthStore((state) => state.user);
   const gmailConnected = user?.gmailConnected ?? false;
 
@@ -22,9 +23,9 @@ export const TestEmailPage = () => {
   });
 
   const [to, setTo] = useState("");
-  const [subject, setSubject] = useState("Welcome to Zala!");
+  const [subject, setSubject] = useState("Welcome to ZLA!");
   const [html, setHtml] = useState(
-    "<p>Hi there,<br/>This is a test email from Zala.</p>"
+    "<p>Hi there,<br/>This is a test email from ZLA.</p>"
   );
   const [fromName, setFromName] = useState("");
   const [sending, setSending] = useState(false);
@@ -102,7 +103,7 @@ export const TestEmailPage = () => {
                 Connect Google to enable Gmail sending.
               </p>
               <p className="text-sm text-secondary-50">
-                Sign in with your Google account so Zala can securely send email
+                Sign in with your Google account so ZLA can securely send email
                 on your behalf via Gmail.
               </p>
               <div className="max-w-xs">
@@ -164,3 +165,4 @@ export const TestEmailPage = () => {
     </div>
   );
 };
+export default transition(TestEmailPage);

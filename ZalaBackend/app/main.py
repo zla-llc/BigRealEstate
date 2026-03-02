@@ -28,7 +28,8 @@ from app.routes import (
     notifications,
     websocket,
     email_verification,
-    team_deals
+    team_deals,
+    user_tutorials
 )
 from app.services.file_storage import get_upload_root
 
@@ -94,3 +95,5 @@ app.include_router(notifications.router, prefix="/api", include_in_schema=True)
 
 # WebSocket routes (no /api prefix for WebSocket)
 app.include_router(websocket.router, include_in_schema=True)
+
+app.include_router(user_tutorials.router, prefix="/api", include_in_schema=True)

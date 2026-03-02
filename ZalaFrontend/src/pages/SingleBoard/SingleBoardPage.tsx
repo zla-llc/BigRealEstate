@@ -7,6 +7,7 @@ import {
   useTimeoutEffect,
 } from "../../hooks";
 import { LoadingPage } from "../Loading";
+import transition from "../../utils/transitions/transition";
 import {
   BoardCard,
   BoardModal,
@@ -16,7 +17,7 @@ import {
 } from "../../components";
 import { useAuthStore } from "../../stores";
 
-export const SingleBoardPage = () => {
+const SingleBoardPage = () => {
   const routeParams = useParams();
   const boardId = parseInt(routeParams?.boardId ?? `-1`);
 
@@ -113,3 +114,5 @@ export const SingleBoardPage = () => {
     </div>
   );
 };
+
+export default transition(SingleBoardPage);

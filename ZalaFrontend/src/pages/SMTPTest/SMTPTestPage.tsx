@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import { TextInput, Button, Icons, IconButtonVariant } from "../../components";
 import { useApi } from "../../hooks";
 import { useSnack } from "../../hooks/utils";
-
+import transition from "../../utils/transitions/transition";
 type SMTPConfig = {
   configured: boolean;
   host: string | null;
   port: number;
 };
 
-export const SMTPTestPage = () => {
+const SMTPTestPage = () => {
   const { smtpGetConfig, smtpSendEmail } = useApi();
   const [successMsg, errorMsg] = useSnack();
 
@@ -19,9 +19,9 @@ export const SMTPTestPage = () => {
   // Form state
   const [toEmail, setToEmail] = useState("");
   const [name, setName] = useState("");
-  const [subject, setSubject] = useState("You're Invited to Join Zala!");
+  const [subject, setSubject] = useState("You're Invited to Join ZLA!");
   const [body, setBody] = useState(
-    "You've been invited to join a team on Zala. Click the link below to get started."
+    "You've been invited to join a team on ZLA. Click the link below to get started."
   );
   const [sending, setSending] = useState(false);
 
@@ -156,3 +156,4 @@ export const SMTPTestPage = () => {
   );
 };
 
+export default transition(SMTPTestPage);

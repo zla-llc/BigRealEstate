@@ -1,8 +1,9 @@
 import { IconButtonVariant, Icons, TextInput } from "../../../components";
 import { useLoginPage } from "../../../hooks";
 import { CardPage } from "../components";
+import transition from "../../../utils/transitions/transition";
 
-export const LoginPage = () => {
+const LoginPage = () => {
   const {
     state: { userName, setUserName, password, setPassword, errors },
     onLoginClick,
@@ -14,7 +15,7 @@ export const LoginPage = () => {
     <CardPage
       text={{
         pre: "Login to ",
-        highlight: "Zala CRM ",
+        highlight: "ZLA CRM ",
         end: "to connect with leads!",
       }}
       primaryBtn={{
@@ -58,3 +59,4 @@ export const LoginPage = () => {
     </CardPage>
   );
 };
+export default transition(LoginPage);
