@@ -13,7 +13,7 @@ import { LoadingPage } from "../Loading";
 import { AdminCardList, InvitedCardList, TeamCardList } from "./components";
 import transition from "../../utils/transitions/transition";
 
-const DashboardPage = () => {
+export const DashboardPage = transition(() => {
   const {
     newTeamName,
     setNewTeamName,
@@ -122,9 +122,9 @@ const DashboardPage = () => {
   );
 
   return (
-    <div className="flex flex-col gap-y-[60px] flex-1 p-[60px]">
+    <div className="flex flex-col gap-y-15 flex-1 p-15">
       {selectedTeam && (
-        <div className="w-full px-[60px]">
+        <div className="w-full px-15">
           <EditablePageHeader
             title="Team Name:"
             nonEditableText={newTeamName}
@@ -137,15 +137,15 @@ const DashboardPage = () => {
       )}
 
       {loading.loadingTeams && !selectedTeam && (
-        <div className="grow-1 flex justify-center items-center">
+        <div className="grow flex justify-center items-center">
           <LoadingPage text="" />
         </div>
       )}
 
       {!loading.loadingTeams && !selectedTeam && (
         <div className="grow flex flex-col justify-center items-center">
-          <div className="card-base box-shadow p-[30px] flex flex-col justify-center items-center space-y-[30px]">
-            <div className="w-full flex flex-col justify-center items-center space-y-[15px]">
+          <div className="card-base box-shadow p-7.5 flex flex-col justify-center items-center space-y-7.5">
+            <div className="w-full flex flex-col justify-center items-center space-y-3.75">
               <div className=" flex flex-col justify-center items-center">
                 <p className="text-sm text-secondary-50">
                   You do not have a team yet.
@@ -182,8 +182,8 @@ const DashboardPage = () => {
       )}
 
       {selectedTeam && (
-        <div className="gap-y-[60px] flex flex-col flex-1">
-          <div className="flex flex-row gap-x-[60px]">
+        <div className="gap-y-15 flex flex-col flex-1">
+          <div className="flex flex-row gap-x-15">
             <div className="flex-1">
               <AdminComponent />
             </div>
@@ -199,7 +199,7 @@ const DashboardPage = () => {
             </div>
           )}
 
-          <div className="flex flex-row gap-x-[60px]">
+          <div className="flex flex-row gap-x-15">
             <div className="w-[70%]">
               <DashboardAnnouncmentsCard
                 title="Announcments:"
@@ -218,7 +218,7 @@ const DashboardPage = () => {
                 onTrash={onDeleteAnnouncement}
               />
             </div>
-            <div className="flex-grow">
+            <div className="grow">
               <LeaderBoardsCard
                 title="Team Leaderboard:"
                 overflowCount={overflow.leaderboard}
@@ -239,7 +239,7 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          <div className="flex flex-row gap-[60px]">
+          <div className="flex flex-row gap-15">
             <div className="flex-1">
               <PropertiesListCard
                 overflowCount={overflow.teamProperties}
@@ -282,7 +282,7 @@ const DashboardPage = () => {
             </div>
           </div>
 
-          <div className="flex flex-row gap-[60px]">
+          <div className="flex flex-row gap-15">
             <div className="flex-1">
               <BoardsListCard
                 boards={teamBoards.current}
@@ -315,5 +315,4 @@ const DashboardPage = () => {
       <DashboardModals />
     </div>
   );
-};
-export default transition(DashboardPage);
+});

@@ -21,18 +21,23 @@ export const ModalHeader = ({
   underline = true,
   actions,
 }: ModalHeaderProps) => {
-  const centerStyle = center ? "flex items-center justify-center flex-col" : "";
+  const centerColStyle = center
+    ? "flex items-center justify-center flex-col"
+    : "";
+  const centerRowStyle = center
+    ? "flex items-center justify-center flex-row"
+    : "";
   const [leftRef, leftDims] = useDimensions();
   const [rightRef, rightDims] = useDimensions();
   const iconWidth = Math.max(
     numStrToNum(leftDims.width),
     numStrToNum(rightDims.width),
-    0
+    0,
   );
   const iconClass = clsx("space-x-[15px]");
   return (
-    <div className={clsx("space-y-[5px]", centerStyle)}>
-      <div className={clsx("w-full flex flex-row relative", centerStyle)}>
+    <div className={clsx("space-y-[5px]", centerColStyle)}>
+      <div className={clsx("w-full flex relative", centerRowStyle)}>
         <div
           className={clsx("flex flex-row grow-1 opacity-0 pointer-events-none")}
         >
@@ -43,8 +48,8 @@ export const ModalHeader = ({
           </div>
         </div>
 
-        <div className={clsx("absolute-fill z-[1]", centerStyle)}>
-          <div className={clsx("grow-1", centerStyle)}>
+        <div className={clsx("absolute-fill z-[1]", centerColStyle)}>
+          <div className={clsx("grow-1", centerColStyle)}>
             <h2 className="text-2xl font-bold text-secondary">{title}</h2>
             {subtitle && (
               <p className="text-secondary-50 text-md line-clamp-2">
@@ -54,18 +59,22 @@ export const ModalHeader = ({
           </div>
         </div>
 
-        <div className="absolute-fill z-[2] flex flex-row items-center justify-between">
+        <div className="absolute-fill z-[2] flex flex-row items-center justify-between ">
           <div
             ref={leftRef}
-            style={{ width: iconWidth }}
-            className={clsx(iconClass)}
+            style={{
+              minWidth: iconWidth,
+            }}
+            className={clsx(iconClass, centerRowStyle)}
           >
             <HeaderActions side="left" actions={actions} />
           </div>
           <div
             ref={rightRef}
-            style={{ width: iconWidth }}
-            className={clsx(iconClass, centerStyle, "!items-end")}
+            style={{
+              minWidth: iconWidth,
+            }}
+            className={clsx(iconClass, centerRowStyle)}
           >
             <HeaderActions side="right" actions={actions} />
           </div>

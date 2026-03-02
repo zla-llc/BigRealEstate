@@ -19,3 +19,4 @@ export * from "./useIsClamped";
 export * from "./useOverflow";
 export * from "./useFireIfExists";
 export * from "./useBooleanToggle";
+export * from "./useAllowScrollController";
