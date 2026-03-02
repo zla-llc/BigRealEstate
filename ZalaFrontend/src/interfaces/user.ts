@@ -1,4 +1,9 @@
-import { AContactToIContact, type AContact, type IContact } from "./Contact";
+import { AContactToIContact, type AContact, type IContact } from ".";
+
+export type AUserIdXp = {
+  user_id: number;
+  xp: number;
+};
 
 export type IUser = {
   username: string;

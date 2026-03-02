@@ -15,6 +15,7 @@ export const useLoginPage = () => {
   const { loginAPI } = useApi();
   const loginUser = useAuthUser();
   const [successMsg, errorMsg] = useSnack();
+
   const googleAuthCallback = useGoogleAuthButtonCallback({
     onMsg: (user) => `Login success! Hello, ${user?.contact?.firstName}`,
   });

@@ -67,6 +67,22 @@ def get_properties(db: Session, address_id: int, skip: int = 0, limit: int = 100
 
     return query.offset(skip).limit(limit).all()
 
+def get_properties_no_scope(db: Session, skip: int = 0, limit: int = 100, creator_id: int = None) -> List[Property]:
+    """Return all properties. If `creator_id` is provided, only return properties
+    associated with that user (via `user_properties`). Eager-loads related objects to avoid N+1."""
+    query = db.query(Property).options(
+        joinedload(Property.address),
+        joinedload(Property.units),
+        joinedload(Property.users),
+        selectinload(Property.images),
+    )
+
+    # if creator_id passed, join the association table to filter by user
+    if creator_id is not None:
+        query = query.join(user_properties, user_properties.c.property_id == Property.property_id).filter(user_properties.c.user_id == creator_id)
+
+    return query.offset(skip).limit(limit).all()
+
 
 def get_property(db: Session, address_id: int, property_id: int) -> Optional[Property]:
     """Get single property scoped to address, eager-loading address and units."""

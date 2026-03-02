@@ -10,7 +10,7 @@ import {
 import { Normalizer, stringify } from "../../utils";
 import type { MapRefHandle } from "../components";
 import { useAppNavigation, useSnack } from "../utils";
-import { useApi } from "../api";
+import { useAlterUserXp, useApi } from "../api";
 
 export const useLeadSearchPage = () => {
   const user = useAuthStore((state) => state.user);
@@ -20,8 +20,10 @@ export const useLeadSearchPage = () => {
   const openSideNav = useSideNavControlStore((state) => state.open);
 
   const { createCampaign } = useApi();
-  const [_successSnack, errorSnack] = useSnack();
+  const [successSnack, errorSnack] = useSnack();
   const { toCampaignPage } = useAppNavigation();
+
+  const alterUserXP = useAlterUserXp();
 
   const mapRef = useRef<MapRefHandle>(null);
 
@@ -59,17 +61,17 @@ export const useLeadSearchPage = () => {
       produce((draft) => {
         if (draft.includes(i)) return draft.filter((val) => val !== i);
         else draft.push(i);
-      })
+      }),
     );
 
   const sortLeads = useCallback(() => {
     if (sortBy === "None" || sortBy.length === 0) return leadData;
     return leadData.sort((a, b) => {
       const ambFirstName = a.contact.firstName.localeCompare(
-        b.contact.firstName
+        b.contact.firstName,
       );
       const ambLastName = a.contact.firstName.localeCompare(
-        b.contact.firstName
+        b.contact.firstName,
       );
       if (sortBy === "Name")
         return ambFirstName === 0 ? ambLastName : ambFirstName;
@@ -89,7 +91,7 @@ export const useLeadSearchPage = () => {
         ? campaignTitle
         : `${new Date().toDateString()} Campaign`;
     const leadsToAddToCampaign = leadData.filter((lead) =>
-      campaignLeads.includes(lead.leadId)
+      campaignLeads.includes(lead.leadId),
     );
 
     setLoading(true);
@@ -106,6 +108,12 @@ export const useLeadSearchPage = () => {
       errorSnack(`Connection unstable... please try again later`);
       return;
     }
+
+    const addedXp = 100 + 50 * campaignLeads.length;
+    await alterUserXP.addUserXp(addedXp);
+    successSnack(
+      `+ ${addedXp} XP - New campaign with ${campaignLeads.length} leads`,
+    );
 
     const campaign = Normalizer.APINormalizer.campaign(res.data);
     setCampaign(campaign);

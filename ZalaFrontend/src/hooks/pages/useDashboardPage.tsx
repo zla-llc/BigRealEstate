@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTeamInvitePage } from "./useTeamInvitePage";
 import {
   useAppNavigation,
@@ -9,13 +9,17 @@ import {
 } from "../utils";
 import {
   DashboardModalPages,
+  GlobalModalPage,
   useCreatePropertyStore,
   useDashboardModalStore,
   useEditingFormStore,
+  useGlobalModalStore,
   useLeaderboardModalStore,
   useSelectedIdsStore,
+  useSelectedIdStore,
   useViewBoardsModalStore,
   useViewPropertiesModalStore,
+  useViewPropertyModalControlStore,
 } from "../../stores";
 import {
   AKanbanBoardToIKanbanBoard,
@@ -25,7 +29,7 @@ import {
   type LeaderboardItem,
 } from "../../interfaces";
 import { stringify, teamMemberFullName } from "../../utils";
-import { useUserBoards, useUserProperties } from "../api";
+import { useAlterUserXp, useUserBoards, useUserProperties } from "../api";
 import { Icons } from "../../components";
 
 const MAX_ADMIN_COUNT = 4;
@@ -77,6 +81,14 @@ export const useDashboardPage = () => {
   } = useTeamInvitePage();
 
   const [successMsg, errorMsg] = useSnack();
+  const alterUserXP = useAlterUserXp();
+
+  const selectedIdStore = useSelectedIdStore();
+  const selectedIdsStore = useSelectedIdsStore();
+
+  const globalModalStore = useGlobalModalStore();
+
+  const viewPropertyModalControlStore = useViewPropertyModalControlStore();
 
   const {
     isOpen,
@@ -97,7 +109,6 @@ export const useDashboardPage = () => {
     clearKey,
     clearAll: clearAllEditingForms,
   } = useEditingFormStore();
-  const selectedIdsStore = useSelectedIdsStore();
 
   const { setEditingProperty } = useCreatePropertyStore();
 
@@ -110,12 +121,6 @@ export const useDashboardPage = () => {
     deps: [page === DashboardModalPages.CreateBoardModal && !isOpen],
   });
 
-  // const [teamProperties] = useProperties({
-  //   propertyIds: (selectedTeam?.properties ?? []).map(
-  //     (property) => property.property_id,
-  //   ),
-  //   deps: [selectedTeam?.properties.length],
-  // });
   const teamProperties = useRef<IProperty[]>([]);
   const teamBoards = useRef<IKanbanBoard[]>([]);
 
@@ -128,7 +133,7 @@ export const useDashboardPage = () => {
   const isUserAdmin =
     adminMembers.find((member) => member.user.user_id === user?.userId) !==
     undefined;
-  const leaderboardMembers: LeaderboardItem[] = teamMembersWithXp.map(
+  const leaderboardMembersMapped: LeaderboardItem[] = teamMembersWithXp.map(
     (member) => ({
       id: member.user_id,
       xp: member.xp,
@@ -138,6 +143,14 @@ export const useDashboardPage = () => {
       ),
     }),
   );
+  const [leaderboardMembers, setLeaderboardMembers] = useState<
+    LeaderboardItem[]
+  >([]);
+
+  useEffect(() => {
+    const sorted = [...leaderboardMembersMapped].sort((a, b) => b.xp - a.xp);
+    setLeaderboardMembers(sorted);
+  }, [leaderboardMembersMapped.length]);
 
   const [
     invitationsOverflow,
@@ -191,6 +204,10 @@ export const useDashboardPage = () => {
   }, [stringify(userProperties)]);
 
   useEffect(() => {
+    if (user?.userId) (async () => await alterUserXP.getUserXp())();
+  }, [user?.userId]);
+
+  useEffect(() => {
     const editingAnnouncment = announcements.find(
       (anc) => anc.announcement_id === announcementId,
     );
@@ -220,9 +237,13 @@ export const useDashboardPage = () => {
   useEffect(() => {
     if (teams.length > 0) {
       const team = teams[0];
+
+      selectedIdStore.setId("teamId", team.team_id);
       onSelectTeam(team);
       setNewTeamName(team.team_name);
-      teamProperties.current = (team.properties ?? []).map(APropertyToIProperty);
+      teamProperties.current = (team.properties ?? []).map(
+        APropertyToIProperty,
+      );
       teamBoards.current = (team.boards ?? []).map(AKanbanBoardToIKanbanBoard);
     } else {
       // User was removed from team or team was deleted — clear the dashboard
@@ -308,7 +329,11 @@ export const useDashboardPage = () => {
     internalOpenViewPropertiesModal(
       userPropertiesRef.current,
       (propertyId) =>
-        onPropertyCardClick(propertyId, "custom", userPropertiesRef.current),
+        openEditPropertyModalFromType(
+          propertyId,
+          "custom",
+          userPropertiesRef.current,
+        ),
       "My Properties",
     );
     viewPropertiesModalStore.setSubmitButtons(undefined, undefined);
@@ -320,7 +345,11 @@ export const useDashboardPage = () => {
     internalOpenViewPropertiesModal(
       teamProperties.current,
       (propertyId) =>
-        onPropertyCardClick(propertyId, "custom", teamProperties.current),
+        openEditPropertyModalFromType(
+          propertyId,
+          "custom",
+          teamProperties.current,
+        ),
       "Team Properties",
     );
     viewPropertiesModalStore.setSubmitButtons(undefined, undefined);
@@ -398,7 +427,7 @@ export const useDashboardPage = () => {
     toggleModalOpen();
   };
 
-  const onPropertyCardClick = (
+  const openEditPropertyModalFromType = (
     propertyId: number,
     type: "team" | "user" | "custom" = "user",
     forceProperties?: IProperty[],
@@ -443,11 +472,7 @@ export const useDashboardPage = () => {
         },
         title,
       );
-      // setOnClick((boardId) => {
-      //   setBoards([]);
-      //   toggleModalOpen(false);
-      //   onBoardClick(boardId);
-      // });
+
       setPage(DashboardModalPages.ViewBoardsModal);
       toggleModalOpen(true);
     };
@@ -512,6 +537,113 @@ export const useDashboardPage = () => {
     return propertyId;
   };
 
+  const closeGlobalModal = async () => {
+    if (globalModalStore.preClose) await globalModalStore.preClose();
+    globalModalStore.toggleOpen();
+    if (globalModalStore.postClose) await globalModalStore.postClose();
+  };
+
+  const onUserPropertyClick = (propertyId: number) => {
+    const isPropertyInTeam = (selectedTeam?.properties ?? []).find(
+      (prop) => prop.property_id === propertyId,
+    );
+
+    const onActionClick = async () => (
+      await (isPropertyInTeam
+        ? unlinkPropertyFromTeam(propertyId)
+        : linkPropertyToTeam(propertyId)),
+      await closeGlobalModal()
+    );
+    const setActionButton = (disabled: boolean) =>
+      viewPropertyModalControlStore.setActionBtn("primaryBtn", {
+        text: isPropertyInTeam ? "Remove from team" : "Add to team",
+        disabled,
+        icon: isPropertyInTeam ? Icons.Minus : Icons.Add,
+        onClick: onActionClick,
+      });
+
+    selectedIdStore.setId("propertyId", propertyId);
+    globalModalStore.setPage(GlobalModalPage.ViewProperty);
+    viewPropertyModalControlStore.setTitle("View Property");
+    viewPropertyModalControlStore.setIsClosed(false);
+
+    viewPropertyModalControlStore.setOnEdit(() =>
+      openEditPropertyModalFromType(propertyId, "user"),
+    );
+    setActionButton(false);
+
+    globalModalStore.toggleOpen();
+
+    globalModalStore.setListener("preClose", () => {
+      selectedIdStore.clearId("propertyId");
+      viewPropertyModalControlStore.setIsClosed(false);
+      globalModalStore.clearListeners();
+      viewPropertyModalControlStore.clearActionBtn("primaryBtn");
+      viewPropertyModalControlStore.clearActionBtn("secondaryBtn");
+    });
+  };
+
+  const onTeamPropertyClick = (propertyId: number) => {
+    const isPropertyClosed =
+      (selectedTeam?.deals ?? []).find(
+        (deal) => deal.property_id === propertyId,
+      ) !== undefined;
+
+    const onMarkAsSold = async () => {
+      setPrimaryActionBtn(true);
+
+      await closeTeamProperty(propertyId);
+
+      setPrimaryActionBtn(false);
+
+      await closeGlobalModal();
+    };
+    const setPrimaryActionBtn = (disabled: boolean) =>
+      viewPropertyModalControlStore.setActionBtn("primaryBtn", {
+        text: "Mark as Sold",
+        icon: Icons.Coin,
+        disabled,
+        onClick: onMarkAsSold,
+      });
+
+    selectedIdStore.setId("propertyId", propertyId);
+    globalModalStore.setPage(GlobalModalPage.ViewProperty);
+    viewPropertyModalControlStore.setTitle("View Team Property");
+
+    viewPropertyModalControlStore.setOnEdit(() =>
+      openEditPropertyModalFromType(propertyId, "team"),
+    );
+
+    viewPropertyModalControlStore.setIsClosed(isPropertyClosed);
+    if (isPropertyClosed)
+      viewPropertyModalControlStore.clearActionBtn("primaryBtn");
+    else setPrimaryActionBtn(false);
+
+    globalModalStore.toggleOpen();
+
+    globalModalStore.setListener("preClose", () => {
+      selectedIdStore.clearId("propertyId");
+      viewPropertyModalControlStore.setIsClosed(false);
+      globalModalStore.clearListeners();
+      viewPropertyModalControlStore.clearActionBtn("primaryBtn");
+      viewPropertyModalControlStore.clearActionBtn("secondaryBtn");
+    });
+  };
+
+  const closeTeamProperty = async (propertyId: number) => {
+    if (!user) return;
+
+    await api.closeTeamDeal({
+      teamId: selectedIdStore.teamId,
+      propertyId,
+      user_id: user.userId,
+      closed_at: new Date().toISOString(),
+      sale_price: 0,
+      lead_id: selectedIdStore.leadId > 0 ? selectedIdStore.leadId : null,
+      notes: "",
+    });
+  };
+
   return {
     newTeamName,
     setNewTeamName,
@@ -562,11 +694,13 @@ export const useDashboardPage = () => {
     onRemoveMember,
     onPromoteToAdmin,
     onDemoteFromAdmin,
-    onPropertyCardClick,
+    openEditPropertyModalFromType,
+    onUserPropertyClick,
     onBoardClick,
     onCreateTeam,
     onPostAnnouncement:
       announcementId === -1 ? onPostAnnouncement : onUpdateAnnouncement,
+    onTeamPropertyClick,
 
     onDeleteAnnouncement: isUserAdmin ? onDeleteAnnouncement : undefined,
     onEditAnnouncementClick: isUserAdmin ? onEditAnnouncementClick : undefined,

@@ -19,6 +19,7 @@ export type IconButtonProps = {
 
   size?: number;
   scale?: number;
+  rotate?: number;
   shadow?: boolean;
   borderRadius?: number;
   disableOpacity?: boolean;
@@ -38,6 +39,7 @@ export const IconButton = ({
   shadow = true,
   disableOpacity = false,
   borderRadius = 15,
+  rotate = 0,
   badge,
   onClick,
 }: IconButtonProps) => {
@@ -55,7 +57,7 @@ export const IconButton = ({
       sx={{
         "& .MuiBadge-badge": {
           backgroundColor: getBadgeBgColor(
-            badge?.color ?? ButtonVariant.Primary
+            badge?.color ?? ButtonVariant.Primary,
           ),
           color: getBadgeTextColor(badge?.color ?? ButtonVariant.Primary),
         },
@@ -63,7 +65,7 @@ export const IconButton = ({
     >
       <div
         className={clsx(
-          onClick ? "transition-[scale] duration-75 active:scale-[.9]" : ""
+          onClick ? "transition-[scale] duration-75 active:scale-[.9]" : "",
         )}
       >
         <div
@@ -72,17 +74,19 @@ export const IconButton = ({
             "p-2.5 relative overflow-hidden",
             onClick ? "cursor-pointer" : "",
             shadow ? "box-shadow-sm" : "",
-            getBgColor(variant)
+            getBgColor(variant),
           )}
         >
-          <Icon name={name} color={getColor(variant)} size={size} />
+          <div style={{ rotate: `${rotate}deg` }}>
+            <Icon name={name} color={getColor(variant)} size={size} />
+          </div>
           <div
             onClick={onClick}
             className={clsx(
               "absolute z-1 top-0 left-0 bottom-0 right-0",
               onClick && !disableOpacity
-                ? "bg-[var(--color-secondary)] opacity-0 hover:opacity-25"
-                : ""
+                ? "bg-secondary opacity-0 hover:opacity-25"
+                : "",
             )}
           ></div>
         </div>

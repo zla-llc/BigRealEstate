@@ -13,6 +13,7 @@ export enum Icons {
   Close = "Close",
   Arrow = "Arrow",
   Chevron = "Chevron",
+  ChevronLeft = "ChevronLeft",
   CheckboxOutline = "CheckboxOutline",
   CheckboxChecked = "CheckboxChecked",
   Phone = "Phone",
@@ -36,4 +37,6 @@ export enum Icons {
   Announce = "Announce",
   Map = "Map",
   File = "File",
+  Image = "Image",
+  Coin = "Coin",
 }

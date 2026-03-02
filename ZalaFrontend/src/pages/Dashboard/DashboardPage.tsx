@@ -46,12 +46,13 @@ const DashboardPage = () => {
     onAddTeamPropertyClick,
     openViewTeamPropertiesModal,
 
-    onPropertyCardClick,
+    onUserPropertyClick,
     onCreateTeam,
     onBoardClick,
     onDeleteAnnouncement,
     onEditAnnouncementClick,
     onAddTeamBoardClick,
+    onTeamPropertyClick,
 
     setSelectedMemberId,
 
@@ -142,7 +143,7 @@ const DashboardPage = () => {
       )}
 
       {!loading.loadingTeams && !selectedTeam && (
-        <div className="grow-1 flex flex-col justify-center items-center">
+        <div className="grow flex flex-col justify-center items-center">
           <div className="card-base box-shadow p-[30px] flex flex-col justify-center items-center space-y-[30px]">
             <div className="w-full flex flex-col justify-center items-center space-y-[15px]">
               <div className=" flex flex-col justify-center items-center">
@@ -168,7 +169,7 @@ const DashboardPage = () => {
             </div>
 
             <div className="flex flex-col justify-center items-center">
-              <div className="w-[300px]">
+              <div className="w-75">
                 <Button
                   onClick={onCreateTeam}
                   text="Create team"
@@ -256,6 +257,7 @@ const DashboardPage = () => {
                     : undefined
                 }
                 onAdd={isUserAdmin ? onAddTeamPropertyClick : undefined}
+                onClick={onTeamPropertyClick}
               />
             </div>
             <div className="flex-1">
@@ -275,7 +277,7 @@ const DashboardPage = () => {
                       }
                     : undefined
                 }
-                onClick={onPropertyCardClick}
+                onClick={onUserPropertyClick}
               />
             </div>
           </div>

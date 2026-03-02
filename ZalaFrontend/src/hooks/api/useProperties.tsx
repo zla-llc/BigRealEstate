@@ -5,7 +5,7 @@ import { stringify } from "../../utils";
 
 export const useProperties = ({
   propertyIds,
-  deps,
+  deps = [],
 }: {
   propertyIds: number[];
   deps: unknown[];
@@ -21,7 +21,6 @@ export const useProperties = ({
   const [properties, setProperties] = useState<IProperty[]>([]);
 
   useEffect(() => {
-    console.log(propertyIds);
     if (propertyIds.length !== 0) getProperties();
   }, [stringify(propertyIds), ...deps]);
 

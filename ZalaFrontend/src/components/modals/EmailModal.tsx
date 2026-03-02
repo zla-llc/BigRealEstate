@@ -31,16 +31,13 @@ export const EmailModal = ({
   } = useEmailModal({ leads, onSendEmail });
   const hasEmail = [];
   const notHasEmail = [];
-  for(const i of leads){
-    if(i['contact']['email']){
-      hasEmail.push(i)
-    }
-    else{
-      notHasEmail.push(i)
+  for (const i of leads) {
+    if (i["contact"]["email"]) {
+      hasEmail.push(i);
+    } else {
+      notHasEmail.push(i);
     }
   }
-  console.log(hasEmail)
-  console.log(notHasEmail)
   return (
     <Modal open={open} onClose={onClose}>
       <div className="w-full max-h-[80vh] p-6 flex flex-col overflow-hidden">
@@ -49,25 +46,28 @@ export const EmailModal = ({
             Email Lead{leads.length > 1 ? "s" : ""}
           </h2>
           <p className="text-secondary-50 text-sm line-clamp-2">
-            {hasEmail.length < 1 ? '' : 'Send an email to'}{" "}
+            {hasEmail.length < 1 ? "" : "Send an email to"}{" "}
             {hasEmail.slice(0, Math.min(leads.length, 3)).map((lead) => (
-              <span key={lead.leadId ?? lead.contact.email} className="font-bold text-secondary">{`${
-                lead.contact.firstName
-              } ${lead.contact.lastName} (${
+              <span
+                key={lead.leadId ?? lead.contact.email}
+                className="font-bold text-secondary"
+              >{`${lead.contact.firstName} ${lead.contact.lastName} (${
                 lead.contact.email ?? lead.contact.phone
               })`}</span>
-            ))} {" "}
+            ))}{" "}
             {hasEmail.length > 3 ? `+${hasEmail.length - 3} more` : ""}
           </p>
           <p className="text-secondary-50 text-sm line-clamp-2">
-            {hasEmail.length < 1 ?'Cannot Email' : ''}{" "}
+            {hasEmail.length < 1 ? "Cannot Email" : ""}{" "}
             {notHasEmail.slice(0, Math.min(leads.length, 3)).map((lead) => (
-              <span key={lead.leadId ?? lead.contact.email} className="font-bold text-secondary" style={{ color: 'red' }}>{`${
-                lead.contact.firstName
-              } ${lead.contact.lastName} (${
+              <span
+                key={lead.leadId ?? lead.contact.email}
+                className="font-bold text-secondary"
+                style={{ color: "red" }}
+              >{`${lead.contact.firstName} ${lead.contact.lastName} (${
                 lead.contact.email ?? lead.contact.phone
               })`}</span>
-            ))} {" "}
+            ))}{" "}
             {notHasEmail.length > 3 ? `+${notHasEmail.length - 3} more` : ""}
           </p>
         </div>
@@ -87,18 +87,24 @@ export const EmailModal = ({
           <RichTextEditor label="Body" value={body} onChange={setBody} />
           <div className="space-y-1">
             <label className="text-secondary text-sm font-semibold">
-              Signature {loadingSignature && <span className="text-xs text-gray-400">(loading...)</span>}
+              Signature{" "}
+              {loadingSignature && (
+                <span className="text-xs text-gray-400">(loading...)</span>
+              )}
             </label>
             <div
               className="rounded-[15px] border-2 border-secondary bg-white p-3 text-secondary text-sm focus-within:border-accent [&_img]:max-w-full [&_img]:h-auto [&_img]:inline-block"
               contentEditable
               suppressContentEditableWarning
-              onInput={(e) => setSignature((e.target as HTMLDivElement).innerHTML)}
+              onInput={(e) =>
+                setSignature((e.target as HTMLDivElement).innerHTML)
+              }
               dangerouslySetInnerHTML={{ __html: signature }}
             />
             {signature.includes("<img") && (
               <p className="text-xs text-gray-400">
-                Images in your signature may not preview here but will appear in the sent email.
+                Images in your signature may not preview here but will appear in
+                the sent email.
               </p>
             )}
           </div>
@@ -111,9 +117,15 @@ export const EmailModal = ({
             disabled={loading}
           />
           <Button
-            text={loading ? "Sending..." : "Send Campaign"}
+            text={
+              loading
+                ? "Sending..."
+                : hasEmail.length === 0
+                  ? "Send Test Campaign"
+                  : "Send Campaign"
+            }
             onClick={onSubmit}
-            disabled={loading || hasEmail.length < 1}
+            disabled={loading}
             icon={Icons.Mail}
           />
         </div>

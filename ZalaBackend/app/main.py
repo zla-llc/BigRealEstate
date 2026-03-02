@@ -28,6 +28,7 @@ from app.routes import (
     notifications,
     websocket,
     email_verification,
+    team_deals,
     user_tutorials
 )
 from app.services.file_storage import get_upload_root
@@ -68,6 +69,7 @@ app.include_router(
 app.include_router(campaign_emails.router, prefix="/api", include_in_schema=True)
 app.include_router(campaign_leads.router, prefix="/api", include_in_schema=True)
 app.include_router(team.router, prefix="/api", include_in_schema=True)
+app.include_router(team_deals.router, prefix="/api", include_in_schema=True)
 
 app.include_router(campaigns.router, prefix="/api", include_in_schema=True)
 
