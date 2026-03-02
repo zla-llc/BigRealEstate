@@ -3,7 +3,7 @@ import type { ITeamAnnouncement } from "../../interfaces";
 import { AnnouncementCard, OverflowText } from "..";
 import { useFireIfExists } from "../../hooks";
 
-type DashboardAnnouncmentsCardProps = DashboardCardProps & {
+type DashboardAnnouncementsCardProps = DashboardCardProps & {
   messages: ITeamAnnouncement[];
   overflowCount: number;
   onClick?: (messageId: number) => void;
@@ -11,8 +11,8 @@ type DashboardAnnouncmentsCardProps = DashboardCardProps & {
   onEdit?: (messageId: number) => void;
 };
 
-export const DashboardAnnouncmentsCard = (
-  props: DashboardAnnouncmentsCardProps,
+export const DashboardAnnouncementsCard = (
+  props: DashboardAnnouncementsCardProps,
 ) => {
   const { messages, overflowCount, onClick, onTrash, onEdit } = props;
   const fireIfExists = useFireIfExists();

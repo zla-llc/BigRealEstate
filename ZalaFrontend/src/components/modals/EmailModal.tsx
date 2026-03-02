@@ -39,8 +39,6 @@ export const EmailModal = ({
       notHasEmail.push(i)
     }
   }
-  console.log(hasEmail)
-  console.log(notHasEmail)
   return (
     <Modal open={open} onClose={onClose}>
       <div className="w-full max-h-[80vh] p-6 flex flex-col overflow-hidden">

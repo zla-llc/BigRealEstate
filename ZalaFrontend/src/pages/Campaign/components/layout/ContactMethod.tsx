@@ -19,7 +19,17 @@ export const ContactMethod = ({
   disabled,
 }: ContactMethodProps) => {
   const [isHovered, hoverProps] = useHover({ onClick });
-  const isActive = isHovered || active;
+  let clicked = false;
+  const changeClick = () => {
+    if(clicked){
+      clicked = false
+    }
+    else{
+      clicked = true
+    }
+    console.log(clicked)
+  };
+  const isActive = isHovered || clicked;
   let style;
   let color;
   let textColor;

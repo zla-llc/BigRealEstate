@@ -1,5 +1,5 @@
 import {
-  DashboardAnnouncmentsCard,
+  DashboardAnnouncementsCard,
   BoardsListCard,
   Button,
   DashboardModals,
@@ -200,8 +200,8 @@ const DashboardPage = () => {
 
           <div className="flex flex-row gap-x-[60px]">
             <div className="w-[70%]">
-              <DashboardAnnouncmentsCard
-                title="Announcments:"
+              <DashboardAnnouncementsCard
+                title="announcements:"
                 overflowCount={overflow.announcements}
                 messages={[...announcements].splice(
                   0,
