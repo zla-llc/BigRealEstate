@@ -40,4 +40,5 @@ export enum Icons {
   Image = "Image",
   Coin = "Coin",
   PropertyPin = "PropertyPin",
+  Leaderboard = "Leaderboard",
 }

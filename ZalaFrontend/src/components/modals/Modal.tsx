@@ -23,7 +23,7 @@ export const Modal = ({
       <Portal>
         <div
           onClick={onClose}
-          className="full bg-secondary-50 z-10 fixed top-0 left-0 p-[60px]"
+          className="full bg-secondary-50 z-200 fixed top-0 left-0 p-[60px]"
         >
           <div className="full relative">
             <div className="absolute-fill z-[12] pointer-events-auto flex items-center justify-center">
