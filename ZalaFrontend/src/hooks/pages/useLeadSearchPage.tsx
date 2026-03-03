@@ -15,6 +15,7 @@ import { useAlterUserXp, useApi } from "../api";
 export const useLeadSearchPage = () => {
   const user = useAuthStore((state) => state.user);
   const leadData = useSearchQueryStore((state) => state.data);
+  const nearbyProperties = useSearchQueryStore((state) => state.nearbyProperties);
   const setCampaign = useCampaignStore((state) => state.setCampaign);
   const sortBy = useSearchFilterStore((state) => state.sortBy);
   const openSideNav = useSideNavControlStore((state) => state.open);
@@ -131,6 +132,7 @@ export const useLeadSearchPage = () => {
     setLoading,
     mapRef,
     leadData: sortLeads(),
+    nearbyProperties,
     activeLead,
     setActiveLead,
     campaignHasAllLeads,
