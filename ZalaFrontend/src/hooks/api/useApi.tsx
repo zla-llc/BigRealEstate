@@ -172,6 +172,10 @@ export const useApi = () => {
     );
   };
 
+  const getUsers = async () => {
+    return await get<AUser[]>(`/api/users`, getSignal("getUsers"));
+  };
+
   const getUser = async (userId: string) => {
     return await get<AUser>(`/api/users/${userId}`, getSignal("getUser"));
   };
@@ -342,6 +346,10 @@ export const useApi = () => {
   };
 
   // Team Management APIs
+  const getTeams = async () => {
+    return await get<ITeam[]>(`/api/teams/`, getSignal(`getTeams`));
+  };
+
   const createTeam = async ({
     team_name,
     admin_user_id,
@@ -400,6 +408,7 @@ export const useApi = () => {
         sale_price,
         closed_at,
         lead_id,
+        xp_earned: 1000,
       },
     );
   };
@@ -625,6 +634,7 @@ export const useApi = () => {
     restoreUserXp,
     linkContactToUser,
     loginAPI,
+    getUsers,
     getUser,
     getCampaign,
     getCampaigns,
@@ -643,6 +653,7 @@ export const useApi = () => {
     smtpGetConfig,
     smtpSendEmail,
     // Team APIs
+    getTeams,
     createTeam,
     getTeamMembersByXp,
     updateTeam,
