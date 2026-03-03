@@ -21,4 +21,5 @@ export * from "./EditingFormStore";
 export * from "./SelectedIdsStore";
 export * from "./GlobalModalStore";
 export * from "./SelectedIdStore";
+export * from "./AllowScrollStore";
 export * from "./ViewPropertyModalControlStore";

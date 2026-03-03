@@ -6,6 +6,7 @@ export enum GlobalModalPage {
   ViewProperty = "ViewProperty",
   EditProperty = "EditProperty",
   CreateProperty = "CreateProperty",
+  LeaderBoardGlobal = "LeaderBoardGlobal",
 }
 
 type IListener = () => Promise<void> | void;

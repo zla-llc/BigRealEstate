@@ -1,4 +1,5 @@
 import { GlobalModalPage, useGlobalModalStore } from "../../stores";
+import { LeaderBoardGlobalModal } from "./LeaderBoardModals";
 import { Modal } from "./Modal";
 import { ViewPropertyModalPage } from "./ViewPropertyModalPage";
 
@@ -15,6 +16,9 @@ export const GlobalModal = () => {
     <Modal open={globalModalStore.isOpen} onClose={onClose}>
       {globalModalStore.page === GlobalModalPage.ViewProperty && (
         <ViewPropertyModalPage onClose={onClose} />
+      )}
+      {globalModalStore.page === GlobalModalPage.LeaderBoardGlobal && (
+        <LeaderBoardGlobalModal onClose={onClose} />
       )}
     </Modal>
   );
