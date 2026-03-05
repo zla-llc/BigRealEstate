@@ -201,7 +201,7 @@ const DashboardPage = () => {
           <div className="flex flex-row gap-x-[60px]">
             <div className="w-[70%]">
               <DashboardAnnouncementsCard
-                title="announcements:"
+                title="Announcements:"
                 overflowCount={overflow.announcements}
                 messages={[...announcements].splice(
                   0,
