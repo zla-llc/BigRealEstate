@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { TooltipContainer } from "../feedback";
 import { DashboardCard, type DashboardCardProps } from "./DashboardCard";
 import { AvatarCard } from "./AvatarCard";
+import { forwardRef } from "react";
 
 type UserCircle = {
   title: string;
@@ -22,22 +23,28 @@ type UserCardProps = {
   onClick?: () => void;
 };
 
-export const UserListCard = (props: UserListCardProps) => {
-  const { users, overflowCount, onClick = () => {} } = props;
-  return (
-    <DashboardCard {...props}>
-      <div className="flex flex-row justify-center flex-wrap gap-[30px] ">
-        {users.map((user, i) => (
-          <UserCard key={i} user={user} onClick={() => onClick(i)} />
-        ))}
+export const UserListCard = forwardRef<HTMLDivElement, UserListCardProps>(
+  (props, ref) => {
+    const { users, overflowCount, onClick } = props;
+    return (
+      <DashboardCard ref={ref} {...props}>
+        <div className="flex flex-row justify-center flex-wrap gap-[30px] ">
+          {users.map((user, i) => (
+            <UserCard
+              key={i}
+              user={user}
+              onClick={onClick ? () => onClick(i) : undefined}
+            />
+          ))}
 
-        {overflowCount > 0 && (
-          <UserCard hoverable={false} title={`+${overflowCount}`} />
-        )}
-      </div>
-    </DashboardCard>
-  );
-};
+          {overflowCount > 0 && (
+            <UserCard hoverable={false} title={`+${overflowCount}`} />
+          )}
+        </div>
+      </DashboardCard>
+    );
+  },
+);
 
 const UserCard = ({
   user,
@@ -60,7 +67,11 @@ const UserCard = ({
                 : undefined
             }
           >
-            <AvatarCard onClick={onClick} title={user.title} borderColor={user.borderColor} />
+            <AvatarCard
+              onClick={onClick}
+              title={user.title}
+              borderColor={user.borderColor}
+            />
           </TooltipContainer>
         )}
         {title && !user && <AvatarCard title={title} />}

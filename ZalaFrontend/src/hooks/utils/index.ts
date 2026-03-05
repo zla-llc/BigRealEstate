@@ -20,3 +20,8 @@ export * from "./useOverflow";
 export * from "./useFireIfExists";
 export * from "./useBooleanToggle";
 export * from "./useAllowScrollController";
+export * from "./useShouldShowTutorial";
+export * from "./useTutorialPageTo";
+export * from "./useOnTutorialModalChange";
+export * from "./types";
+export * from "./useDashboardHighlightComponents";

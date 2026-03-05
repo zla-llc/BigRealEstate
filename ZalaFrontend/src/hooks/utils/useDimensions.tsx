@@ -31,27 +31,32 @@ const DEFAULT_DIMENSIONS: IScreenDimensions = {
   screenY: 0,
 };
 
+const debounce = (func: (...args: unknown[]) => void, delay: number) => {
+  let timeoutId: number;
+  return function (...args: unknown[]) {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      func(...args);
+    }, delay);
+  };
+};
+
 export const useDimensions = (): [
   React.RefObject<HTMLDivElement | null>,
   IScreenDimensions,
   React.Dispatch<React.SetStateAction<IScreenDimensions>>,
+  number,
 ] => {
   const elementRef = useRef<HTMLDivElement>(null);
 
   const [dimensions, setDimensions] =
     useState<IScreenDimensions>(DEFAULT_DIMENSIONS);
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
-    const observer = new ResizeObserver((entries) => {
-      // Only interested in the first entry for the observed element
-      if (elementRef.current && entries[0]) {
-        const { width, height, x, y } = entries[0].contentRect;
-        const boundingRect = elementRef.current.getBoundingClientRect();
-        const { top, left } = boundingRect;
-
-        setDimensions({ width, height, x, y, screenX: left, screenY: top });
-      }
-    });
+    const observer = getObserver();
 
     if (elementRef.current) {
       observer.observe(elementRef.current);
@@ -63,7 +68,38 @@ export const useDimensions = (): [
         observer.unobserve(elementRef.current);
       }
     };
+  }, [elementRef.current]);
+
+  useEffect(() => {
+    const debouncedHandler = debounce(() => {
+      console.log(``);
+      console.log(`Scroll end`);
+      console.log(``);
+      updateDimensions();
+    }, 250);
+
+    window.addEventListener("scroll", debouncedHandler);
+
+    return () => {
+      window.removeEventListener("scroll", debouncedHandler);
+    };
   }, []);
 
-  return [elementRef, dimensions, setDimensions];
+  const getObserver = () =>
+    new ResizeObserver((entries) => {
+      // Only interested in the first entry for the observed element
+      updateDimensions();
+    });
+
+  const updateDimensions = () => {
+    if (!elementRef.current) return;
+
+    const boundingRect = elementRef.current.getBoundingClientRect();
+    const { top, left, width, height, x, y } = boundingRect;
+
+    setDimensions({ width, height, x, y, screenX: left, screenY: top });
+    setCount((prev) => prev + 1);
+  };
+
+  return [elementRef, dimensions, setDimensions, count];
 };

@@ -29,7 +29,7 @@ def get_user_tutorial(user_id: int, db: Session = Depends(get_db)):
     return tutorial
 
 
-@router.patch("/", response_model=UserTutorialPublic)
+@router.put("/", response_model=UserTutorialPublic)
 def update_user_tutorial(
         user_id: int,
         tutorial_update: UserTutorialUpdate,

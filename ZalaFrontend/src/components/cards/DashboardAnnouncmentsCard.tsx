@@ -2,6 +2,7 @@ import { DashboardCard, type DashboardCardProps } from "./DashboardCard";
 import type { ITeamAnnouncement } from "../../interfaces";
 import { AnnouncementCard, OverflowText } from "..";
 import { useFireIfExists } from "../../hooks";
+import { forwardRef } from "react";
 
 type DashboardAnnouncmentsCardProps = DashboardCardProps & {
   messages: ITeamAnnouncement[];
@@ -11,13 +12,14 @@ type DashboardAnnouncmentsCardProps = DashboardCardProps & {
   onEdit?: (messageId: number) => void;
 };
 
-export const DashboardAnnouncmentsCard = (
-  props: DashboardAnnouncmentsCardProps,
-) => {
+export const DashboardAnnouncmentsCard = forwardRef<
+  HTMLDivElement,
+  DashboardAnnouncmentsCardProps
+>((props, ref) => {
   const { messages, overflowCount, onClick, onTrash, onEdit } = props;
   const fireIfExists = useFireIfExists();
   return (
-    <DashboardCard {...props}>
+    <DashboardCard ref={ref} {...props}>
       <div className="w-full flex flex-col gap-y-[15px]">
         <div className="flex flex-col gap-y-[30px]">
           {messages.map((message) => (
@@ -35,4 +37,4 @@ export const DashboardAnnouncmentsCard = (
       </div>
     </DashboardCard>
   );
-};
+});

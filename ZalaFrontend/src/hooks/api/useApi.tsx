@@ -12,6 +12,7 @@ import {
   type ITeamAnnouncement,
   type AUserIdXp,
   type ITeamDeal,
+  type ITutorial,
 } from "../../interfaces";
 import type {
   CreateUserProps,
@@ -178,6 +179,21 @@ export const useApi = () => {
 
   const getUser = async (userId: string) => {
     return await get<AUser>(`/api/users/${userId}`, getSignal("getUser"));
+  };
+
+  const getUserTutorial = async (userId: number) => {
+    return await get<ITutorial>(
+      `/api/user/${userId}/tutorials`,
+      getSignal("getUserTutorial"),
+    );
+  };
+
+  const updateUserTutorial = async (tutorial: ITutorial) => {
+    return await put<ITutorial>(
+      `/api/user/${tutorial.user_id}/tutorials`,
+      tutorial,
+      { isFormData: false, signal: getSignal("updateUserTutorial") },
+    );
   };
 
   const getCampaign = async (
@@ -636,6 +652,8 @@ export const useApi = () => {
     loginAPI,
     getUsers,
     getUser,
+    getUserTutorial,
+    updateUserTutorial,
     getCampaign,
     getCampaigns,
     loginGoogle,

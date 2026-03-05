@@ -8,10 +8,22 @@ import {
   PropertiesListCard,
   TextInput,
 } from "../../components";
-import { useDashboardPage } from "../../hooks";
+import {
+  useDashboardHighlightComponents,
+  useDashboardPage,
+  useShouldShowTutorial,
+} from "../../hooks";
 import { LoadingPage } from "../Loading";
-import { AdminCardList, InvitedCardList, TeamCardList } from "./components";
+import {
+  AdminCardList,
+  DashboardHeader,
+  InvitedCardList,
+  TeamCardList,
+} from "./components";
 import transition from "../../utils/transitions/transition";
+import { TutorialPage } from "../../stores";
+import { TutorialText, TutorialTextPlacements } from "../../config";
+import { forwardRef } from "react";
 
 export const DashboardPage = transition(() => {
   const {
@@ -65,73 +77,72 @@ export const DashboardPage = transition(() => {
     showAllInCards,
   } = useDashboardPage();
 
-  const AdminComponent = () => (
-    <AdminCardList
-      displayOverflowCount={displayOverflow.admin}
-      overflowCount={overflow.admin}
-      spliceCount={sliceCount.admin}
-      members={adminMembers}
-      button={{
-        visible: overflow.admin > 0,
-        text: showAllInCards.admins.all ? "View less" : "View all",
-        onClick: showAllInCards.admins.toggle,
-      }}
-      onClick={(i) => (
-        setSelectedMemberId(adminMembers[i].user.user_id, false),
-        openViewMemberModal()
-      )}
-    />
-  );
-
-  const InvitationComponent = () => (
-    <InvitedCardList
-      displayOverflowCount={displayOverflow.invitations}
-      overflowCount={overflow.invitations}
-      spliceCount={sliceCount.invitations}
-      invitations={invitations}
-      button={{
-        visible: overflow.invitations > 0,
-        text: showAllInCards.invitations.all ? "View less" : "View all",
-        onClick: showAllInCards.invitations.toggle,
-      }}
-      onClick={(i) => (
-        setSelectedMemberId(invitations[i].invitation_id, true),
-        openViewMemberModal()
-      )}
-      onAdd={openTeamInvitationModal}
-    />
-  );
-
-  const TeamMemberComponent = () => (
-    <TeamCardList
-      displayOverflowCount={displayOverflow.teamMembers}
-      overflowCount={overflow.teamMembers}
-      spliceCount={sliceCount.teamMembers}
-      members={teamMembers}
-      button={{
-        visible: overflow.teamMembers > 0,
-        text: showAllInCards.teamMembers.all ? "View less" : "View all",
-        onClick: showAllInCards.teamMembers.toggle,
-      }}
-      onClick={(i) => (
-        setSelectedMemberId(teamMembers[i].user.user_id, false),
-        openViewMemberModal()
-      )}
-      onAdd={openTeamInvitationModal}
-    />
-  );
+  const dashboardHighlightComponents = useDashboardHighlightComponents();
+  const highlighComponentRefs = dashboardHighlightComponents.refs;
+  useShouldShowTutorial({
+    page: TutorialPage.Dashboard,
+    highlightComponentDims: dashboardHighlightComponents.highlightComponentDims,
+    highlightComponentDimsChange:
+      dashboardHighlightComponents.highlightComponentDimsChange,
+    textPositions: TutorialTextPlacements.dashboard,
+    components: [
+      null,
+      () => (
+        <DashboardHeader
+          newTeamName={newTeamName}
+          isUserAdmin={isUserAdmin}
+          displayOnly
+        />
+      ),
+      () => (
+        <AdminCardList
+          displayOverflowCount={displayOverflow.admin}
+          overflowCount={overflow.admin}
+          spliceCount={sliceCount.admin}
+          members={adminMembers}
+          button={{
+            visible: overflow.admin > 0,
+            text: showAllInCards.admins.all ? "View less" : "View all",
+          }}
+        />
+      ),
+      () => (
+        <InvitedCardList
+          displayOverflowCount={displayOverflow.invitations}
+          overflowCount={overflow.invitations}
+          spliceCount={sliceCount.invitations}
+          invitations={invitations}
+          button={{
+            visible: overflow.invitations > 0,
+            text: showAllInCards.invitations.all ? "View less" : "View all",
+          }}
+          onAdd={() => {}}
+        />
+      ),
+      () => (
+        <DashboardAnnouncmentsCard
+          ref={highlighComponentRefs.announcmentRef}
+          title="Announcments:"
+          overflowCount={overflow.announcements}
+          messages={[...announcements].splice(0, sliceCount.announcements + 1)}
+          onAdd={() => {}}
+          btnProps={
+            overflow.announcements > 0 ? { text: "View all" } : undefined
+          }
+        />
+      ),
+    ],
+  });
 
   return (
     <div className="flex flex-col gap-y-15 flex-1 p-15">
       {selectedTeam && (
-        <div className="w-full px-15">
-          <EditablePageHeader
-            title="Team Name:"
-            nonEditableText={newTeamName}
-            value={newTeamName}
-            setValue={setNewTeamName}
-            editable={isUserAdmin}
-            inputProps={{ placeholder: "Ex: The best team ever" }}
+        <div className="w-full px-15 ">
+          <DashboardHeader
+            ref={highlighComponentRefs.teamNameRef}
+            newTeamName={newTeamName}
+            setNewTeamName={setNewTeamName}
+            isUserAdmin={isUserAdmin}
           />
         </div>
       )}
@@ -185,23 +196,95 @@ export const DashboardPage = transition(() => {
         <div className="gap-y-15 flex flex-col flex-1">
           <div className="flex flex-row gap-x-15">
             <div className="flex-1">
-              <AdminComponent />
+              <AdminCardList
+                ref={highlighComponentRefs.adminCardRef}
+                displayOverflowCount={displayOverflow.admin}
+                overflowCount={overflow.admin}
+                spliceCount={sliceCount.admin}
+                members={adminMembers}
+                button={{
+                  visible: overflow.admin > 0,
+                  text: showAllInCards.admins.all ? "View less" : "View all",
+                  onClick: showAllInCards.admins.toggle,
+                }}
+                onClick={(i) => (
+                  setSelectedMemberId(adminMembers[i].user.user_id, false),
+                  openViewMemberModal()
+                )}
+              />
             </div>
             <div className="flex-1">
-              {isUserAdmin && <InvitationComponent />}
-              {!isUserAdmin && <TeamMemberComponent />}
+              {isUserAdmin && (
+                <InvitedCardList
+                  ref={highlighComponentRefs.invitationCardRef}
+                  displayOverflowCount={displayOverflow.invitations}
+                  overflowCount={overflow.invitations}
+                  spliceCount={sliceCount.invitations}
+                  invitations={invitations}
+                  button={{
+                    visible: overflow.invitations > 0,
+                    text: showAllInCards.invitations.all
+                      ? "View less"
+                      : "View all",
+                    onClick: showAllInCards.invitations.toggle,
+                  }}
+                  onClick={(i) => (
+                    setSelectedMemberId(invitations[i].invitation_id, true),
+                    openViewMemberModal()
+                  )}
+                  onAdd={openTeamInvitationModal}
+                />
+              )}
+              {!isUserAdmin && (
+                <TeamCardList
+                  displayOverflowCount={displayOverflow.teamMembers}
+                  overflowCount={overflow.teamMembers}
+                  spliceCount={sliceCount.teamMembers}
+                  members={teamMembers}
+                  button={{
+                    visible: overflow.teamMembers > 0,
+                    text: showAllInCards.teamMembers.all
+                      ? "View less"
+                      : "View all",
+                    onClick: showAllInCards.teamMembers.toggle,
+                  }}
+                  onClick={(i) => (
+                    setSelectedMemberId(teamMembers[i].user.user_id, false),
+                    openViewMemberModal()
+                  )}
+                  onAdd={openTeamInvitationModal}
+                />
+              )}
             </div>
           </div>
 
           {isUserAdmin && (
             <div className="flex">
-              <TeamMemberComponent />
+              <TeamCardList
+                displayOverflowCount={displayOverflow.teamMembers}
+                overflowCount={overflow.teamMembers}
+                spliceCount={sliceCount.teamMembers}
+                members={teamMembers}
+                button={{
+                  visible: overflow.teamMembers > 0,
+                  text: showAllInCards.teamMembers.all
+                    ? "View less"
+                    : "View all",
+                  onClick: showAllInCards.teamMembers.toggle,
+                }}
+                onClick={(i) => (
+                  setSelectedMemberId(teamMembers[i].user.user_id, false),
+                  openViewMemberModal()
+                )}
+                onAdd={openTeamInvitationModal}
+              />
             </div>
           )}
 
           <div className="flex flex-row gap-x-15">
             <div className="w-[70%]">
               <DashboardAnnouncmentsCard
+                ref={highlighComponentRefs.announcmentRef}
                 title="Announcments:"
                 overflowCount={overflow.announcements}
                 messages={[...announcements].splice(
