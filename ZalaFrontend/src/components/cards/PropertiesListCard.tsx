@@ -1,6 +1,7 @@
 import { DashboardCard, type DashboardCardProps } from "./DashboardCard";
 import type { IProperty } from "../../interfaces";
 import { BoardItemCard } from "./BoardItemCard";
+import { forwardRef } from "react";
 
 type PropertiesListCardProps = DashboardCardProps & {
   properties: IProperty[];
@@ -8,10 +9,13 @@ type PropertiesListCardProps = DashboardCardProps & {
   onClick?: (propertyId: number) => void;
 };
 
-export const PropertiesListCard = (props: PropertiesListCardProps) => {
+export const PropertiesListCard = forwardRef<
+  HTMLDivElement,
+  PropertiesListCardProps
+>((props, ref) => {
   const { properties, overflowCount = 0, onClick = () => {} } = props;
   return (
-    <DashboardCard {...props}>
+    <DashboardCard ref={ref} {...props}>
       <div className="grid grid-cols-2 gap-x-3.75">
         {properties.map((property) => (
           <div key={property.propertyId} className="">
@@ -35,4 +39,4 @@ export const PropertiesListCard = (props: PropertiesListCardProps) => {
       )}
     </DashboardCard>
   );
-};
+});

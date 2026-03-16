@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import type { ITutorial } from "../../interfaces";
 import { useApi } from "./useApi";
+import { useTutorialStore } from "../../stores";
 
 export const useUserTutorial = ({
   userId,
   deps = [],
+  setToStore = false,
 }: {
   userId?: number;
   deps?: unknown[];
+  setToStore?: boolean;
 }): [
   ITutorial | undefined,
   React.Dispatch<React.SetStateAction<ITutorial | undefined>>,
@@ -16,6 +19,7 @@ export const useUserTutorial = ({
   boolean,
 ] => {
   const api = useApi();
+  const tutorialStore = useTutorialStore();
 
   const tutorialRef = useRef<ITutorial | undefined>(undefined);
   const [tutorial, setTutorial] = useState<ITutorial | undefined>(undefined);
@@ -34,6 +38,8 @@ export const useUserTutorial = ({
       const props = res.data;
       setTutorial(props);
       tutorialRef.current = props;
+
+      if (setToStore) tutorialStore.setTutorial(props);
     }
   };
 

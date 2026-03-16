@@ -14,35 +14,36 @@ export const useOnTutorialModalChange = () => {
 
   const { pageToMaxTutorialStep } = useTutorialPageTo();
 
-  const onClose = async () => {
-    if (globalModalStore.preClose) await globalModalStore.preClose();
-    globalModalStore.toggleOpen();
-    if (globalModalStore.postClose) await globalModalStore.postClose();
-  };
+  // const onClose = async () => {
+  //   if (globalModalStore.preClose) await globalModalStore.preClose();
+  //   globalModalStore.toggleOpen();
+  //   if (globalModalStore.postClose) await globalModalStore.postClose();
+  // };
 
   // Assumes modal is allready open
   const changeModal = (newStep: number) => {
-    if (newStep > pageToMaxTutorialStep(tutorialStore.page)) return onClose();
+    if (newStep > pageToMaxTutorialStep(tutorialStore.page)) return;
 
     const modalType =
       TutorialSequence[tutorialStore.page.toLowerCase() as TutorialTextKey][
         newStep
       ];
 
-    console.log(``);
-    console.log(`Tutorial modal open and changing page`);
-    console.log(modalType);
-    console.log(``);
-
     if (modalType === "modal")
-      return globalModalStore.setPage(GlobalModalPage.HighlightComponentModal);
+      return (
+        window.scrollTo({ top: 0, behavior: "smooth" }),
+        globalModalStore.setPage(GlobalModalPage.TutorialModal)
+      );
 
     globalModalStore.setPage(GlobalModalPage.HighlightComponentModal);
 
-    if (newStep < highlightComponentStore.highlightComponentDims.length)
-      highlightComponentStore.highlightComponentDims[
-        newStep
-      ]?.ref.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (newStep < highlightComponentStore.highlightComponentDims.length) {
+      const ref = highlightComponentStore.highlightComponentDims[newStep]?.ref;
+
+      if (!ref?.current) return;
+
+      ref?.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
   };
 
   return changeModal;

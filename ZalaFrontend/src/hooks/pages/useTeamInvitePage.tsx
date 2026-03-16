@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useApi, useTeamMembersWithXp } from "../api";
-import { useSnack } from "../utils";
+import { useLog, useSnack } from "../utils";
 import {
   useAuthStore,
   useDashboardModalStore,
@@ -16,6 +16,8 @@ import type {
 } from "../../interfaces";
 
 export const useTeamInvitePage = () => {
+  const logs = useLog(false);
+
   const api = useApi();
   const [successMsg, errorMsg] = useSnack();
   const user = useAuthStore((state) => state.user);
@@ -137,12 +139,12 @@ export const useTeamInvitePage = () => {
     const wsHost = CONFIG.api.replace(/^https?:\/\//, "");
     const wsUrl = `${wsProtocol}://${wsHost}/ws/team/${selectedTeam.team_id}`;
 
-    // console.log("[TeamWS] Connecting to:", wsUrl);
+    // logs("[TeamWS] Connecting to:", wsUrl);
     const teamSocket = new WebSocket(wsUrl);
     const currentTeamId = selectedTeam.team_id;
 
     teamSocket.onopen = () => {
-      // console.log("[TeamWS] Connected to team", currentTeamId);
+      // logs("[TeamWS] Connected to team", currentTeamId);
     };
 
     teamSocket.onmessage = (event) => {
@@ -151,8 +153,8 @@ export const useTeamInvitePage = () => {
         const message = JSON.parse(event.data);
 
         if (!ignoreTypes.includes(message.type)) {
-          console.log("[TeamWS] Received:", message);
-          console.log(``);
+          logs("[TeamWS] Received:", message);
+          logs(``);
         }
 
         if (message.type === "invitation_update") {
@@ -169,7 +171,7 @@ export const useTeamInvitePage = () => {
         }
 
         if (message.type === "member_joined") {
-          // console.log("[TeamWS] Member joined, updating state...");
+          // logs("[TeamWS] Member joined, updating state...");
           const {
             user_id,
             username,
@@ -222,7 +224,7 @@ export const useTeamInvitePage = () => {
         }
 
         if (message.type === "member_removed") {
-          // console.log("[TeamWS] Member removed, updating state...");
+          // logs("[TeamWS] Member removed, updating state...");
           const removedUserId = message.data.user_id;
 
           // Update selectedTeam by removing the member immediately
@@ -251,7 +253,7 @@ export const useTeamInvitePage = () => {
         }
 
         if (message.type === "member_role_changed") {
-          // console.log("[TeamWS] Member role changed, updating state...");
+          // logs("[TeamWS] Member role changed, updating state...");
           const { user_id: changedUserId, new_role: newRole } = message.data;
 
           // Update selectedTeam by changing the member's role
@@ -282,7 +284,7 @@ export const useTeamInvitePage = () => {
         }
 
         if (message.type === "team_deleted") {
-          // console.log("[TeamWS] Team deleted, removing from state...");
+          // logs("[TeamWS] Team deleted, removing from state...");
           const deletedTeamId = message.data.team_id;
 
           // Clear selected team if it's the deleted one
@@ -305,7 +307,7 @@ export const useTeamInvitePage = () => {
 
         // Handle new announcements in real-time
         if (message.type === "new_announcement") {
-          console.log("[TeamWS] New announcement received:", message.data);
+          logs("[TeamWS] New announcement received:", message.data);
           const newAnnouncement: ITeamAnnouncement = {
             announcement_id: message.data.announcement_id,
             team_id: message.data.team_id,
@@ -326,7 +328,7 @@ export const useTeamInvitePage = () => {
 
         // Handle announcement updates
         if (message.type === "announcement_updated") {
-          console.log("[TeamWS] Announcement updated:", message.data);
+          logs("[TeamWS] Announcement updated:", message.data);
           setAnnouncements((prev) =>
             prev.map((a) =>
               a.announcement_id === message.data.announcement_id
@@ -343,7 +345,7 @@ export const useTeamInvitePage = () => {
 
         // Handle announcement deletions
         if (message.type === "announcement_deleted") {
-          console.log("[TeamWS] Announcement deleted:", message.data);
+          logs("[TeamWS] Announcement deleted:", message.data);
           setAnnouncements((prev) =>
             prev.filter(
               (a) => a.announcement_id !== message.data.announcement_id,
@@ -353,7 +355,7 @@ export const useTeamInvitePage = () => {
 
         // Handle team info updates (name, xp) in real-time
         if (message.type === "team_updated") {
-          console.log("[TeamWS] Team updated:", message.data);
+          logs("[TeamWS] Team updated:", message.data);
           const { team_name, xp } = message.data;
 
           setSelectedTeam((prev) => {
@@ -382,7 +384,7 @@ export const useTeamInvitePage = () => {
           message.type === "team_property_linked" ||
           message.type === "team_property_unlinked"
         ) {
-          console.log("[TeamWS] Team property changed:", message.type, message.data);
+          logs("[TeamWS] Team property changed:", message.type, message.data);
           loadTeams();
         }
 
@@ -391,7 +393,7 @@ export const useTeamInvitePage = () => {
           message.type === "team_board_linked" ||
           message.type === "team_board_unlinked"
         ) {
-          console.log("[TeamWS] Team board changed:", message.type, message.data);
+          logs("[TeamWS] Team board changed:", message.type, message.data);
           loadTeams();
         }
 
@@ -409,11 +411,11 @@ export const useTeamInvitePage = () => {
     };
 
     teamSocket.onclose = () => {
-      // console.log("[TeamWS] Disconnected from team", currentTeamId);
+      // logs("[TeamWS] Disconnected from team", currentTeamId);
     };
 
     return () => {
-      // console.log("[TeamWS] Cleaning up connection for team", currentTeamId);
+      // logs("[TeamWS] Cleaning up connection for team", currentTeamId);
       teamSocket.close();
     };
   }, [selectedTeam?.team_id, user?.userId]);

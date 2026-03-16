@@ -20,8 +20,8 @@ export const DashboardAnnouncmentsCard = forwardRef<
   const fireIfExists = useFireIfExists();
   return (
     <DashboardCard ref={ref} {...props}>
-      <div className="w-full flex flex-col gap-y-[15px]">
-        <div className="flex flex-col gap-y-[30px]">
+      <div className="w-full flex flex-col gap-y-3.75">
+        <div className="flex flex-col gap-y-7.5">
           {messages.map((message) => (
             <AnnouncementCard
               key={message.announcement_id}

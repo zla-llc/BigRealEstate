@@ -3,7 +3,6 @@ import {
   BoardsListCard,
   Button,
   DashboardModals,
-  EditablePageHeader,
   LeaderBoardsCard,
   PropertiesListCard,
   TextInput,
@@ -22,8 +21,6 @@ import {
 } from "./components";
 import transition from "../../utils/transitions/transition";
 import { TutorialPage } from "../../stores";
-import { TutorialText, TutorialTextPlacements } from "../../config";
-import { forwardRef } from "react";
 
 export const DashboardPage = transition(() => {
   const {
@@ -81,10 +78,10 @@ export const DashboardPage = transition(() => {
   const highlighComponentRefs = dashboardHighlightComponents.refs;
   useShouldShowTutorial({
     page: TutorialPage.Dashboard,
+    forceWait: selectedTeam ? false : true,
     highlightComponentDims: dashboardHighlightComponents.highlightComponentDims,
     highlightComponentDimsChange:
       dashboardHighlightComponents.highlightComponentDimsChange,
-    textPositions: TutorialTextPlacements.dashboard,
     components: [
       null,
       () => (
@@ -120,17 +117,100 @@ export const DashboardPage = transition(() => {
         />
       ),
       () => (
+        <TeamCardList
+          displayOverflowCount={displayOverflow.teamMembers}
+          overflowCount={overflow.teamMembers}
+          spliceCount={sliceCount.teamMembers}
+          members={teamMembers}
+          button={{
+            visible: overflow.teamMembers > 0,
+            text: showAllInCards.teamMembers.all ? "View less" : "View all",
+          }}
+        />
+      ),
+      () => (
         <DashboardAnnouncmentsCard
-          ref={highlighComponentRefs.announcmentRef}
           title="Announcments:"
           overflowCount={overflow.announcements}
           messages={[...announcements].splice(0, sliceCount.announcements + 1)}
-          onAdd={() => {}}
           btnProps={
             overflow.announcements > 0 ? { text: "View all" } : undefined
           }
+          onAdd={isUserAdmin ? () => {} : undefined}
         />
       ),
+      () => (
+        <LeaderBoardsCard
+          title="Team Leaderboard:"
+          overflowCount={overflow.leaderboard}
+          btnProps={
+            overflow.leaderboard > 0
+              ? { text: "View all", onClick: openLeaderboardModal }
+              : undefined
+          }
+          users={[...leaderboardMembers].splice(0, sliceCount.leaderboard + 1)}
+        />
+      ),
+      () => (
+        <PropertiesListCard
+          overflowCount={overflow.property}
+          properties={[...userProperties].splice(0, sliceCount.property + 1)}
+          title="My Properties:"
+          onAdd={() => {}}
+          btnProps={
+            overflow.property > 0
+              ? {
+                  text: "View all",
+                }
+              : undefined
+          }
+        />
+      ),
+      () => (
+        <PropertiesListCard
+          overflowCount={overflow.teamProperties}
+          properties={[...teamProperties.current].splice(
+            0,
+            sliceCount.teamProperties + 1,
+          )}
+          title="Team Properties:"
+          btnProps={
+            overflow.teamProperties > 0
+              ? {
+                  text: "View all",
+                }
+              : undefined
+          }
+          onAdd={() => {}}
+        />
+      ),
+      () => (
+        <div className="flex flex-row gap-15">
+          <div className="flex-1">
+            <BoardsListCard
+              boards={teamBoards.current}
+              title="Team Boards:"
+              onAdd={isUserAdmin ? () => {} : undefined}
+            />
+          </div>
+          <div className="flex-1">
+            <BoardsListCard
+              overflowCount={overflow.boards}
+              boards={[...userBoards].splice(0, sliceCount.boards + 1)}
+              title="My Boards:"
+              btnProps={
+                overflow.boards > 0
+                  ? {
+                      text: "View all",
+                    }
+                  : undefined
+              }
+              onAdd={() => {}}
+            />
+          </div>
+        </div>
+      ),
+      null,
     ],
   });
 
@@ -237,6 +317,7 @@ export const DashboardPage = transition(() => {
               )}
               {!isUserAdmin && (
                 <TeamCardList
+                  ref={highlighComponentRefs.membersRef}
                   displayOverflowCount={displayOverflow.teamMembers}
                   overflowCount={overflow.teamMembers}
                   spliceCount={sliceCount.teamMembers}
@@ -261,6 +342,7 @@ export const DashboardPage = transition(() => {
           {isUserAdmin && (
             <div className="flex">
               <TeamCardList
+                ref={highlighComponentRefs.membersRef}
                 displayOverflowCount={displayOverflow.teamMembers}
                 overflowCount={overflow.teamMembers}
                 spliceCount={sliceCount.teamMembers}
@@ -282,7 +364,7 @@ export const DashboardPage = transition(() => {
           )}
 
           <div className="flex flex-row gap-x-15">
-            <div className="w-[70%]">
+            <div className="w-[70%] min-w-[70%] max-w-[70%]">
               <DashboardAnnouncmentsCard
                 ref={highlighComponentRefs.announcmentRef}
                 title="Announcments:"
@@ -303,6 +385,7 @@ export const DashboardPage = transition(() => {
             </div>
             <div className="grow">
               <LeaderBoardsCard
+                ref={highlighComponentRefs.leaderboardsRef}
                 title="Team Leaderboard:"
                 overflowCount={overflow.leaderboard}
                 btnProps={
@@ -325,6 +408,7 @@ export const DashboardPage = transition(() => {
           <div className="flex flex-row gap-15">
             <div className="flex-1">
               <PropertiesListCard
+                ref={highlighComponentRefs.teamPropertiesRef}
                 overflowCount={overflow.teamProperties}
                 properties={[...teamProperties.current].splice(
                   0,
@@ -345,6 +429,7 @@ export const DashboardPage = transition(() => {
             </div>
             <div className="flex-1">
               <PropertiesListCard
+                ref={highlighComponentRefs.propertiesRef}
                 overflowCount={overflow.property}
                 properties={[...userProperties].splice(
                   0,
@@ -365,7 +450,10 @@ export const DashboardPage = transition(() => {
             </div>
           </div>
 
-          <div className="flex flex-row gap-15">
+          <div
+            ref={highlighComponentRefs.teamBoardsRef}
+            className="flex flex-row gap-15"
+          >
             <div className="flex-1">
               <BoardsListCard
                 boards={teamBoards.current}

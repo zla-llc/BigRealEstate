@@ -9,6 +9,12 @@ export const useTutorialPageTo = () => {
     switch (page) {
       case TutorialPage.Dashboard:
         return "dashboard_step";
+      case TutorialPage.Search:
+        return "map_step";
+      case TutorialPage.Campaign:
+        return "campaign_step";
+      case TutorialPage.Navbar:
+        return "navbar_step";
       default:
         return undefined;
     }
@@ -19,7 +25,13 @@ export const useTutorialPageTo = () => {
     switch (page) {
       case TutorialPage.Dashboard:
         return TutorialSequenceMaximums.dashboard;
+      case TutorialPage.Navbar:
+        return TutorialSequenceMaximums.navbar;
+      case TutorialPage.Campaign:
+      case TutorialPage.Search:
       default:
+        // return TutorialSequenceMaximums.dashboard;
+        // return TutorialSequenceMaximums.dashboard;
         return -1;
     }
   };

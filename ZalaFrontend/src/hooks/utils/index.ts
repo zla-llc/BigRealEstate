@@ -25,3 +25,8 @@ export * from "./useTutorialPageTo";
 export * from "./useOnTutorialModalChange";
 export * from "./types";
 export * from "./useDashboardHighlightComponents";
+export * from "./useLog";
+export * from "./useIsVisible";
+export * from "./useVisibleDims";
+export * from "./useAppLocation";
+export * from "./useAppHeaderHighlightComponents";

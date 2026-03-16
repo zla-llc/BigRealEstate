@@ -1,8 +1,12 @@
 import { useTutorialModal } from "./useTutorialModal";
 import { TextPlacement, useHighlightComponentStore } from "../../../stores";
-import { useEffect, useState } from "react";
-import { useDimensions, useTimeoutEffect } from "../../utils";
-import { numStrToNum } from "../../../utils";
+import { useEffect, useRef, useState } from "react";
+import {
+  useDimensions,
+  useOnTutorialModalChange,
+  useTimeoutEffect,
+} from "../../utils";
+import { numStrToNum, type NumOrStr } from "../../../utils";
 
 type TutorialTextDims = {
   width: number;
@@ -18,7 +22,12 @@ export const useTutorialHighlightComponentModal = ({
   const TUTORIAL_TEXT_WIDTH = Math.round(document.body.clientWidth / 3);
   const highlightComponentStore = useHighlightComponentStore();
 
-  const { step, tutorialText, nextTutorial } = useTutorialModal({ onClose });
+  const hiddenTextTimeoutRef = useRef<number | null>(null);
+
+  const { tutorialStore, step, tutorialText, nextTutorial } = useTutorialModal({
+    onClose,
+  });
+  const onTutorialModalChange = useOnTutorialModalChange();
 
   const [textRef, textDims] = useDimensions();
   const [tutorialTextDims, setTutorialTextDims] = useState<TutorialTextDims>({
@@ -44,8 +53,20 @@ export const useTutorialHighlightComponentModal = ({
 
   useTimeoutEffect(
     () => {
-      // console.log(``);
-      // console.log(`Calculating Text Dims:`);
+      onTutorialModalChange(step);
+    },
+    [step],
+    50,
+  );
+
+  useEffect(() => {
+    console.log(`HighlightComponent`);
+    console.log(tutorialStore.page);
+    console.log(``);
+  }, [tutorialStore.page]);
+
+  useTimeoutEffect(
+    () => {
       calculateTextDims();
     },
     [
@@ -54,6 +75,8 @@ export const useTutorialHighlightComponentModal = ({
       currentStepDims?.dims.screenX,
       currentStepDims?.dims.width,
       currentStepDims?.dims.height,
+      textDims.height,
+      textDims.width,
     ],
     250,
   );
@@ -67,29 +90,41 @@ export const useTutorialHighlightComponentModal = ({
 
     if (!currentStepDims) return;
 
-    newDims.left = getLeftPosition();
-    newDims.top = getTopPosition();
+    newDims.top = getTopPosition(textDims.height);
+    newDims.left = getLeftPosition(textDims.width);
 
-    // console.log(``);
-    // console.log(`Current Component Dimensions:`);
-    // console.log(currentStepDims);
-    // console.log(`New Position`);
-    // console.log(newDims);
-    // console.log(`Current Text Dims`);
-    // console.log(textDims);
-    // console.log(``);
+    textOverflowsWindowX(newDims);
+
     setTutorialTextDims(newDims);
-    setHiddenText(false);
+
+    if (hiddenTextTimeoutRef.current) {
+      clearTimeout(hiddenTextTimeoutRef.current);
+    }
+
+    hiddenTextTimeoutRef.current = setTimeout(() => {
+      setHiddenText(false);
+    }, 500);
   };
 
-  const getTopPosition = () => {
+  const textOverflowsWindowX = (initialDims: TutorialTextDims) => {
+    const bodyWidth = document.body.clientWidth;
+    const initialDimsRight = initialDims.left + initialDims.width;
+
+    const rightSideOverflow = initialDimsRight >= bodyWidth;
+    const rightOverflowsBy = initialDimsRight - bodyWidth;
+
+    if (rightSideOverflow)
+      initialDims.width = initialDims.width - rightOverflowsBy - 30;
+  };
+
+  const getTopPosition = (givenHeight: NumOrStr) => {
     if (!currentStepDims) return 0;
 
     switch (currentStepPosition) {
       case TextPlacement.Top:
         return (
           numStrToNum(currentStepDims.dims.screenY) -
-          numStrToNum(textDims.height) -
+          numStrToNum(givenHeight) -
           10
         );
       case TextPlacement.Bottom:
@@ -103,7 +138,7 @@ export const useTutorialHighlightComponentModal = ({
         return (
           numStrToNum(currentStepDims.dims.screenY) +
           numStrToNum(currentStepDims.dims.height) / 2 -
-          numStrToNum(textDims.height) / 2
+          numStrToNum(givenHeight) / 2
         );
 
       default:
@@ -111,14 +146,14 @@ export const useTutorialHighlightComponentModal = ({
     }
   };
 
-  const getLeftPosition = () => {
+  const getLeftPosition = (givenWidth: NumOrStr) => {
     if (!currentStepDims) return 0;
 
     switch (currentStepPosition) {
       case TextPlacement.Left:
         return (
           numStrToNum(currentStepDims.dims.screenX) -
-          numStrToNum(textDims.width) -
+          numStrToNum(givenWidth) -
           10
         );
       case TextPlacement.Right:
@@ -132,7 +167,7 @@ export const useTutorialHighlightComponentModal = ({
         return (
           numStrToNum(currentStepDims.dims.screenX) +
           numStrToNum(currentStepDims.dims.width) / 2 -
-          numStrToNum(textDims.width) / 2
+          numStrToNum(givenWidth) / 2
         );
       default:
         return 0;

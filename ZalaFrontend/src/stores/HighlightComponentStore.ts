@@ -7,6 +7,7 @@ export enum TextPlacement {
   Left = "Left",
   Right = "Right",
   Bottom = "Bottom",
+  Modal = "Modal",
 }
 
 type IHighlightComponentStore = {

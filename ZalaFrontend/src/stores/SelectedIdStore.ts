@@ -25,7 +25,6 @@ export const useSelectedIdStore = create<ISelectedIdStore>()((set, get) => ({
     set(
       produce(get(), (draft) => {
         draft[key] = value;
-        console.log(`New val: ${key} = ${value}`);
       }),
     ),
   clearId: (key) => get().setId(key, -1),

@@ -10,12 +10,13 @@ type TutorialModalProps = {
 export const TutorialModal = ({ onClose }: TutorialModalProps) => {
   const { tutorialText, nextTutorial, skipTutorial } = useTutorialModal({
     onClose,
+    fireOnChange: true,
   });
   return (
-    <div className="full p-6 flex flex-col space-y-[30px]">
+    <div className="full p-6 flex flex-col space-y-7.5">
       <ModalHeader title={"Dashboard Tutorial"} actions={[]} />
-      <div className="h-full flex flex-col items-center justify-center space-y-[30px] overflow-y-scroll">
-        <div className="w-[200px]">
+      <div className="h-full flex flex-col items-center justify-center space-y-7.5 overflow-y-scroll">
+        <div className="w-50">
           <img src={IMAGES.ZalaBotWave} alt={"Zala Bot"} />
         </div>
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { type NumOrStr } from "../../utils";
+import { throttle } from "lodash";
 
 export type IDimensions = {
   width: NumOrStr;
@@ -31,24 +32,32 @@ const DEFAULT_DIMENSIONS: IScreenDimensions = {
   screenY: 0,
 };
 
-const debounce = (func: (...args: unknown[]) => void, delay: number) => {
-  let timeoutId: number;
-  return function (...args: unknown[]) {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-    timeoutId = setTimeout(() => {
-      func(...args);
-    }, delay);
-  };
-};
+// const debounce = (func: (...args: unknown[]) => void, delay: number) => {
+//   let timeoutId: number;
+//   return function (...args: unknown[]) {
+//     if (timeoutId) {
+//       clearTimeout(timeoutId);
+//     }
+//     timeoutId = setTimeout(() => {
+//       func(...args);
+//     }, delay);
+//   };
+// };
 
-export const useDimensions = (): [
+type UseDimensionsResponse = [
   React.RefObject<HTMLDivElement | null>,
   IScreenDimensions,
   React.Dispatch<React.SetStateAction<IScreenDimensions>>,
   number,
-] => {
+] & {
+  ref: React.RefObject<HTMLDivElement | null>;
+  dims: IScreenDimensions;
+  setDims: React.Dispatch<React.SetStateAction<IScreenDimensions>>;
+  changeCount: number;
+  setChangeCount: React.Dispatch<React.SetStateAction<number>>;
+};
+
+export const useDimensions = (): UseDimensionsResponse => {
   const elementRef = useRef<HTMLDivElement>(null);
 
   const [dimensions, setDimensions] =
@@ -71,22 +80,19 @@ export const useDimensions = (): [
   }, [elementRef.current]);
 
   useEffect(() => {
-    const debouncedHandler = debounce(() => {
-      console.log(``);
-      console.log(`Scroll end`);
-      console.log(``);
-      updateDimensions();
-    }, 250);
-
-    window.addEventListener("scroll", debouncedHandler);
+    window.addEventListener("scroll", onScroll, true);
 
     return () => {
-      window.removeEventListener("scroll", debouncedHandler);
+      window.removeEventListener("scroll", onScroll, true);
     };
   }, []);
 
+  const onScroll = throttle(() => {
+    updateDimensions();
+  }, 10);
+
   const getObserver = () =>
-    new ResizeObserver((entries) => {
+    new ResizeObserver((_entries) => {
       // Only interested in the first entry for the observed element
       updateDimensions();
     });
@@ -101,5 +107,18 @@ export const useDimensions = (): [
     setCount((prev) => prev + 1);
   };
 
-  return [elementRef, dimensions, setDimensions, count];
+  const res = [
+    elementRef,
+    dimensions,
+    setDimensions,
+    count,
+  ] as UseDimensionsResponse;
+
+  res.ref = elementRef;
+  res.dims = dimensions;
+  res.setDims = setDimensions;
+  res.changeCount = count;
+  res.setChangeCount = setCount;
+
+  return res;
 };
