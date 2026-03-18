@@ -15,7 +15,14 @@ export const TutorialText = {
     "Just like with properties, boards can be personal or shared with a team. All boards you create will be shown under 'My Boards', and can be added to the team boards with the + button.",
     "Want to explore more of ZLA now? Next up: Finding New Leads!",
   ], // 11
-  navbar: ["Type a location in the search bar to find leads from that area!"],
+  navbar: [
+    "Type a location in the search bar to find leads from that area! Go ahead and give it a try.",
+  ],
+  search: [
+    "This is your map page. The locations of leads and properties will be shown here, and you can add them to campaigns or boards from the map.",
+    "Leads can be added to a campaign individually, or you can add all the results of your search with the 'Add all leads' button.",
+    "Add a title and click 'Start' to create a campaign with your selected leads!",
+  ],
 };
 
 export type TutorialTextKey = keyof typeof TutorialText;
@@ -35,11 +42,13 @@ export const TutorialSequence = {
     "modal",
   ],
   navbar: ["component"],
+  search: ["modal", "component", "component"],
 };
 
 export const TutorialSequenceMaximums = {
   dashboard: TutorialText.dashboard.length - 1,
   navbar: TutorialText.navbar.length - 1,
+  search: TutorialText.search.length - 1,
 };
 
 export const TutorialTextPlacements = {
@@ -57,4 +66,5 @@ export const TutorialTextPlacements = {
     TextPlacement.Modal,
   ],
   navbar: [TextPlacement.Bottom],
+  search: [TextPlacement.Top, TextPlacement.Left, TextPlacement.Top],
 };

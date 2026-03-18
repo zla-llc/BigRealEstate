@@ -10,7 +10,6 @@ import {
 import { useTutorialPageTo } from "./useTutorialPageTo";
 import {
   TutorialSequence,
-  TutorialSequenceMaximums,
   TutorialTextPlacements,
   type TutorialTextKey,
 } from "../../config";
@@ -25,6 +24,7 @@ type UseShouldShowTutorial = {
   highlightComponentDims: (IHighlightComponentDims | null)[];
   highlightComponentDimsChange: number[];
   components: ((() => ReactNode) | null)[];
+  deps?: unknown[];
   forceWait?: boolean;
 };
 
@@ -33,7 +33,7 @@ export const useShouldShowTutorial = ({
   highlightComponentDims,
   highlightComponentDimsChange,
   components,
-
+  deps = [],
   forceWait,
 }: UseShouldShowTutorial) => {
   const { user } = useAuthStore();
@@ -53,50 +53,23 @@ export const useShouldShowTutorial = ({
   useTimeoutEffect(
     () => {
       if (forceWait) return;
-      console.log(`Should Show Tut 4 ${page}`);
-      console.log(stringify(tutorialStore.tutorial));
       const res = shouldShowTutorialForPage();
-      console.log(res, tutorialStore.page);
-      console.log(``);
     },
     [
       forceWait,
       pathname,
+      globalModalStore.page,
       tutorialStore.page,
-      tutorialStore.tutorial?.tutorial_id,
+      stringify(tutorialStore.tutorial),
       stringify(highlightComponentDimsChange),
+      ...deps,
     ],
     250,
   );
 
-  const isThisPageTurn = () => {
-    if (!tutorialStore.tutorial) return false;
-
-    switch (page) {
-      case TutorialPage.Navbar:
-        if (
-          tutorialStore.tutorial.dashboard_step >
-            TutorialSequenceMaximums.dashboard &&
-          isDashboardPage
-        ) {
-          return true;
-        }
-
-        if (isSearchPage && tutorialStore.tutorial.map_step === 0) return true;
-
-        return false;
-
-      default:
-        return true;
-    }
-  };
-
   const shouldShowTutorialForPage = (): 0 | 1 | 2 => {
     const key = pageToTutorialKey(page);
     if (!key || !tutorialStore.tutorial) return 0;
-
-    console.log(`isThisPageTurn(${page}): ${isThisPageTurn()}`);
-    if (!isThisPageTurn()) return 0;
 
     const tutorialStep = tutorialStore.tutorial[key];
     const maxTutorialStep = pageToMaxTutorialStep(page);
@@ -111,6 +84,9 @@ export const useShouldShowTutorial = ({
     highlightComponentStore.setTextPlacement(
       TutorialTextPlacements[page.toLowerCase() as TutorialTextKey],
     );
+    // console.log(
+    //   `shouldShowTutorialForPage(${page}) - Step: ${tutorialStep} - MaxTutStep: ${maxTutorialStep} - Page: ${page} - Store Page: ${tutorialStore.page}`,
+    // );
 
     if (
       globalModalStore.isOpen &&

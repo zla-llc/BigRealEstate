@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import type { IHighlightComponentDims } from "./types";
 import { useDimensions } from "./useDimensions";
 
@@ -11,13 +10,6 @@ export const useAppHeaderHighlightComponents = () => {
   ];
 
   const highlightComponentDimsChange = [searchBarCount];
-
-  // useEffect(() => {
-  //   console.log(`Dims: `);
-  //   console.log(searchBarRef);
-  //   console.log(searchBarDims);
-  //   console.log(``);
-  // }, [searchBarCount]);
 
   return {
     refs: {

@@ -38,6 +38,7 @@ export const TutorialHighlightComponentModal = ({
               maxWidth: dims.dims.width,
 
               minHeight: dims.dims.height,
+              height: dims.dims.height,
               maxHeight: dims.dims.height,
             }}
             className="absolute bg-transparent"
