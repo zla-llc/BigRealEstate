@@ -20,8 +20,8 @@ export const BoardCard = (props: BoardCardProps) => {
       }}
       onClick={expandable ? undefined : onClick}
       className={clsx(
-        "board-card-container full flex flex-col overflow-hidden relative card-base",
-        expandable ? "!bg-background" : "",
+        "board-card-container full flex flex-col relative card-base",
+        expandable ? "!bg-background overflow-hidden" : "overflow-hidden",
         expandable
           ? "pb-[15px]"
           : "cursor-pointer transition-[translate] duration-75 box-shadow-sm",
@@ -31,8 +31,8 @@ export const BoardCard = (props: BoardCardProps) => {
       <div
         ref={headerRef}
         className={clsx(
-          "w-full flex flex-row items-center",
-          expanded ? "px-[60px] pt-[60px]" : "",
+          "w-full flex flex-row items-center shrink-0",
+          expanded ? "px-[60px] pt-[60px] pb-[15px] max-w-[900px] mx-auto" : "",
         )}
       >
         <EditablePageHeader
@@ -50,15 +50,14 @@ export const BoardCard = (props: BoardCardProps) => {
       <div
         ref={columnsRef}
         className={clsx(
-          "full",
           "transition-[padding] duration-75",
-          expanded ? "px-[60px]" : "p-[15px] pt-[unset]",
+          expanded ? "flex-1 overflow-x-auto px-[60px]" : "full p-[15px] pt-[unset]",
         )}
       >
         <div
           className={clsx(
-            "full transition-[padding] duration-75 overflow-x-scroll ",
-            expanded ? "p-[30px]" : "",
+            "transition-[padding] duration-75",
+            expanded ? "h-full min-w-max p-[30px]" : "full",
           )}
         >
           <BoardCardColumns
