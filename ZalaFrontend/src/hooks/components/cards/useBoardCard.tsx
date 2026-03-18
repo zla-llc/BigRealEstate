@@ -10,6 +10,7 @@ export type BoardCardProps = {
   hoverable?: boolean;
   headerRef?: React.RefObject<HTMLDivElement | null>;
   columnsRef?: React.RefObject<HTMLDivElement | null>;
+  settingsRef?: React.RefObject<HTMLDivElement | null>;
   onClick?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 };
 
@@ -30,7 +31,7 @@ type ExpandedBoardProps = {
 
 const SIZE = 300;
 
-export const useBoardCard = ({ board, expandable }: BoardCardProps) => {
+export const useBoardCard = ({ board, expandable, settingsRef }: BoardCardProps) => {
   const size = expandable ? "100%" : SIZE;
   const expanded = expandable?.expanded;
 
@@ -56,6 +57,7 @@ export const useBoardCard = ({ board, expandable }: BoardCardProps) => {
           ? {
               type: "iconBtn",
               side: "right",
+              ref: settingsRef,
               iconBtnProps: {
                 name: Icons.Settings,
                 variant: IconButtonVariant.Secondary,

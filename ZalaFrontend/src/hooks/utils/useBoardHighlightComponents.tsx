@@ -5,26 +5,30 @@ export const useBoardHighlightComponents = () => {
   const [boardHeaderRef, boardHeaderDims, _setBoardHeaderDims, boardHeaderCount] =
     useDimensions();
 
+  const [boardSettingsRef, boardSettingsDims, _setBoardSettingsDims, boardSettingsCount] =
+    useDimensions();
+
   const [boardColumnsRef, boardColumnsDims, _setBoardColumnsDims, boardColumnsCount] =
     useDimensions();
 
   const highlightComponentDims: (IHighlightComponentDims | null)[] = [
     null, // Step 0: Board Overview (modal)
     { ref: boardHeaderRef, dims: boardHeaderDims }, // Step 1: Edit Board
-    { ref: boardHeaderRef, dims: boardHeaderDims }, // Step 2: Board Settings
+    { ref: boardSettingsRef, dims: boardSettingsDims }, // Step 2: Board Settings
     { ref: boardColumnsRef, dims: boardColumnsDims }, // Step 3: Board Steps
   ];
 
   const highlightComponentDimsChange = [
     0,
     boardHeaderCount,
-    boardHeaderCount,
+    boardSettingsCount,
     boardColumnsCount,
   ];
 
   return {
     refs: {
       boardHeaderRef,
+      boardSettingsRef,
       boardColumnsRef,
     },
     highlightComponentDims,

@@ -18,6 +18,8 @@ import {
   ButtonVariant,
   EditablePageHeader,
   EditablePageHeaderVariant,
+  IconButton,
+  IconButtonVariant,
   Icons,
 } from "../../components";
 import { TutorialPage, useAuthStore } from "../../stores";
@@ -78,15 +80,10 @@ const SingleBoardPage = () => {
         </div>
       ),
       () => (
-        <div className="w-full flex flex-row items-center px-[60px] pt-[60px]">
-          <EditablePageHeader
-            variant={EditablePageHeaderVariant.Card}
-            value={selectedBoardName}
-            setValue={() => {}}
-            actions={[]}
-            editable={false}
-          />
-        </div>
+        <IconButton
+          name={Icons.Settings}
+          variant={IconButtonVariant.Secondary}
+        />
       ),
       () => (
         <div className="full px-[60px]">
@@ -134,6 +131,7 @@ const SingleBoardPage = () => {
         board={selectedBoard}
         headerRef={boardHighlightRefs.boardHeaderRef}
         columnsRef={boardHighlightRefs.boardColumnsRef}
+        settingsRef={boardHighlightRefs.boardSettingsRef}
         expandable={{
           expanded: true,
           boardName: selectedBoardName,
