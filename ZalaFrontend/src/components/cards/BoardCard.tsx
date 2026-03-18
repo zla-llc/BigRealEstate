@@ -4,7 +4,7 @@ import clsx from "clsx";
 import { BoardCardColumns } from "./BoardCardColumns";
 
 export const BoardCard = (props: BoardCardProps) => {
-  const { board, expandable, hoverable = true, componentId, onClick } = props;
+  const { board, expandable, hoverable = true, componentId, headerRef, columnsRef, onClick } = props;
   const { size, expanded, steps, actions, calcStepItemsHeight } =
     useBoardCard(props);
 
@@ -29,6 +29,7 @@ export const BoardCard = (props: BoardCardProps) => {
       )}
     >
       <div
+        ref={headerRef}
         className={clsx(
           "w-full flex flex-row items-center",
           expanded ? "px-[60px] pt-[60px]" : "",
@@ -47,6 +48,7 @@ export const BoardCard = (props: BoardCardProps) => {
         />
       </div>
       <div
+        ref={columnsRef}
         className={clsx(
           "full",
           "transition-[padding] duration-75",

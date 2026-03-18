@@ -31,4 +31,5 @@ export * from "./useVisibleDims";
 export * from "./useAppLocation";
 export * from "./useAppHeaderHighlightComponents";
 export * from "./useLeadSearchHighlightComponents";
+export * from "./useBoardHighlightComponents";
 export * from "./useForceWaitLeadSearchTutorial";

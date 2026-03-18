@@ -3,19 +3,24 @@ import { useParams } from "react-router";
 import {
   useAllBoardsPage,
   useAppNavigation,
+  useBoardHighlightComponents,
   useDashboardPage,
+  useShouldShowTutorial,
   useTimeoutEffect,
 } from "../../hooks";
 import { LoadingPage } from "../Loading";
 import transition from "../../utils/transitions/transition";
 import {
   BoardCard,
+  BoardCardColumns,
   BoardModal,
   Button,
   ButtonVariant,
+  EditablePageHeader,
+  EditablePageHeaderVariant,
   Icons,
 } from "../../components";
-import { useAuthStore } from "../../stores";
+import { TutorialPage, useAuthStore } from "../../stores";
 
 const SingleBoardPage = () => {
   const routeParams = useParams();
@@ -51,6 +56,52 @@ const SingleBoardPage = () => {
 
   const { toDashboard, goBack, toNotFound } = useAppNavigation();
 
+  const boardHighlightComponents = useBoardHighlightComponents();
+  const boardHighlightRefs = boardHighlightComponents.refs;
+
+  useShouldShowTutorial({
+    page: TutorialPage.Board,
+    forceWait: !selectedBoard,
+    highlightComponentDims: boardHighlightComponents.highlightComponentDims,
+    highlightComponentDimsChange: boardHighlightComponents.highlightComponentDimsChange,
+    components: [
+      null, // Step 0: Board Overview (modal)
+      () => (
+        <div className="w-full flex flex-row items-center px-[60px] pt-[60px]">
+          <EditablePageHeader
+            variant={EditablePageHeaderVariant.Card}
+            value={selectedBoardName}
+            setValue={() => {}}
+            actions={[]}
+            editable={false}
+          />
+        </div>
+      ),
+      () => (
+        <div className="w-full flex flex-row items-center px-[60px] pt-[60px]">
+          <EditablePageHeader
+            variant={EditablePageHeaderVariant.Card}
+            value={selectedBoardName}
+            setValue={() => {}}
+            actions={[]}
+            editable={false}
+          />
+        </div>
+      ),
+      () => (
+        <div className="full px-[60px]">
+          <div className="full p-[30px] overflow-x-scroll">
+            <BoardCardColumns
+              expanded={true}
+              steps={selectedBoard?.boardSteps ?? []}
+            />
+          </div>
+        </div>
+      ),
+    ],
+    deps: [selectedBoard?.boardId],
+  });
+
   useEffect(() => {
     if (boards.length <= 0) return;
     const board = boards.find((board) => board.boardId === boardId);
@@ -81,6 +132,8 @@ const SingleBoardPage = () => {
     <div className="flex relative flex-col gap-y-[60px] flex-1 overflow-y-scroll">
       <BoardCard
         board={selectedBoard}
+        headerRef={boardHighlightRefs.boardHeaderRef}
+        columnsRef={boardHighlightRefs.boardColumnsRef}
         expandable={{
           expanded: true,
           boardName: selectedBoardName,

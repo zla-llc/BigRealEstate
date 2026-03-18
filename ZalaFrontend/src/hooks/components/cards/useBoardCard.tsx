@@ -8,6 +8,8 @@ export type BoardCardProps = {
   expandable?: ExpandedBoardProps;
   componentId?: string;
   hoverable?: boolean;
+  headerRef?: React.RefObject<HTMLDivElement | null>;
+  columnsRef?: React.RefObject<HTMLDivElement | null>;
   onClick?: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
 };
 
