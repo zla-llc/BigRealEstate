@@ -1,4 +1,4 @@
-import { TutorialSequenceMaximums } from "../../config";
+import { TutorialSequenceMaximums, type TutorialTextKey } from "../../config";
 import type { ITutorial } from "../../interfaces";
 import { TutorialPage } from "../../stores";
 
@@ -22,18 +22,7 @@ export const useTutorialPageTo = () => {
 
   // Gives max index value (zero based)
   const pageToMaxTutorialStep = (page: TutorialPage) => {
-    switch (page) {
-      case TutorialPage.Dashboard:
-        return TutorialSequenceMaximums.dashboard;
-      case TutorialPage.Navbar:
-        return TutorialSequenceMaximums.navbar;
-      case TutorialPage.Campaign:
-      case TutorialPage.Search:
-      default:
-        // return TutorialSequenceMaximums.dashboard;
-        // return TutorialSequenceMaximums.dashboard;
-        return -1;
-    }
+    return TutorialSequenceMaximums[page.toLowerCase() as TutorialTextKey];
   };
 
   return {

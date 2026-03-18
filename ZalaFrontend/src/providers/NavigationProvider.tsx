@@ -3,7 +3,6 @@ import TeamInviteTestPage from "../pages/TeamInviteTest/TeamInviteTestPage";
 import { RootLayout } from "../layouts";
 import { useAuthStore } from "../stores";
 import SingleBoardPage from "../pages/SingleBoard/SingleBoardPage";
-import LeadSearchPage from "../pages/LeadSearch/LeadSearchPage";
 import LoginPage from "../pages/Auth/Login/LoginPage";
 import SignupPage from "../pages/Auth/Signup/SignupPage";
 import KanbanBoardPage from "../pages/Boards/KanbanBoardPage";
@@ -13,7 +12,7 @@ import CampaignEmailDemoPage from "../pages/CampaignEmailDemo/CampaignEmailDemoP
 import PastCampaignsPage from "../pages/PastCampaigns/PastCampaignsPage";
 import SMTPTestPage from "../pages/SMTPTest/SMTPTestPage";
 import { AnimatePresence } from "framer-motion";
-import { CampaignPage, DashboardPage } from "../pages";
+import { CampaignPage, DashboardPage, LeadSearchPage } from "../pages";
 import { NavigationPath } from "./types";
 
 /**

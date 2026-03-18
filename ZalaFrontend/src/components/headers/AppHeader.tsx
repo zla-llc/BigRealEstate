@@ -1,9 +1,10 @@
+import { TutorialSequenceMaximums } from "../../config";
 import {
   useAppHeader,
   useAppHeaderHighlightComponents,
   useShouldShowTutorial,
 } from "../../hooks";
-import { TutorialPage } from "../../stores";
+import { TutorialPage, useTutorialStore } from "../../stores";
 import { IconButton, IconButtonVariant } from "../buttons";
 import { Icons } from "../icons";
 import { TextInput } from "../inputs";
@@ -26,6 +27,7 @@ export const AppHeader = () => {
     openLeaderBoardModal,
   } = useAppHeader();
 
+  const { tutorial } = useTutorialStore();
   const {
     refs: { searchBarRef },
     highlightComponentDims,
@@ -45,6 +47,10 @@ export const AppHeader = () => {
         />
       ),
     ],
+    forceWait: !(
+      tutorial?.map_step === 1 &&
+      tutorial.navbar_step <= TutorialSequenceMaximums.navbar
+    ),
   });
 
   return (

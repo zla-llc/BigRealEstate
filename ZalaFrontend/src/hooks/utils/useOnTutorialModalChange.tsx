@@ -14,12 +14,6 @@ export const useOnTutorialModalChange = () => {
 
   const { pageToMaxTutorialStep } = useTutorialPageTo();
 
-  // const onClose = async () => {
-  //   if (globalModalStore.preClose) await globalModalStore.preClose();
-  //   globalModalStore.toggleOpen();
-  //   if (globalModalStore.postClose) await globalModalStore.postClose();
-  // };
-
   // Assumes modal is allready open
   const changeModal = (newStep: number) => {
     if (newStep > pageToMaxTutorialStep(tutorialStore.page)) return;

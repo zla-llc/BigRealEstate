@@ -9,6 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import {
   useAppLocation,
+  useAppNavigation,
   useOnTutorialModalChange,
   useTutorialPageTo,
 } from "../../utils";
@@ -45,6 +46,7 @@ export const useTutorialModal = ({
   const [fireSkipNextTutorial, setFireSkipNextTutorial] = useState(false);
 
   const onTutorialChange = useOnTutorialModalChange();
+  const appNavigation = useAppNavigation();
 
   useEffect(() => {
     const key = pageToTutorialKey(tutorialStore.page);
@@ -62,7 +64,6 @@ export const useTutorialModal = ({
 
   useEffect(() => {
     if (!fireToNextTutorial) return;
-    console.log(`Fired`);
     toNextTutorialPage();
   }, [fireToNextTutorial]);
 
@@ -99,8 +100,6 @@ export const useTutorialModal = ({
     tutorialStore.setTutorial(res.data);
     setStep(newValue);
 
-    console.log(`Fire on change: ${fireOnChange}`);
-
     if (fireOnChange) onTutorialChange(newValue);
   };
 
@@ -109,11 +108,11 @@ export const useTutorialModal = ({
 
     switch (tutorialStore.page) {
       case TutorialPage.Dashboard:
-        nextPage = TutorialPage.Navbar;
-        break;
-      case TutorialPage.Navbar:
         nextPage = TutorialPage.Search;
         break;
+      // case TutorialPage.Navbar:
+      //   nextPage = TutorialPage.Search;
+      //   break;
       case TutorialPage.Search:
         nextPage = TutorialPage.Campaign;
         break;
@@ -128,10 +127,13 @@ export const useTutorialModal = ({
   const toNextTutorialPage = () => {
     setFireToNextTutorial(false);
 
-    let nextPage = getNextPage();
+    const nextPage = getNextPage();
 
-    if (nextPage === TutorialPage.Navbar && !isSearchPage) {
-      nextPage = undefined;
+    if (nextPage === TutorialPage.Search && !isSearchPage) {
+      // console.log(`Is search page and next page is navbar`);
+      // nextPage = undefined;
+
+      return (onClose(), appNavigation.toLeadSearchPage());
     }
 
     if (!nextPage) return onClose();
@@ -169,13 +171,21 @@ export const useTutorialModal = ({
   };
 
   const nextTutorial = async () => {
-    if (isFinalStep(tutorialStore.page)) {
-      await updateUserTutorial(1);
-      setFireToNextTutorial(true);
-      return;
-    }
+    switch (tutorialStore.page) {
+      case TutorialPage.Search:
+        await updateUserTutorial(1, tutorialStore.page);
+        onClose();
+        break;
+      default:
+        if (isFinalStep(tutorialStore.page)) {
+          await updateUserTutorial(1);
+          setFireToNextTutorial(true);
+          return;
+        }
 
-    await updateUserTutorial(1);
+        await updateUserTutorial(1);
+        break;
+    }
   };
 
   // Never used so far
