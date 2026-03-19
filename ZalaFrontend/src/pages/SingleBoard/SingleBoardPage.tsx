@@ -24,7 +24,7 @@ import {
 } from "../../components";
 import { TutorialPage, useAuthStore } from "../../stores";
 
-const SingleBoardPage = () => {
+export const SingleBoardPage = transition(() => {
   const routeParams = useParams();
   const boardId = parseInt(routeParams?.boardId ?? `-1`);
 
@@ -65,11 +65,12 @@ const SingleBoardPage = () => {
     page: TutorialPage.Board,
     forceWait: !selectedBoard,
     highlightComponentDims: boardHighlightComponents.highlightComponentDims,
-    highlightComponentDimsChange: boardHighlightComponents.highlightComponentDimsChange,
+    highlightComponentDimsChange:
+      boardHighlightComponents.highlightComponentDimsChange,
     components: [
       null, // Step 0: Board Overview (modal)
       () => (
-        <div className="w-full flex flex-row items-center px-[60px] pt-[60px]">
+        <div className="w-full flex flex-row items-center px-15 pt-15">
           <EditablePageHeader
             variant={EditablePageHeaderVariant.Card}
             value={selectedBoardName}
@@ -86,8 +87,8 @@ const SingleBoardPage = () => {
         />
       ),
       () => (
-        <div className="full px-[60px]">
-          <div className="full p-[30px] overflow-x-scroll">
+        <div className="full px-15">
+          <div className="full p-7.5 overflow-x-scroll">
             <BoardCardColumns
               expanded={true}
               steps={selectedBoard?.boardSteps ?? []}
@@ -126,7 +127,7 @@ const SingleBoardPage = () => {
   if (!selectedBoard?.boardId) return <LoadingPage text="" />;
 
   return (
-    <div className="flex relative flex-col gap-y-[60px] flex-1 overflow-y-scroll">
+    <div className="flex relative flex-col gap-y-15 flex-1 overflow-y-scroll">
       <BoardCard
         board={selectedBoard}
         headerRef={boardHighlightRefs.boardHeaderRef}
@@ -149,7 +150,7 @@ const SingleBoardPage = () => {
       />
 
       {canUserMakeAdminChanges && (
-        <div className="fixed pointer-events-none bottom-0 left-0 right-0 z-[10] flex flex-row justify-end pb-[30px] pr-[30px]">
+        <div className="fixed pointer-events-none bottom-0 left-0 right-0 z-10 flex flex-row justify-end pb-7.5 pr-7.5">
           <div className="flex-[.15] pointer-events-auto flex justify-center items-center flex-row">
             <Button
               variant={ButtonVariant.Primary}
@@ -164,6 +165,4 @@ const SingleBoardPage = () => {
       <BoardModal onAddLeads={() => getBoards()} />
     </div>
   );
-};
-
-export default transition(SingleBoardPage);
+});

@@ -4,7 +4,15 @@ import clsx from "clsx";
 import { BoardCardColumns } from "./BoardCardColumns";
 
 export const BoardCard = (props: BoardCardProps) => {
-  const { board, expandable, hoverable = true, componentId, headerRef, columnsRef, onClick } = props;
+  const {
+    board,
+    expandable,
+    hoverable = true,
+    componentId,
+    headerRef,
+    columnsRef,
+    onClick,
+  } = props;
   const { size, expanded, steps, actions, calcStepItemsHeight } =
     useBoardCard(props);
 
@@ -20,19 +28,19 @@ export const BoardCard = (props: BoardCardProps) => {
       }}
       onClick={expandable ? undefined : onClick}
       className={clsx(
-        "board-card-container full flex flex-col relative card-base",
-        expandable ? "!bg-background overflow-hidden" : "overflow-hidden",
+        "full flex flex-col relative card-base  max-w-[100vw]",
+        expandable ? "bg-background! overflow-hidden" : "overflow-hidden",
         expandable
-          ? "pb-[15px]"
+          ? "pb-3.75"
           : "cursor-pointer transition-[translate] duration-75 box-shadow-sm",
-        hoverable && !expandable ? "hover:-translate-y-[10px]" : "",
+        hoverable && !expandable ? "hover:-translate-y-2.5" : "",
       )}
     >
       <div
         ref={headerRef}
         className={clsx(
           "w-full flex flex-row items-center shrink-0",
-          expanded ? "px-[60px] pt-[60px] pb-[15px] max-w-[900px] mx-auto" : "",
+          expanded ? "px-15 pt-15 pb-3.75 max-w-225 mx-auto" : "",
         )}
       >
         <EditablePageHeader
@@ -51,13 +59,13 @@ export const BoardCard = (props: BoardCardProps) => {
         ref={columnsRef}
         className={clsx(
           "transition-[padding] duration-75",
-          expanded ? "flex-1 overflow-x-auto px-[60px]" : "full p-[15px] pt-[unset]",
+          expanded ? "flex-1 overflow-x-auto px-15" : "full p-3.75 pt-[unset]",
         )}
       >
         <div
           className={clsx(
             "transition-[padding] duration-75",
-            expanded ? "h-full min-w-max p-[30px]" : "full",
+            expanded ? "h-full min-w-max p-7.5]" : "full",
           )}
         >
           <BoardCardColumns
