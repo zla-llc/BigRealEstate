@@ -66,5 +66,5 @@ export const TutorialTextPlacements = {
     TextPlacement.Modal,
   ],
   navbar: [TextPlacement.Bottom],
-  search: [TextPlacement.Top, TextPlacement.Left, TextPlacement.Top],
+  search: [TextPlacement.Top, TextPlacement.Left, TextPlacement.Right],
 };
