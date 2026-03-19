@@ -27,7 +27,7 @@ export const TutorialText = {
     "A board is used to track progress of pursuing leads or selling properties.",
     "Admins of a team board or creators of a board can edit board settings, delete a board, or change the title of a board.",
     "This is where you can modify properties of your board like the name or the type of board.",
-    "A board contains a series of steps that leads or properties must progress through to get to the end goal. For example, a lead may start as a \"New Lead\", then progress to \"Contact Made\", then \"Sale Closed\". You can add an item to the board with the + button under a step, then drag the item to move it to different steps.",
+    'A board contains a series of steps that leads or properties must progress through to get to the end goal. For example, a lead may start as a "New Lead", then progress to "Contact Made", then "Sale Closed". You can add an item to the board with the + button under a step, then drag the item to move it to different steps.',
   ],
 };
 
@@ -74,6 +74,11 @@ export const TutorialTextPlacements = {
     TextPlacement.Modal,
   ],
   navbar: [TextPlacement.Bottom],
-  search: [TextPlacement.Top, TextPlacement.Left, TextPlacement.Top],
-  board: [TextPlacement.Modal, TextPlacement.Bottom, TextPlacement.Bottom, TextPlacement.Top],
+  search: [TextPlacement.Top, TextPlacement.Left, TextPlacement.Right],
+  board: [
+    TextPlacement.Modal,
+    TextPlacement.Bottom,
+    TextPlacement.Bottom,
+    TextPlacement.Top,
+  ],
 };
