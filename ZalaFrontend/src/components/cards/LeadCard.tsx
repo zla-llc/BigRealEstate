@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { useEffect, useRef } from "react";
 import type { ILead, ISourceResult } from "../../interfaces";
 import { IMAGES_ARR } from "../../assets";
 import { Button } from "../buttons";
@@ -36,8 +37,17 @@ export const LeadCard = ({
 }: LeadCardProps) => {
   const [isHovered, hoverProps] = useHover();
   const isSecondVariant = variant === CardVariant.Secondary;
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (active && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [active]);
+
   return (
     <div
+      ref={cardRef}
       {...hoverProps}
       className={clsx(
         "card-base box-shadow flex flex-row p-[15px]",

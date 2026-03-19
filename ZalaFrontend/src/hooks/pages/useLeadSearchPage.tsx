@@ -15,11 +15,16 @@ import { useAlterUserXp, useApi } from "../api";
 export const useLeadSearchPage = () => {
   const user = useAuthStore((state) => state.user);
   const leadData = useSearchQueryStore((state) => state.data);
+  const nearbyProperties = useSearchQueryStore((state) => state.nearbyProperties);
   const setCampaign = useCampaignStore((state) => state.setCampaign);
   const sortBy = useSearchFilterStore((state) => state.sortBy);
   const openSideNav = useSideNavControlStore((state) => state.open);
 
-  const { createCampaign } = useApi();
+  const setNearbyProperties = useSearchQueryStore(
+    (state) => state.setNearbyProperties,
+  );
+
+  const { createCampaign, getUserProperties } = useApi();
   const [successSnack, errorSnack] = useSnack();
   const { toCampaignPage } = useAppNavigation();
 
@@ -31,6 +36,31 @@ export const useLeadSearchPage = () => {
   const [campaignLeads, setCampaignLeads] = useState<number[]>([]);
   const [campaignTitle, setCampaignTitle] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Fetch user properties on mount so they always appear on the map
+  useEffect(() => {
+    if (!user) return;
+    getUserProperties({ userId: user.userId }).then((res) => {
+      if (res.err || !res.data) return;
+      const props = res.data
+        .filter((p) => p.address && p.address.lat && p.address.long)
+        .map((p) => ({
+          propertyId: p.property_id,
+          propertyName: p.property_name ?? "",
+          address: {
+            lat: p.address.lat,
+            long: p.address.long,
+            street1: p.address.street_1 ?? "",
+            city: p.address.city ?? "",
+            state: p.address.state ?? "",
+            zipcode: p.address.zipcode ?? "",
+          },
+          distanceMiles: 0,
+          source: "user_property" as const,
+        }));
+      setNearbyProperties(props);
+    });
+  }, [user?.userId]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -131,6 +161,7 @@ export const useLeadSearchPage = () => {
     setLoading,
     mapRef,
     leadData: sortLeads(),
+    nearbyProperties,
     activeLead,
     setActiveLead,
     campaignHasAllLeads,
