@@ -67,8 +67,7 @@ export const CampaignPage = transition(() => {
               unselectAll={unselectAll}
               onContactMethod={(method) => {
                 if (
-                  !viewingCampaignLead ||
-                  viewingCampaignLead.contactMethods.includes(method)
+                  !viewingCampaignLead
                 )
                   return;
 

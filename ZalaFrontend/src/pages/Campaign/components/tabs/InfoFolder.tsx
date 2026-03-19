@@ -16,7 +16,7 @@ export const InfoFolder = ({
   onSecondary,
 }: InfoFolderProps) => {
   const icons = useFolderIcons({ active: CampaignTab.Profile, showBackBtn });
-
+  const hasEmail = lead.contact.email === "" || lead.contact.email === null;
   return (
     <Folder
       title={title}
@@ -29,7 +29,7 @@ export const InfoFolder = ({
             onPress: onSecondary,
             disabled: disableSecondary,
           }}
-          primary={{ text: "Email", icon: Icons.Mail, onPress: onPrimary }}
+          primary={{ text: "Email", icon: Icons.Mail, disabled: hasEmail, onPress: onPrimary }}
         />
       }
     >

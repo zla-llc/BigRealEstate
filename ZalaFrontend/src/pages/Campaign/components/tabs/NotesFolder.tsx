@@ -18,7 +18,7 @@ export const NotesFolder = ({
 }: NotesFolderProps) => {
   const { notes, setNotes } = useCampaignPageStore();
   const icons = useFolderIcons({ active: CampaignTab.Notes, showBackBtn });
-
+  const hasEmail = lead.contact.email === "" || lead.contact.email === null;
   return (
     <Folder
       title={title}
@@ -31,7 +31,7 @@ export const NotesFolder = ({
             disabled: disableSecondary,
             onPress: onSecondary,
           }}
-          primary={{ text: "Email", icon: Icons.Mail, onPress: onPrimary }}
+          primary={{ text: "Email", icon: Icons.Mail, disabled: hasEmail, onPress: onPrimary }}
         />
       }
     >
