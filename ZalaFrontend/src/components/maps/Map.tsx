@@ -27,6 +27,7 @@ type MapProps = {
   center?: MapCoords;
   initialZoom?: number;
   pins?: MapPinProps[];
+  dimsRef?: React.RefObject<HTMLDivElement | null>;
 };
 
 const DefaultProps: MapProps = {
@@ -63,8 +64,9 @@ export const Map = forwardRef<MapRefHandle, MapProps>(
       center: propsCenter = DefaultProps.center,
       initialZoom: propsZoom = DefaultProps.initialZoom,
       pins = DefaultProps.pins,
+      dimsRef,
     }: MapProps,
-    ref
+    ref,
   ) => {
     const initialCenter = propsCenter ?? (DefaultProps.center as MapCoords);
     const initialZoom = propsZoom ?? (DefaultProps.initialZoom as number);
@@ -79,7 +81,7 @@ export const Map = forwardRef<MapRefHandle, MapProps>(
 
     const handleChildClick = (
       hoverKey: string | number,
-      childProps: MapCoords & unknown
+      childProps: MapCoords & unknown,
     ) => {
       const key = Number(hoverKey);
       onMarkerClick(key, childProps);
@@ -87,7 +89,7 @@ export const Map = forwardRef<MapRefHandle, MapProps>(
     };
 
     return (
-      <div className="w-full h-full">
+      <div ref={dimsRef} className="w-full h-full">
         <GoogleMapReact
           // ref={mapRef}
           bootstrapURLKeys={{ key: CONFIG.keys.google.maps }}
@@ -101,35 +103,40 @@ export const Map = forwardRef<MapRefHandle, MapProps>(
           onChildClick={handleChildClick}
           onClick={() => setSelectedPin(null)}
         >
-          {(pins ?? []).map((pin, index) => (
-            <MapElement
-              key={index}
-              lat={pin.center.lat}
-              lng={pin.center.lng}
-              active={pin.active || selectedPin === index}
-              onClick={pin.onClick}
-            >
-              {selectedPin === index && pin.info && (
-                <MapInfoBox
-                  info={pin.info}
-                  onClose={() => setSelectedPin(null)}
-                />
-              )}
-              <Icon
-                name={pin.iconName ?? Icons.UserPin}
-                scale={pin.active ? pin.activeScale ?? 2 : pin.scale ?? 1.75}
-                hoverScale={pin.activeScale ?? 2}
-                color={
-                  pin.active
-                    ? pin.activeColor ?? COLORS.accent
-                    : pin.color ?? COLORS.white
-                }
-                hoverColor={pin.activeColor ?? COLORS.accent}
-              />
-            </MapElement>
-          ))}
+          {(pins ?? []).map(
+            (pin, index) =>
+              pin && (
+                <MapElement
+                  key={index}
+                  lat={pin.center.lat}
+                  lng={pin.center.lng}
+                  active={pin.active || selectedPin === index}
+                  onClick={pin.onClick}
+                >
+                  {selectedPin === index && pin.info && (
+                    <MapInfoBox
+                      info={pin.info}
+                      onClose={() => setSelectedPin(null)}
+                    />
+                  )}
+                  <Icon
+                    name={pin.iconName ?? Icons.UserPin}
+                    scale={
+                      pin.active ? (pin.activeScale ?? 2) : (pin.scale ?? 1.75)
+                    }
+                    hoverScale={pin.activeScale ?? 2}
+                    color={
+                      pin.active
+                        ? (pin.activeColor ?? COLORS.accent)
+                        : (pin.color ?? COLORS.white)
+                    }
+                    hoverColor={pin.activeColor ?? COLORS.accent}
+                  />
+                </MapElement>
+              ),
+          )}
         </GoogleMapReact>
       </div>
     );
-  }
+  },
 );

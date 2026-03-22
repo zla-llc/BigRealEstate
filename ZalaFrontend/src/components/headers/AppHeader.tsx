@@ -1,4 +1,10 @@
-import { useAppHeader } from "../../hooks";
+import { TutorialSequenceMaximums } from "../../config";
+import {
+  useAppHeader,
+  useAppHeaderHighlightComponents,
+  useShouldShowTutorial,
+} from "../../hooks";
+import { TutorialPage, useTutorialStore } from "../../stores";
 import { IconButton, IconButtonVariant } from "../buttons";
 import { Icons } from "../icons";
 import { TextInput } from "../inputs";
@@ -21,6 +27,32 @@ export const AppHeader = () => {
     openLeaderBoardModal,
   } = useAppHeader();
 
+  const { tutorial } = useTutorialStore();
+  const {
+    refs: { searchBarRef },
+    highlightComponentDims,
+    highlightComponentDimsChange,
+  } = useAppHeaderHighlightComponents();
+  useShouldShowTutorial({
+    page: TutorialPage.Navbar,
+    highlightComponentDims,
+    highlightComponentDimsChange,
+    components: [
+      () => (
+        <TextInput
+          placeholder="Search by city and state/zip eg. Buffalo NY"
+          value={query}
+          icon={Icons.Search}
+          iconVariant={IconButtonVariant.Accent}
+        />
+      ),
+    ],
+    forceWait: !(
+      tutorial?.map_step === 1 &&
+      tutorial.navbar_step <= TutorialSequenceMaximums.navbar
+    ),
+  });
+
   return (
     <div className="w-full z-101 flex flex-row items-center justify-between p-4 px-25 bg-primary box-shadow space-x-10">
       <div>
@@ -28,10 +60,7 @@ export const AppHeader = () => {
           className="text-5xl font-bold cursor-pointer grenze"
           onClick={toDashboard}
         >
-          <img
-            className="min-w-[100px] w-[100px]"
-            src="src\assets\images\zala_b.png"
-          />
+          <img className="min-w-25 w-25" src="src\assets\images\zala_b.png" />
         </button>
       </div>
 
@@ -40,6 +69,7 @@ export const AppHeader = () => {
 
         <div className="flex-1 h-full">
           <TextInput
+            ref={searchBarRef}
             placeholder="Search by city and state/zip eg. Buffalo NY"
             value={query}
             setValue={setQuery}

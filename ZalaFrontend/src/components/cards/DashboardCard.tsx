@@ -1,4 +1,4 @@
-import { type PropsWithChildren } from "react";
+import { forwardRef, type PropsWithChildren } from "react";
 import { PageHeader } from "../headers";
 import { Icons } from "../icons";
 import { Button, type ButtonProps } from "../buttons";
@@ -9,14 +9,15 @@ export type DashboardCardProps = {
   btnProps?: ButtonProps;
 };
 
-export const DashboardCard = ({
-  title,
-  btnProps,
-  onAdd,
-  children,
-}: PropsWithChildren<DashboardCardProps>) => {
+export const DashboardCard = forwardRef<
+  HTMLDivElement,
+  PropsWithChildren<DashboardCardProps>
+>(({ title, btnProps, onAdd, children }, ref) => {
   return (
-    <div className="card-base box-shadow w-full flex flex-col p-[30px] gap-y-[15px] transition-[height] duration-500">
+    <div
+      ref={ref}
+      className="card-base box-shadow w-full flex flex-col p-[30px] gap-y-[15px] transition-[height] duration-500"
+    >
       <div className="w-full flex items-center justify-center">
         <PageHeader
           actions={[
@@ -45,4 +46,4 @@ export const DashboardCard = ({
       )}
     </div>
   );
-};
+});

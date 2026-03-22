@@ -23,3 +23,5 @@ export * from "./GlobalModalStore";
 export * from "./SelectedIdStore";
 export * from "./AllowScrollStore";
 export * from "./ViewPropertyModalControlStore";
+export * from "./TutorialStore";
+export * from "./HighlightComponentStore";

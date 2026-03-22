@@ -13,3 +13,4 @@ export * from "./Image";
 export * from "./Property";
 export * from "./Teams";
 export * from "./Leaderboard";
+export * from "./Tutorial";

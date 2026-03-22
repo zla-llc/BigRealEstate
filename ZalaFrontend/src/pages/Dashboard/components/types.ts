@@ -3,7 +3,7 @@ export type UserListCardProps = {
   overflowCount: number;
   spliceCount: number;
 
-  onClick: (i: number) => void;
+  onClick?: (i: number) => void;
   onAdd?: () => void;
 };
 

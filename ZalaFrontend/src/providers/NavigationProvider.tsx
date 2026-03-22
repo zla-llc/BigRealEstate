@@ -2,8 +2,6 @@ import { Navigate, Route, Routes, useLocation } from "react-router";
 import TeamInviteTestPage from "../pages/TeamInviteTest/TeamInviteTestPage";
 import { RootLayout } from "../layouts";
 import { useAuthStore } from "../stores";
-import SingleBoardPage from "../pages/SingleBoard/SingleBoardPage";
-import LeadSearchPage from "../pages/LeadSearch/LeadSearchPage";
 import LoginPage from "../pages/Auth/Login/LoginPage";
 import SignupPage from "../pages/Auth/Signup/SignupPage";
 import KanbanBoardPage from "../pages/Boards/KanbanBoardPage";
@@ -13,7 +11,13 @@ import CampaignEmailDemoPage from "../pages/CampaignEmailDemo/CampaignEmailDemoP
 import PastCampaignsPage from "../pages/PastCampaigns/PastCampaignsPage";
 import SMTPTestPage from "../pages/SMTPTest/SMTPTestPage";
 import { AnimatePresence } from "framer-motion";
-import { CampaignPage, DashboardPage } from "../pages";
+import {
+  CampaignPage,
+  DashboardPage,
+  LeadSearchPage,
+  SingleBoardPage,
+} from "../pages";
+import { NavigationPath } from "./types";
 
 /**
  * Handles which components and pages to show from URL.
@@ -33,24 +37,30 @@ export const NavigationProvider = () => {
       <Routes location={location} key={location.pathname}>
         <Route element={<RootLayout />}>
           <Route
-            path="/login"
+            path={NavigationPath.Login}
             element={user ? <NavToDashboard /> : <LoginPage />}
           />
           <Route
-            path="/signup"
+            path={NavigationPath.SignUp}
             element={user ? <NavToDashboard /> : <SignupPage />}
           />
 
-          {!user && <Route path="*" element={<NavToLogin />} />}
+          {!user && (
+            <Route path={NavigationPath.All} element={<NavToLogin />} />
+          )}
 
-          <Route index path="/" element={<NavToDashboard />} />
+          <Route
+            index
+            path={NavigationPath.Root}
+            element={<NavToDashboard />}
+          />
 
-          <Route path="/campaigns">
+          <Route path={NavigationPath.Campaigns}>
             <Route index element={<PastCampaignsPage />} />
             <Route path=":campaignId" element={<CampaignPage />} />
           </Route>
 
-          <Route path="/demos">
+          <Route path={NavigationPath.Demos}>
             <Route path="campaign" element={<CampaignEmailDemoPage />} />
             <Route path="email" element={<TestEmailPage />} />
             <Route path="smtp" element={<SMTPTestPage />} />
@@ -58,12 +68,15 @@ export const NavigationProvider = () => {
             <Route path="board" element={<KanbanBoardPage />} />
           </Route>
 
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/search" element={<LeadSearchPage />} />
-          <Route path="/board/:boardId" element={<SingleBoardPage />} />
+          <Route path={NavigationPath.Dashboard} element={<DashboardPage />} />
+          <Route path={NavigationPath.Search} element={<LeadSearchPage />} />
+          <Route
+            path={NavigationPath.SingleBoard}
+            element={<SingleBoardPage />}
+          />
 
-          <Route path="404" element={<NotFoundPage />} />
-          <Route path="*" element={<NavTo404 />} />
+          <Route path={NavigationPath.NotFound} element={<NotFoundPage />} />
+          <Route path={NavigationPath.All} element={<NavTo404 />} />
         </Route>
       </Routes>
     </AnimatePresence>
