@@ -1,0 +1,22 @@
+version: 1
+applications:
+  - frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci --cache .npm --prefer-offline --legacy-peer-deps
+        build:
+          commands:
+            # - REACT_APP_CAPTCHA=${REACT_APP_CAPTCHA}
+            # - REACT_APP_EMAIL_SERVICE=${REACT_APP_EMAIL_SERVICE}
+            # - REACT_APP_EMAIL_TEMPLATE=${REACT_APP_EMAIL_TEMPLATE}
+            # - REACT_APP_API_ENDPOINT=${REACT_APP_API_ENDPOINT}
+            - npm run build
+      artifacts:
+        baseDirectory: build
+        files:
+          - "**/*"
+      cache:
+        paths:
+          - .npm/**/*
+    appRoot: client/web
