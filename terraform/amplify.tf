@@ -4,7 +4,7 @@ data "aws_iam_policy_document" "amplify_policy_doc" {
     actions = ["sts:AssumeRole"]
     principals {
       type        = "Service"
-      identifiers = ["amplify.amazonaws.com"]
+      identifiers = ["amplify.${var.aws_region}.amazonaws.com", "amplify.amazonaws.com"]
     }
   }
 }
@@ -28,6 +28,7 @@ resource "aws_amplify_app" "amplify_app" {
   name         = var.app_name
   repository   = var.repository
   access_token = var.github_token
+  
   build_spec   = file("./build.yml")
 
   platform                    = "WEB"
@@ -64,7 +65,7 @@ resource "aws_amplify_app" "amplify_app" {
   # depends_on = [aws_api_gateway_deployment.api_deployment]
 }
 
-resource "aws_amplify_branch" "main_branch" {
+resource "aws_amplify_branch" "dev_branch" {
   app_id      = aws_amplify_app.amplify_app.id
   branch_name = var.branch_name
 
@@ -76,7 +77,7 @@ resource "aws_amplify_branch" "main_branch" {
 }
 
 resource "null_resource" "trigger_amplify_deployment" {
-  depends_on = [aws_amplify_branch.main_branch]
+  depends_on = [aws_amplify_branch.dev_branch]
 
   # Force this command to be triggered every time this terraform file is ran
   triggers = {
@@ -85,7 +86,7 @@ resource "null_resource" "trigger_amplify_deployment" {
 
   # The command to be ran
   provisioner "local-exec" {
-    command = "aws amplify start-job --app-id ${aws_amplify_app.amplify_app.id} --branch-name ${aws_amplify_branch.main_branch.branch_name} --job-type RELEASE"
+    command = "aws amplify start-job --app-id ${aws_amplify_app.amplify_app.id} --branch-name ${aws_amplify_branch.dev_branch.branch_name} --job-type RELEASE"
   }
 }
 
@@ -95,7 +96,7 @@ resource "null_resource" "trigger_amplify_deployment" {
 #   wait_for_verification = false
 
 #   sub_domain {
-#     branch_name = aws_amplify_branch.main_branch.branch_name
+#     branch_name = aws_amplify_branch.dev_branch.branch_name
 #     prefix      = ""
 #   }
 
@@ -103,5 +104,5 @@ resource "null_resource" "trigger_amplify_deployment" {
 # }
 
 output "invoke_ui" {
-  value = "https://${aws_amplify_app.amplify_app.id}"
+  value = "https://${var.branch_name}.${aws_amplify_app.amplify_app.id}.amplifyapp.com"
 }

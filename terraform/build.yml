@@ -13,10 +13,10 @@ applications:
             # - REACT_APP_API_ENDPOINT=${REACT_APP_API_ENDPOINT}
             - npm run build
       artifacts:
-        baseDirectory: build
+        baseDirectory: dist
         files:
           - "**/*"
       cache:
         paths:
           - .npm/**/*
-    appRoot: client/web
+    appRoot: ZalaFrontend
