@@ -4,6 +4,7 @@ applications:
       phases:
         preBuild:
           commands:
+            - echo HELLO_WORLD_1
             - npm ci --cache .npm --prefer-offline --legacy-peer-deps
         build:
           commands:
@@ -11,6 +12,7 @@ applications:
             # - REACT_APP_EMAIL_SERVICE=${REACT_APP_EMAIL_SERVICE}
             # - REACT_APP_EMAIL_TEMPLATE=${REACT_APP_EMAIL_TEMPLATE}
             # - REACT_APP_API_ENDPOINT=${REACT_APP_API_ENDPOINT}
+            - echo HELLO_WORLD_2
             - npm run build
       artifacts:
         baseDirectory: dist

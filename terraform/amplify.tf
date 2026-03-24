@@ -47,7 +47,7 @@ resource "aws_amplify_app" "amplify_app" {
     AMPLIFY_DIFF_DEPLOY       = false
     AMPLIFY_MONOREPO_APP_ROOT = var.app_root
 
-    # REACT_APP_API_ENDPOINT     = "${aws_api_gateway_deployment.api_deployment.invoke_url}"
+    # REACT_APP_API_ENDPOINT     = ""
     REACT_APP_ENV              = "PRODUCTION"
   }
 
@@ -62,7 +62,6 @@ resource "aws_amplify_app" "amplify_app" {
     target = "/index.html"
   }
 
-  # depends_on = [aws_api_gateway_deployment.api_deployment]
 }
 
 resource "aws_amplify_branch" "dev_branch" {
