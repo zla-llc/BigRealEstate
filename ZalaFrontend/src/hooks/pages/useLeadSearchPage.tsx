@@ -15,7 +15,9 @@ import { useAlterUserXp, useApi } from "../api";
 export const useLeadSearchPage = () => {
   const user = useAuthStore((state) => state.user);
   const leadData = useSearchQueryStore((state) => state.data);
-  const nearbyProperties = useSearchQueryStore((state) => state.nearbyProperties);
+  const nearbyProperties = useSearchQueryStore(
+    (state) => state.nearbyProperties,
+  );
   const setCampaign = useCampaignStore((state) => state.setCampaign);
   const sortBy = useSearchFilterStore((state) => state.sortBy);
   const openSideNav = useSideNavControlStore((state) => state.open);
@@ -65,10 +67,11 @@ export const useLeadSearchPage = () => {
   useEffect(() => {
     if (!mapRef.current) return;
 
-    if (leadData.length > 0) {
+    const leadEntry = leadData[0];
+    if (leadEntry.address) {
       mapRef.current?.centerMap({
-        lat: leadData[0].address.lat,
-        lng: leadData[0].address.long,
+        lat: leadEntry.address.lat,
+        lng: leadEntry.address.long,
       });
     }
 
@@ -97,18 +100,20 @@ export const useLeadSearchPage = () => {
   const sortLeads = useCallback(() => {
     if (sortBy === "None" || sortBy.length === 0) return leadData;
     return leadData.sort((a, b) => {
-      const ambFirstName = a.contact.firstName.localeCompare(
-        b.contact.firstName,
+      const ambFirstName = (a.contact?.firstName ?? "").localeCompare(
+        b.contact?.firstName ?? "",
       );
-      const ambLastName = a.contact.firstName.localeCompare(
-        b.contact.firstName,
+      const ambLastName = (a.contact?.lastName ?? "").localeCompare(
+        b.contact?.lastName ?? "",
       );
       if (sortBy === "Name")
         return ambFirstName === 0 ? ambLastName : ambFirstName;
       if (sortBy === "Email")
-        return a.contact < b.contact ? -1 : a.contact > b.contact ? 1 : 0;
+        return (a.contact?.email ?? "").localeCompare(b.contact?.email ?? "");
       if (sortBy === "Address")
-        return a.address < b.address ? -1 : a.address > b.address ? 1 : 0;
+        return (a.address?.street1 ?? "").localeCompare(
+          b.address?.street1 ?? "",
+        );
       return 0;
     });
   }, [stringify(leadData), sortBy]);

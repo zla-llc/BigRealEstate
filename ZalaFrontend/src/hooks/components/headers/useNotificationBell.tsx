@@ -65,10 +65,10 @@ export const useNotificationBell = () => {
     wsConnected.current = true;
 
     // Listen for new notifications - WebSocket only pushes when events happen
-    const unsubscribe = wsManager.on<Notification>(
+    const unsubscribe = wsManager.on<INotification>(
       "notification",
       (message) => {
-        addNotification(message.data as Notification);
+        addNotification(message.data as INotification);
       },
     );
 
