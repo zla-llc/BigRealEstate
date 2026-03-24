@@ -52,18 +52,18 @@ export const BoardStepModalHeader = ({
   ];
 
   return (
-    step && (
-      <ModalHeader
-        title={title ?? `Add ${capitalize(boardType)}`}
-        subtitle={
-          subtitle ?? (
-            <span>
-              to the <span className="font-bold">'{step.stepName}'</span> step
-            </span>
-          )
-        }
-        actions={actions}
-      />
-    )
+    <ModalHeader
+      title={title ?? `Add ${capitalize(boardType)}`}
+      subtitle={
+        subtitle ? (
+          subtitle
+        ) : step ? (
+          <span>
+            to the <span className="font-bold">'{step.stepName}'</span> step
+          </span>
+        ) : null
+      }
+      actions={actions}
+    />
   );
 };

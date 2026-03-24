@@ -28,6 +28,19 @@ import LibraryAddIcon from "@mui/icons-material/LibraryAdd";
 import SettingsIcon from "@mui/icons-material/Settings";
 import UploadIcon from "@mui/icons-material/Upload";
 import EditIcon from "@mui/icons-material/Edit";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import PendingIcon from "@mui/icons-material/Pending";
+import CampaignIcon from "@mui/icons-material/Campaign";
+import MapIcon from "@mui/icons-material/Map";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import ImageIcon from "@mui/icons-material/Image";
+import PaidIcon from "@mui/icons-material/Paid";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import LocationCityIcon from "@mui/icons-material/LocationCity";
+import LeaderboardIcon from "@mui/icons-material/Leaderboard";
+import GroupsIcon from "@mui/icons-material/Groups";
 
 export const getMaterialIcon = (iconName: Icons) => {
   switch (iconName) {
@@ -50,6 +63,8 @@ export const getMaterialIcon = (iconName: Icons) => {
     case Icons.Flag:
       return (props: SvgIconProps) => <FlagIcon {...props} />;
     case Icons.Mail:
+      return (props: SvgIconProps) => <EmailIcon {...props} />;
+    case Icons.Email:
       return (props: SvgIconProps) => <EmailIcon {...props} />;
     case Icons.Minus:
       return (props: SvgIconProps) => <RemoveCircleOutlineIcon {...props} />;
@@ -87,6 +102,32 @@ export const getMaterialIcon = (iconName: Icons) => {
       return (props: SvgIconProps) => <UploadIcon {...props} />;
     case Icons.Edit:
       return (props: SvgIconProps) => <EditIcon {...props} />;
+    case Icons.Dashboard:
+      return (props: SvgIconProps) => <DashboardIcon {...props} />;
+    case Icons.Notification:
+      return (props: SvgIconProps) => <NotificationsIcon {...props} />;
+    case Icons.Group:
+      return (props: SvgIconProps) => <GroupsIcon {...props} />;
+    case Icons.Check:
+      return (props: SvgIconProps) => <CheckCircleIcon {...props} />;
+    case Icons.Pending:
+      return (props: SvgIconProps) => <PendingIcon {...props} />;
+    case Icons.Announce:
+      return (props: SvgIconProps) => <CampaignIcon {...props} />;
+    case Icons.Map:
+      return (props: SvgIconProps) => <MapIcon {...props} />;
+    case Icons.File:
+      return (props: SvgIconProps) => <AttachFileIcon {...props} />;
+    case Icons.Image:
+      return (props: SvgIconProps) => <ImageIcon {...props} />;
+    case Icons.Coin:
+      return (props: SvgIconProps) => <PaidIcon {...props} />;
+    case Icons.ChevronLeft:
+      return (props: SvgIconProps) => <ChevronLeftIcon {...props} />;
+    case Icons.PropertyPin:
+      return (props: SvgIconProps) => <LocationCityIcon {...props} />;
+    case Icons.Leaderboard:
+      return (props: SvgIconProps) => <LeaderboardIcon {...props} />;
     default:
       return null;
   }

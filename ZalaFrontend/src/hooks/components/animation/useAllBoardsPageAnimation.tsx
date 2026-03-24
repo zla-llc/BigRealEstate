@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   useAnimationHelpers,
   useDimensions,
-  type IDimensions,
+  type IScreenDimensions,
 } from "../../utils";
 
 type UseAllBoardsPageAnimationProps = {
@@ -76,7 +76,7 @@ export const useAllBoardsPageAnimation = ({
       selectedDims.y,
       selectedDims.x,
       0,
-      0.05
+      0.05,
     );
 
     await showLayer(GRID_CONTAINER);
@@ -105,13 +105,13 @@ export const useAllBoardsPageAnimation = ({
       EXPANDED_BOARD,
       "var(--color-background)",
       0.5 * DURATION_SCALE,
-      0.5 * DURATION_SCALE
+      0.5 * DURATION_SCALE,
     );
     alterLayerRadius(
       EXPANDED_BOARD,
       0,
       0.5 * DURATION_SCALE,
-      0.5 * DURATION_SCALE
+      0.5 * DURATION_SCALE,
     );
     await sizeLayer(GROW_CONTAINER, "100%", "100%", 1 * DURATION_SCALE);
 
@@ -137,13 +137,13 @@ export const useAllBoardsPageAnimation = ({
       EXPANDED_BOARD,
       "var(--color-primary)",
       0.5 * DURATION_SCALE,
-      0.25 * DURATION_SCALE
+      0.25 * DURATION_SCALE,
     );
     await sizeLayer(
       GROW_CONTAINER,
       selectedDims.width,
       selectedDims.height,
-      1 * DURATION_SCALE
+      1 * DURATION_SCALE,
     );
     await positionLayer(TRAVEL_CONTAINER, 0, 0);
 
@@ -164,12 +164,12 @@ export const useAllBoardsPageAnimation = ({
       TRAVEL_CONTAINER,
       selectedDims.y,
       selectedDims.x,
-      0.75 * DURATION_SCALE
+      0.75 * DURATION_SCALE,
     );
     await showLayer(
       GRID_CONTAINER,
       0.5 * DURATION_SCALE,
-      0.25 * DURATION_SCALE
+      0.25 * DURATION_SCALE,
     );
 
     await showLayer(boardDivIdRef.current, 0);
@@ -187,12 +187,16 @@ export const useAllBoardsPageAnimation = ({
       y: 0,
       width: 0,
       height: 0,
+      screenX: 0,
+      screenY: 0,
     });
     onAnimationOut();
   }, [setSelectedDims, onAnimationOut]);
 
   const getClickDivDimensions = useCallback(
-    (event: React.MouseEvent<HTMLDivElement, MouseEvent>): IDimensions => {
+    (
+      event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    ): IScreenDimensions => {
       const element = event.currentTarget;
       const width = element.offsetWidth;
       const height = element.offsetHeight;
@@ -214,9 +218,11 @@ export const useAllBoardsPageAnimation = ({
         y: top,
         width,
         height,
+        screenX: 0,
+        screenY: 0,
       };
     },
-    []
+    [],
   );
 
   const runAnimation = useCallback(
@@ -230,7 +236,7 @@ export const useAllBoardsPageAnimation = ({
       setSelectedDims(startDims);
       setAnimationDirection("forward");
     },
-    [setAnimationDirection, setSelectedDims, getClickDivDimensions]
+    [setAnimationDirection, setSelectedDims, getClickDivDimensions],
   );
 
   const rewindAnimation = useCallback(
@@ -238,7 +244,7 @@ export const useAllBoardsPageAnimation = ({
       event?.stopPropagation();
       setAnimationDirection("backward");
     },
-    [selectedDims.height, animateBoardOut, unselect]
+    [selectedDims.height, animateBoardOut, unselect],
   );
 
   const setAnimationCallback = useCallback((v: () => void) => {

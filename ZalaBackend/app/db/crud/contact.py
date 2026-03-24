@@ -32,10 +32,11 @@ def create_contact(db: Session, contact_in: schemas.ContactCreate) -> Contact:
     Create a new contact
     SQL: INSERT INTO contacts (first_name, last_name, email, phone) VALUES (...)
     """
+    from sqlalchemy import func
 
-    # Check for duplicate email
+    # Check for duplicate email (case-insensitive)
     if contact_in.email:
-        existing = db.query(Contact).filter(Contact.email == contact_in.email).first()
+        existing = db.query(Contact).filter(func.lower(Contact.email) == contact_in.email.lower()).first()
         if existing:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

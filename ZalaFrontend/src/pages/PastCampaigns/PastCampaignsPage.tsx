@@ -1,8 +1,9 @@
 import { CampaignCard, ModalHeader } from "../../components";
 import { usePastCampaignsPage } from "../../hooks";
 import { LoadingPage } from "../Loading";
+import transition from "../../utils/transitions/transition";
 
-export const PastCampaignsPage = () => {
+export const PastCampaignsPage = transition(() => {
   const { campaigns, loading, toCampaignPage } = usePastCampaignsPage();
   return loading ? (
     <LoadingPage />
@@ -33,4 +34,4 @@ export const PastCampaignsPage = () => {
       </div>
     </div>
   );
-};
+});

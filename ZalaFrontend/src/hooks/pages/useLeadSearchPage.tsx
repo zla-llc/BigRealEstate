@@ -10,18 +10,27 @@ import {
 import { Normalizer, stringify } from "../../utils";
 import type { MapRefHandle } from "../components";
 import { useAppNavigation, useSnack } from "../utils";
-import { useApi } from "../api";
+import { useAlterUserXp, useApi } from "../api";
 
 export const useLeadSearchPage = () => {
   const user = useAuthStore((state) => state.user);
   const leadData = useSearchQueryStore((state) => state.data);
+  const nearbyProperties = useSearchQueryStore(
+    (state) => state.nearbyProperties,
+  );
   const setCampaign = useCampaignStore((state) => state.setCampaign);
   const sortBy = useSearchFilterStore((state) => state.sortBy);
   const openSideNav = useSideNavControlStore((state) => state.open);
 
-  const { createCampaign } = useApi();
-  const [_successSnack, errorSnack] = useSnack();
+  const setNearbyProperties = useSearchQueryStore(
+    (state) => state.setNearbyProperties,
+  );
+
+  const { createCampaign, getUserProperties } = useApi();
+  const [successSnack, errorSnack] = useSnack();
   const { toCampaignPage } = useAppNavigation();
+
+  const alterUserXP = useAlterUserXp();
 
   const mapRef = useRef<MapRefHandle>(null);
 
@@ -30,13 +39,39 @@ export const useLeadSearchPage = () => {
   const [campaignTitle, setCampaignTitle] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Fetch user properties on mount so they always appear on the map
+  useEffect(() => {
+    if (!user) return;
+    getUserProperties({ userId: user.userId }).then((res) => {
+      if (res.err || !res.data) return;
+      const props = res.data
+        .filter((p) => p.address && p.address.lat && p.address.long)
+        .map((p) => ({
+          propertyId: p.property_id,
+          propertyName: p.property_name ?? "",
+          address: {
+            lat: p.address.lat,
+            long: p.address.long,
+            street1: p.address.street_1 ?? "",
+            city: p.address.city ?? "",
+            state: p.address.state ?? "",
+            zipcode: p.address.zipcode ?? "",
+          },
+          distanceMiles: 0,
+          source: "user_property" as const,
+        }));
+      setNearbyProperties(props);
+    });
+  }, [user?.userId]);
+
   useEffect(() => {
     if (!mapRef.current) return;
 
-    if (leadData.length > 0) {
+    const leadEntry = leadData[0];
+    if (leadEntry.address) {
       mapRef.current?.centerMap({
-        lat: leadData[0].address.lat,
-        lng: leadData[0].address.long,
+        lat: leadEntry.address.lat,
+        lng: leadEntry.address.long,
       });
     }
 
@@ -59,24 +94,26 @@ export const useLeadSearchPage = () => {
       produce((draft) => {
         if (draft.includes(i)) return draft.filter((val) => val !== i);
         else draft.push(i);
-      })
+      }),
     );
 
   const sortLeads = useCallback(() => {
     if (sortBy === "None" || sortBy.length === 0) return leadData;
     return leadData.sort((a, b) => {
-      const ambFirstName = a.contact.firstName.localeCompare(
-        b.contact.firstName
+      const ambFirstName = (a.contact?.firstName ?? "").localeCompare(
+        b.contact?.firstName ?? "",
       );
-      const ambLastName = a.contact.firstName.localeCompare(
-        b.contact.firstName
+      const ambLastName = (a.contact?.lastName ?? "").localeCompare(
+        b.contact?.lastName ?? "",
       );
       if (sortBy === "Name")
         return ambFirstName === 0 ? ambLastName : ambFirstName;
       if (sortBy === "Email")
-        return a.contact < b.contact ? -1 : a.contact > b.contact ? 1 : 0;
+        return (a.contact?.email ?? "").localeCompare(b.contact?.email ?? "");
       if (sortBy === "Address")
-        return a.address < b.address ? -1 : a.address > b.address ? 1 : 0;
+        return (a.address?.street1 ?? "").localeCompare(
+          b.address?.street1 ?? "",
+        );
       return 0;
     });
   }, [stringify(leadData), sortBy]);
@@ -89,7 +126,7 @@ export const useLeadSearchPage = () => {
         ? campaignTitle
         : `${new Date().toDateString()} Campaign`;
     const leadsToAddToCampaign = leadData.filter((lead) =>
-      campaignLeads.includes(lead.leadId)
+      campaignLeads.includes(lead.leadId),
     );
 
     setLoading(true);
@@ -107,6 +144,12 @@ export const useLeadSearchPage = () => {
       return;
     }
 
+    const addedXp = 100 + 50 * campaignLeads.length;
+    await alterUserXP.addUserXp(addedXp);
+    successSnack(
+      `+ ${addedXp} XP - New campaign with ${campaignLeads.length} leads`,
+    );
+
     const campaign = Normalizer.APINormalizer.campaign(res.data);
     setCampaign(campaign);
 
@@ -123,6 +166,7 @@ export const useLeadSearchPage = () => {
     setLoading,
     mapRef,
     leadData: sortLeads(),
+    nearbyProperties,
     activeLead,
     setActiveLead,
     campaignHasAllLeads,

@@ -1,3 +1,16 @@
 ZalaBackend/.env
 ZalaBackend/app/external_api/rapidapi_usage.json
 ZalaBackend/app/external_api/api_usage.json
+
+# Python
+__pycache__/
+*.pyc
+.vscode
+.DS_Store
+**/.DS_Store
+
+# Python
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo

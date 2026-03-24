@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Button, IconButtonVariant } from "../buttons";
-import { EditablePageHeader } from "../headers";
+import { EditablePageHeader, EditablePageHeaderVariant } from "../headers";
 import { Icons } from "../icons";
 import { useBoardSettingsSidenav } from "../../hooks";
 import { SwitchInput, TextInput } from "../inputs";
@@ -19,6 +19,7 @@ export const BoardSettingsSidenav = () => {
       <div className="grow w-ful flex flex-col gap-y-[30px]">
         <EditablePageHeader
           value="Board Settings"
+          variant={EditablePageHeaderVariant.Underline}
           setValue={() => {}}
           editable={false}
           centerText

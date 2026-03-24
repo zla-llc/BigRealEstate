@@ -8,11 +8,12 @@ from fastapi import HTTPException, status, UploadFile
 from app.models.property import Property
 from app.models.property_image import PropertyImage
 from app.models.address import Address
+from app.models.user import user_properties
 from app.schemas.property import PropertyCreate, PropertyUpdate
 from app.services.file_storage import save_upload_file, remove_upload
 
 
-def create_property(db: Session, property_in: PropertyCreate, address_id: int) -> Property:
+def create_property(db: Session, property_in: PropertyCreate, address_id: int, creator_id: int = None) -> Property:
     # Validate provided address_id exists
     db_address = db.query(Address).filter(Address.address_id == address_id).first()
     if not db_address:
@@ -33,24 +34,54 @@ def create_property(db: Session, property_in: PropertyCreate, address_id: int) -
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e.orig))
 
     db.refresh(db_property)
+
+    # If creator_id provided, create association in user_properties table
+    if creator_id is not None:
+        try:
+            # Use the association table to link the user and property
+            db.execute(user_properties.insert().values(user_id=creator_id, property_id=db_property.property_id))
+            db.commit()
+        except Exception:
+            # If association fails, roll back association but keep property creation
+            db.rollback()
+
     return db_property
 
 
-def get_properties(db: Session, address_id: int, skip: int = 0, limit: int = 100) -> List[Property]:
-    """Return properties for an address, eager-loading address and units to avoid N+1."""
-    return (
-        db.query(Property)
-        .options(
-            joinedload(Property.address),
-            joinedload(Property.units),
-            joinedload(Property.users),
-            selectinload(Property.images),
-        )
-        .filter(Property.address_id == address_id)
-        .offset(skip)
-        .limit(limit)
-        .all()
+def get_properties(db: Session, address_id: int, skip: int = 0, limit: int = 100, creator_id: int = None) -> List[Property]:
+    """Return properties for an address. If `creator_id` is provided, only return properties
+    associated with that user (via `user_properties`). Eager-loads related objects to avoid N+1."""
+    query = db.query(Property).options(
+        joinedload(Property.address),
+        joinedload(Property.units),
+        joinedload(Property.users),
+        selectinload(Property.images),
     )
+
+    # scope to address
+    query = query.filter(Property.address_id == address_id)
+
+    # if creator_id passed, join the association table to filter by user
+    if creator_id is not None:
+        query = query.join(user_properties, user_properties.c.property_id == Property.property_id).filter(user_properties.c.user_id == creator_id)
+
+    return query.offset(skip).limit(limit).all()
+
+def get_properties_no_scope(db: Session, skip: int = 0, limit: int = 100, creator_id: int = None) -> List[Property]:
+    """Return all properties. If `creator_id` is provided, only return properties
+    associated with that user (via `user_properties`). Eager-loads related objects to avoid N+1."""
+    query = db.query(Property).options(
+        joinedload(Property.address),
+        joinedload(Property.units),
+        joinedload(Property.users),
+        selectinload(Property.images),
+    )
+
+    # if creator_id passed, join the association table to filter by user
+    if creator_id is not None:
+        query = query.join(user_properties, user_properties.c.property_id == Property.property_id).filter(user_properties.c.user_id == creator_id)
+
+    return query.offset(skip).limit(limit).all()
 
 
 def get_property(db: Session, address_id: int, property_id: int) -> Optional[Property]:

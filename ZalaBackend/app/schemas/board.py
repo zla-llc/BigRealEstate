@@ -1,9 +1,12 @@
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from pydantic import BaseModel, Field
 
 from app.schemas.user import UserPublic
 from app.schemas.board_step import BoardStepPublic
+
+if TYPE_CHECKING:
+    from app.schemas.team import TeamSummary
 
 
 class BoardBase(BaseModel):
@@ -13,6 +16,7 @@ class BoardBase(BaseModel):
 
     board_name: str
     user_id: Optional[int] = None
+    board_type: str
 
 
 class BoardCreate(BoardBase):
@@ -28,6 +32,7 @@ class BoardUpdate(BaseModel):
 
     board_name: Optional[str] = None
     user_id: Optional[int] = None
+    board_type: Optional[str] = None
 
 
 class BoardPublic(BoardBase):
@@ -38,6 +43,7 @@ class BoardPublic(BoardBase):
     board_id: int
     user: Optional[UserPublic] = None
     board_steps: List[BoardStepPublic] = Field(default_factory=list)
+    team: Optional["TeamSummary"] = None
 
     class Config:
         from_attributes = True

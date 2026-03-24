@@ -21,12 +21,11 @@ export const BoardCardColumns = ({
   steps,
   stepHeights,
   editableStep,
-  onDeleteStep = () => {},
+  onDeleteStep,
   onReloadBoards = () => {},
 }: BoardCardColumnsProps) => {
   const MappedBoardColumn = ({
     step,
-    i,
     height,
   }: {
     step: IBoardStepCard;
@@ -36,37 +35,38 @@ export const BoardCardColumns = ({
     const [isHovered, isHoveredProps] = useHover();
     return (
       <div {...isHoveredProps} className={clsx("flex-1")}>
-        <BoardCardColumn
-          key={`board-${i}`}
-          step={step}
-          expanded={expanded}
-          height={height}
-          titleProps={{
-            value:
-              step.boardStepId === editableStep?.stepNameId
-                ? editableStep.stepName
-                : step.stepName,
-            onChange: (v) =>
-              editableStep &&
-              editableStep.onStepNameChange(v, step.boardStepId),
-          }}
-          actions={
-            expanded && isHovered
-              ? [
-                  {
+        <AnimatePresence>
+          <BoardCardColumn
+            step={step}
+            expanded={expanded}
+            height={height}
+            titleProps={{
+              value:
+                step.boardStepId === editableStep?.stepNameId
+                  ? editableStep.stepName
+                  : step.stepName,
+              editable: editableStep !== undefined,
+              onChange: (v) =>
+                editableStep &&
+                editableStep.onStepNameChange(v, step.boardStepId),
+            }}
+            actions={[
+              onDeleteStep
+                ? {
                     side: "right",
                     type: "iconBtn",
+                    visible: expanded && isHovered,
                     iconBtnProps: {
                       name: Icons.Trash,
                       variant: IconButtonVariant.Secondary,
                       onClick: () => onDeleteStep(step.boardStepId),
                     },
-                  },
-                ]
-              : []
-          }
-          onReloadBoards={onReloadBoards}
-        />
+                  }
+                : null,
+            ]}
+            onReloadBoards={onReloadBoards}
+          />
+        </AnimatePresence>
       </div>
     );
   };
@@ -76,7 +76,7 @@ export const BoardCardColumns = ({
       className={clsx(
         "full flex flex-row",
         "transition-[gap] duration-75",
-        expanded ? "gap-7" : "gap-2"
+        expanded ? "gap-7" : "gap-2",
       )}
     >
       <AnimatePresence initial={false}>

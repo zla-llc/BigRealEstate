@@ -3,12 +3,13 @@ import { COLORS, CONFIG } from "../../config";
 import { NightMapStyle } from "./MapStyles";
 import { Icon, Icons } from "../icons";
 import { MapElement } from "./MapElement";
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import {
   useMapComponent,
   type MapCoords,
   type MapRefHandle,
 } from "../../hooks";
+import { MapInfoBox, type MapPinInfo } from "./MapInfoBox";
 
 type MapPinProps = {
   iconName?: Icons;
@@ -19,12 +20,14 @@ type MapPinProps = {
   active?: boolean;
   center: MapCoords;
   onClick?: () => void;
+  info?: MapPinInfo;
 };
 
 type MapProps = {
   center?: MapCoords;
   initialZoom?: number;
   pins?: MapPinProps[];
+  dimsRef?: React.RefObject<HTMLDivElement | null>;
 };
 
 const DefaultProps: MapProps = {
@@ -61,11 +64,14 @@ export const Map = forwardRef<MapRefHandle, MapProps>(
       center: propsCenter = DefaultProps.center,
       initialZoom: propsZoom = DefaultProps.initialZoom,
       pins = DefaultProps.pins,
+      dimsRef,
     }: MapProps,
-    ref
+    ref,
   ) => {
     const initialCenter = propsCenter ?? (DefaultProps.center as MapCoords);
     const initialZoom = propsZoom ?? (DefaultProps.initialZoom as number);
+
+    const [selectedPin, setSelectedPin] = useState<number | null>(null);
 
     const { center, zoom, onMapChange, onMarkerClick } = useMapComponent({
       ref,
@@ -73,8 +79,17 @@ export const Map = forwardRef<MapRefHandle, MapProps>(
       initialZoom,
     });
 
+    const handleChildClick = (
+      hoverKey: string | number,
+      childProps: MapCoords & unknown,
+    ) => {
+      const key = Number(hoverKey);
+      onMarkerClick(key, childProps);
+      setSelectedPin((prev) => (prev === key ? null : key));
+    };
+
     return (
-      <div className="w-full h-full">
+      <div ref={dimsRef} className="w-full h-full">
         <GoogleMapReact
           // ref={mapRef}
           bootstrapURLKeys={{ key: CONFIG.keys.google.maps }}
@@ -85,31 +100,43 @@ export const Map = forwardRef<MapRefHandle, MapProps>(
           zoom={zoom}
           options={{ styles: NightMapStyle }}
           onChange={onMapChange}
-          onChildClick={onMarkerClick}
+          onChildClick={handleChildClick}
+          onClick={() => setSelectedPin(null)}
         >
-          {(pins ?? []).map((pin, index) => (
-            <MapElement
-              key={index}
-              lat={pin.center.lat}
-              lng={pin.center.lng}
-              active={pin.active}
-              onClick={pin.onClick}
-            >
-              <Icon
-                name={pin.iconName ?? Icons.UserPin}
-                scale={pin.active ? pin.activeScale ?? 2 : pin.scale ?? 1.75}
-                hoverScale={pin.activeScale ?? 2}
-                color={
-                  pin.active
-                    ? pin.activeColor ?? COLORS.accent
-                    : pin.color ?? COLORS.white
-                }
-                hoverColor={pin.activeColor ?? COLORS.accent}
-              />
-            </MapElement>
-          ))}
+          {(pins ?? []).map(
+            (pin, index) =>
+              pin && (
+                <MapElement
+                  key={index}
+                  lat={pin.center.lat}
+                  lng={pin.center.lng}
+                  active={pin.active || selectedPin === index}
+                  onClick={pin.onClick}
+                >
+                  {selectedPin === index && pin.info && (
+                    <MapInfoBox
+                      info={pin.info}
+                      onClose={() => setSelectedPin(null)}
+                    />
+                  )}
+                  <Icon
+                    name={pin.iconName ?? Icons.UserPin}
+                    scale={
+                      pin.active ? (pin.activeScale ?? 2) : (pin.scale ?? 1.75)
+                    }
+                    hoverScale={pin.activeScale ?? 2}
+                    color={
+                      pin.active
+                        ? (pin.activeColor ?? COLORS.accent)
+                        : (pin.color ?? COLORS.white)
+                    }
+                    hoverColor={pin.activeColor ?? COLORS.accent}
+                  />
+                </MapElement>
+              ),
+          )}
         </GoogleMapReact>
       </div>
     );
-  }
+  },
 );

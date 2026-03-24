@@ -1,4 +1,4 @@
-import { GoogleRequiredModal } from "../components";
+import { GlobalModal, GoogleRequiredModal } from "../components";
 import { useAutoLogin } from "../hooks";
 import { useAuthStore, useGoogleRequiredStore } from "../stores";
 import { AppLayout } from "./AppLayout";
@@ -12,6 +12,7 @@ export const RootLayout = () => {
   return (
     <div className="full">
       {user ? <AppLayout /> : <AuthLayout />}
+      <GlobalModal />
       <GoogleRequiredModal
         open={showGoogleRequired}
         onClose={() => setShowGoogleRequired(false)}

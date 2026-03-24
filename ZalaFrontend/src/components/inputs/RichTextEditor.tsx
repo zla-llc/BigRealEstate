@@ -54,7 +54,7 @@ export const RichTextEditor = ({
         if (draft.includes(command.command))
           return draft.filter((cmd) => cmd !== command.command);
         draft.push(command.command);
-      })
+      }),
     );
 
   const runCommand = (command: Command) => {
@@ -84,27 +84,28 @@ export const RichTextEditor = ({
 
   return (
     <div className="space-y-2">
-      {label && (
-        <label className="text-secondary text-sm font-semibold">{label}</label>
-      )}
-      <div className="flex flex-wrap gap-2">
-        {commands.map((command) => (
-          <button
-            key={command.label}
-            type="button"
-            onClick={() => runCommand(command)}
-            className={clsx(
-              "px-3 py-1 cursor-pointer rounded-md border text-sm transition",
-              "text-secondary border-secondary hover:bg-secondary hover:text-white",
-              activeCommands.includes(command.command)
-                ? "bg-white border-2 text-secondary font-bold"
-                : ""
-            )}
-          >
-            {command.label}
-          </button>
-        ))}
+      <div className="flex flex-row justify-between">
+        {label && <label className="text-secondary text-xl">{label}</label>}
+        <div className="flex flex-wrap gap-2">
+          {commands.map((command) => (
+            <button
+              key={command.label}
+              type="button"
+              onClick={() => runCommand(command)}
+              className={clsx(
+                "px-3 py-1 cursor-pointer rounded-md border text-sm transition",
+                "text-secondary border-secondary bg-white hover:bg-secondary hover:text-white",
+                activeCommands.includes(command.command)
+                  ? "!bg-accent border-2 text-white font-bold"
+                  : "",
+              )}
+            >
+              {command.label}
+            </button>
+          ))}
+        </div>
       </div>
+
       <div
         ref={editorRef}
         className="min-h-[200px] max-h-[200px] overflow-y-scroll rounded-[15px] border-2 box-shadow-sm bg-white border-secondary p-3 text-secondary focus:outline-none focus:border-accent"

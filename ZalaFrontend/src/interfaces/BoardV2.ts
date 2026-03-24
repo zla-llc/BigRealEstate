@@ -50,6 +50,7 @@ export const ABoardUserToIBoardUser = (body: ABoardUser): IBoardUser => ({
 export type IBoardSummary = {
   boardId: number;
   boardName: string;
+  boardType: string
   userId?: number;
   user?: IBoardUser;
 };
@@ -57,6 +58,7 @@ export type IBoardSummary = {
 export type ABoardSummary = {
   board_id: number;
   board_name: string;
+  board_type: string;
   user_id?: number | null;
   user?: ABoardUser | null;
 };
@@ -66,6 +68,7 @@ export const ABoardSummaryToIBoardSummary = (
 ): IBoardSummary => ({
   boardId: body.board_id,
   boardName: body.board_name,
+  boardType: body.board_type,
   userId: body.user_id ?? undefined,
   user: body.user ? ABoardUserToIBoardUser(body.user) : undefined,
 });

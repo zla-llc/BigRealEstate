@@ -13,18 +13,12 @@ import {
 import {
   useAuthStore,
   useAddBoardStepLeadStore,
-  useBoardStore,
+  useCreatePropertyStore,
 } from "../../stores";
-import { getBoardItemId } from "../../utils";
 import { isValidString, Validation } from "../../validation";
 import { usePropertyUnits, useApi } from "../api";
 import { useImageCaroselState, useDefaultAddressFormState } from "../state";
-import {
-  useStepItems,
-  useSetKeyInObject,
-  useErrorSnack,
-  useTimeoutEffect,
-} from "../utils";
+import { useSetKeyInObject, useErrorSnack, useTimeoutEffect } from "../utils";
 
 const MAX_UNIT_COUNT = 25; // TODO - Ask about this limit maybe test performance of increasing this limit
 const BASE_TEXT = "";
@@ -49,18 +43,21 @@ const DEFAULT_UNIT_MAP = new Map([
 
 export const useManualCreateProperty = ({
   onConfirm: parentOnConfirm,
+  onTrashDeletes = false,
 }: {
   onConfirm: (newLeadIds?: number[]) => void;
+  onTrashDeletes?: boolean;
 }) => {
   const user = useAuthStore((state) => state.user);
   const { selectedBoardItemIds, editBoardItemId } = useAddBoardStepLeadStore();
-  const step = useBoardStore((state) => state.step);
 
-  const { boardItems, itemType } = useStepItems({ step });
-  const editingBoardItem = boardItems.find((bItem) => {
-    const id = getBoardItemId(bItem, itemType);
-    return id !== -1 && id === editBoardItemId;
-  }) as IProperty | undefined;
+  // const step = useBoardStore((state) => state.step);
+  // const { boardItems, itemType } = useStepItems({ step });
+  // const editingBoardItem = boardItems.find((bItem) => {
+  //   const id = getBoardItemId(bItem, itemType);
+  //   return id !== -1 && id === editBoardItemId;
+  // }) as IProperty | undefined;
+  const { editingProperty: editingBoardItem } = useCreatePropertyStore();
   const [units, _setUnits] = usePropertyUnits({
     propertyId: editingBoardItem?.propertyId,
   });
@@ -71,6 +68,9 @@ export const useManualCreateProperty = ({
     addPropertyImage,
     updatePropertyImage,
     deletePropertyImage,
+    linkUserToProperty,
+    deleteProperty,
+    unlinkUserFromProperty,
     apiResponseError,
   } = useApi();
 
@@ -93,7 +93,7 @@ export const useManualCreateProperty = ({
   } = useImageCaroselState();
 
   const [selectedUnitType, setSelectedUnitType] = useState<UnitTypeEnum>(
-    UnitTypeEnum.Single
+    UnitTypeEnum.Single,
   );
   const [unitLimit, setUnitLimit] = useState<number>(1);
 
@@ -107,15 +107,15 @@ export const useManualCreateProperty = ({
     isAddressValid,
   ] = useDefaultAddressFormState({ quickFill: false });
   const [unitFormStates, setUnitFormStates] = useState<Map<string, string>[]>(
-    []
+    [],
   );
 
   useTimeoutEffect(
     () => {
       initEdit();
     },
-    [editBoardItemId, boardItems.length, units.length],
-    50
+    [editBoardItemId, units.length],
+    50,
   );
 
   useTimeoutEffect(
@@ -123,7 +123,7 @@ export const useManualCreateProperty = ({
       createUnits();
     },
     [unitLimit],
-    750
+    750,
   );
 
   useTimeoutEffect(
@@ -131,7 +131,7 @@ export const useManualCreateProperty = ({
       correctUnitLimitAndType(unitLimit);
     },
     [unitLimit],
-    1250
+    1250,
   );
 
   const initEdit = () => {
@@ -169,7 +169,7 @@ export const useManualCreateProperty = ({
       editingBoardItem.images.map((img, i) => ({
         image: img,
         order: img.sortOrder ?? i,
-      }))
+      })),
     );
     setSelectedImageIndex(editingBoardItem.images.length > 0 ? 0 : -1);
   };
@@ -177,16 +177,16 @@ export const useManualCreateProperty = ({
   const calculateLimit = useCallback(
     (key: UnitTypeEnum) => {
       setUnitLimit(
-        key === UnitTypeEnum.Single ? 1 : key === UnitTypeEnum.Double ? 2 : 3
+        key === UnitTypeEnum.Single ? 1 : key === UnitTypeEnum.Double ? 2 : 3,
       );
       setSelectedUnitType(key);
     },
-    [setUnitLimit, setSelectedUnitType]
+    [setUnitLimit, setSelectedUnitType],
   );
 
   const correctUnitLimitAndType = (limit: number) => {
     if (limit === 0)
-      return setSelectedUnitType(UnitTypeEnum.Single), setUnitLimit(1);
+      return (setSelectedUnitType(UnitTypeEnum.Single), setUnitLimit(1));
     if (limit === 1 && selectedUnitType !== UnitTypeEnum.Single)
       return setSelectedUnitType(UnitTypeEnum.Single);
     if (limit === 2 && selectedUnitType !== UnitTypeEnum.Double)
@@ -206,10 +206,10 @@ export const useManualCreateProperty = ({
         produce((draft) => {
           draft.splice(i, 1);
           setUnitLimit(draft.length);
-        })
+        }),
       );
     },
-    [setUnitFormStates]
+    [setUnitFormStates],
   );
 
   const setKeyInUnitsForm = useCallback(
@@ -219,10 +219,10 @@ export const useManualCreateProperty = ({
           const unit = draft[i];
           unit.set(key, value);
           draft[i] = unit;
-        })
+        }),
       );
     },
-    [setUnitFormStates]
+    [setUnitFormStates],
   );
 
   const createUnits = () => {
@@ -242,7 +242,7 @@ export const useManualCreateProperty = ({
       const defaultMap = new Map(DEFAULT_UNIT_MAP.entries());
       defaultMap.set(
         UnitKeys.AptNum,
-        (parseInt(lastUnit?.get(UnitKeys.AptNum) ?? "") || i + 1).toString()
+        (parseInt(lastUnit?.get(UnitKeys.AptNum) ?? "") || i + 1).toString(),
       );
 
       newUnitState.push(defaultMap);
@@ -265,27 +265,27 @@ export const useManualCreateProperty = ({
           ? Math.round(parseInt(value)) >= 0
           : Math.round(parseInt(value)) > 0
         : false,
-    []
+    [],
   );
 
   const isValid = (showSnack = true) => {
     if (
       !isAddressValid(
         showSnack,
-        `${unitLimit > 1 ? "Primary" : "Property"} Address`
+        `${unitLimit > 1 ? "Primary" : "Property"} Address`,
       )
     )
       return false;
 
     const validateNumberGreaterThan0 = (
       value: string | undefined,
-      errorLoc: string
+      errorLoc: string,
     ) => {
       const isValidStr = isValidString(value);
       if (!isValidStr)
         return onValidationFail(
           `Missing value for unit ${errorLoc}`,
-          showSnack
+          showSnack,
         );
       const isValidNum = isValidNumber(value, false);
       if (!isValidNum)
@@ -302,21 +302,21 @@ export const useManualCreateProperty = ({
       if (
         !validateNumberGreaterThan0(
           unitForm.get(UnitKeys.Bedrooms),
-          `${i + 1}'s bedroom count`
+          `${i + 1}'s bedroom count`,
         )
       )
         return false;
       if (
         !validateNumberGreaterThan0(
           unitForm.get(UnitKeys.Floors),
-          `${i + 1}'s floor count`
+          `${i + 1}'s floor count`,
         )
       )
         return false;
       if (
         !validateNumberGreaterThan0(
           unitForm.get(UnitKeys.Bath),
-          `${i + 1}'s bath count`
+          `${i + 1}'s bath count`,
         )
       )
         return false;
@@ -341,12 +341,12 @@ export const useManualCreateProperty = ({
       propertyId: editingBoardItem ? editBoardItemId : -1,
       propertyName: thisOrThat(
         propertyFormState.get(PropertyKeys.Name) ?? "",
-        `${addressFormState.get("street1") ?? ""}`.trim()
+        `${addressFormState.get("street1") ?? ""}`.trim(),
       ),
       mlsNumber: propertyFormState.get(PropertyKeys.MlsNumber) ?? "",
       notes: thisOrThat(
         propertyFormState.get(PropertyKeys.Notes) ?? "",
-        fullAddress.trim()
+        fullAddress.trim(),
       ),
       address: {
         addressId: editingBoardItem?.address?.addressId ?? -1,
@@ -367,7 +367,7 @@ export const useManualCreateProperty = ({
           bedrooms: parseInt(unit.get(UnitKeys.Bedrooms) ?? "") || 1,
           bath: parseInt(unit.get(UnitKeys.Bath) ?? "") || 1,
           sqft: parseInt(unit.get(UnitKeys.Sqft) ?? "") || 1,
-        })
+        }),
       ),
       images: [],
     };
@@ -396,7 +396,7 @@ export const useManualCreateProperty = ({
     ];
 
     const filesOnly = images.filter((img) =>
-      Validation.Object.isDefined(img.file)
+      Validation.Object.isDefined(img.file),
     );
     const imgs = [];
     for await (const tempFile of filesOnly) {
@@ -430,14 +430,30 @@ export const useManualCreateProperty = ({
       });
     }
 
+    await linkUserToProperty({
+      userId: user.userId,
+      propertyId: createdProperty.propertyId,
+    });
+
     parentOnConfirm(newPropertyIds);
   };
 
-  const onRemovePropertyFromStep = () => {
+  const onRemovePropertyFromStep = async () => {
+    if (onTrashDeletes && editingBoardItem && user) {
+      await deleteProperty({
+        propertyId: editingBoardItem.propertyId,
+        addressId: editingBoardItem.address.addressId,
+      });
+      await unlinkUserFromProperty({
+        propertyId: editingBoardItem.propertyId,
+        userId: user.userId,
+      });
+    }
+
     parentOnConfirm(
       selectedBoardItemIds.filter(
-        (boardItemId) => boardItemId !== editingBoardItem?.propertyId
-      )
+        (boardItemId) => boardItemId !== editingBoardItem?.propertyId,
+      ),
     );
   };
 

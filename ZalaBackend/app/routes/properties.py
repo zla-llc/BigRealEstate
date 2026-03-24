@@ -9,15 +9,25 @@ from app import schemas
 
 router = APIRouter(prefix="/addresses/{address_id}/properties", tags=["Properties"])
 
+# Public properties router for non-address-scoped endpoints
+properties_public = APIRouter(prefix="/properties", tags=["Properties"]) 
+
 
 @router.post("/", response_model=PropertyPublic, status_code=status.HTTP_201_CREATED)
-def create_property(address_id: int, property_in: PropertyCreate, db: Session = Depends(get_db)):
-    return property_crud.create_property(db=db, property_in=property_in, address_id=address_id)
+def create_property(
+    address_id: int,
+    property_in: PropertyCreate,
+    creator_id: int = None,
+    db: Session = Depends(get_db),
+):
+    """Create a property. If `creator_id` is provided (server-derived), the creator will be associated with the property."""
+    return property_crud.create_property(db=db, property_in=property_in, address_id=address_id, creator_id=creator_id)
 
 
 @router.get("/", response_model=List[PropertyPublic])
-def read_properties(address_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return property_crud.get_properties(db=db, address_id=address_id, skip=skip, limit=limit)
+def read_properties(address_id: int, skip: int = 0, limit: int = 100, created_by: int = None, db: Session = Depends(get_db)):
+    """List properties for an address. Optional `created_by` filters properties associated with that user."""
+    return property_crud.get_properties(db=db, address_id=address_id, skip=skip, limit=limit, creator_id=created_by)
 
 
 @router.get("/{property_id}", response_model=PropertyPublic)
@@ -119,3 +129,10 @@ def remove_property_image(address_id: int, property_id: int, db: Session = Depen
     if not db_property:
         raise HTTPException(status_code=404, detail="Property not found")
     return db_property
+
+
+@properties_public.get("/", response_model=List[PropertyPublic], summary="List properties (optionally filter by creator)")
+def list_properties(created_by: int = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    """List all properties. If `created_by` is provided, return properties linked to that user."""
+    # No creator filter: return empty list to avoid returning huge dataset without address scope
+    return property_crud.get_properties_no_scope(db=db, skip=skip, limit=limit, creator_id=created_by)

@@ -1,8 +1,9 @@
 import { IconButtonVariant, Icons, TextInput } from "../../../components";
 import { useLoginPage } from "../../../hooks";
 import { CardPage } from "../components";
+import transition from "../../../utils/transitions/transition";
 
-export const LoginPage = () => {
+export const LoginPage = transition(() => {
   const {
     state: { userName, setUserName, password, setPassword, errors },
     onLoginClick,
@@ -14,7 +15,7 @@ export const LoginPage = () => {
     <CardPage
       text={{
         pre: "Login to ",
-        highlight: "Zala CRM ",
+        highlight: "ZLA CRM ",
         end: "to connect with leads!",
       }}
       primaryBtn={{
@@ -31,8 +32,8 @@ export const LoginPage = () => {
       }}
       googleCallback={googleAuthCallback}
     >
-      <div className="w-[75%] grow-1 flex items-center">
-        <div className="w-full space-y-[15px]">
+      <div className="w-[75%] grow flex items-center">
+        <div className="w-full space-y-3.75">
           <TextInput
             label="Username"
             value={userName}
@@ -57,4 +58,4 @@ export const LoginPage = () => {
       </div>
     </CardPage>
   );
-};
+});

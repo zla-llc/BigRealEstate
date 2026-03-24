@@ -3,7 +3,7 @@ import type { ILead, IPropertyCard } from "../../interfaces";
 import clsx from "clsx";
 import { resolveAssetUrl } from "../../utils";
 import { useHover } from "../../hooks";
-import { Image } from "lucide-react";
+import { ImageCard } from "./ImageCard";
 
 type BoardItemType = "lead" | "property";
 
@@ -16,6 +16,7 @@ export type DraggableBoardItemData = {
 type BoardItemCardProps = {
   type: BoardItemType;
   stepId: number;
+  selected?: boolean;
   expanded?: boolean;
   leadInfo?: ILead;
   propertyInfo?: IPropertyCard;
@@ -27,6 +28,7 @@ export const BoardItemCard = ({
   stepId,
   expanded,
   leadInfo,
+  selected,
   propertyInfo,
   onClick,
 }: BoardItemCardProps) => {
@@ -36,8 +38,8 @@ export const BoardItemCard = ({
     ? leadInfo.buisness.length > 0
       ? leadInfo.buisness
       : leadInfo.contact
-      ? `${leadInfo.contact.firstName} ${leadInfo.contact.lastName}`.trim()
-      : "Unnamed lead"
+        ? `${leadInfo.contact.firstName} ${leadInfo.contact.lastName}`.trim()
+        : "Unnamed lead"
     : propertyInfo?.propertyName;
   const subtitle = leadInfo ? leadInfo.notes : propertyInfo?.notes;
 
@@ -57,7 +59,7 @@ export const BoardItemCard = ({
             cardId: leadInfo?.leadId ?? propertyInfo?.propertyId,
             fromStepId: stepId,
             cardType: type,
-          })
+          }),
         );
       }}
       className={clsx(
@@ -66,27 +68,26 @@ export const BoardItemCard = ({
         isHovered
           ? "-translate-y-[5px] transition-transform duration-75 cursor-pointer"
           : "",
-        onClick ? "active:scale-[.95]" : ""
+        onClick ? "active:scale-[.95]" : "",
       )}
       onClick={onClick}
     >
       <div className={clsx("h-[150px] rounded-[15px] overflow-hidden")}>
-        {showingImage ? (
-          <img
-            draggable={false}
-            className="full object-cover "
-            src={toUrl(showingImage.imageUrl)}
-            alt={showingImage.caption}
-          />
-        ) : (
-          <div className="w-full h-full bg-white rounded-t-xl flex items-center justify-center">
-            <Image size={32} className="text-accent/50" />
-          </div>
-        )}
+        <ImageCard
+          src={showingImage ? toUrl(showingImage.imageUrl) : undefined}
+          alt={showingImage?.caption}
+        />
       </div>
 
       <div className="flex flex-col">
-        <span className="text-lg">{title}</span>
+        <span
+          className={clsx(
+            "text-lg",
+            selected ? "text-accent" : "text-secondary",
+          )}
+        >
+          {title}
+        </span>
         <span className="text-sm text-secondary-50">{subtitle}</span>
       </div>
     </div>

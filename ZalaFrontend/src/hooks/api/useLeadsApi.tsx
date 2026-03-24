@@ -8,7 +8,13 @@ import type {
   UpdateLeadProps,
 } from "./types";
 import { useFetch } from "./useFetch";
-import type { ALead, AContact, AAddress, AImage } from "../../interfaces";
+import type {
+  ALead,
+  AContact,
+  AAddress,
+  AImage,
+  AUser,
+} from "../../interfaces";
 import { useAddressApi } from "./useAddressApi";
 import { useContactApi } from "./useContactApi";
 import { Normalizer } from "../../utils";
@@ -50,7 +56,7 @@ export const useLeadsApi = (props: APIHookProps) => {
           license_num: lead.licenseNum,
           notes: lead.notes,
         },
-        { isFormData: false, signal: getSignal("createData") }
+        { isFormData: false, signal: getSignal("createData") },
       );
       if (leadRes.err || !leadRes.data)
         return errorOut(leadRes.err, "Creating lead api failed");
@@ -84,7 +90,7 @@ export const useLeadsApi = (props: APIHookProps) => {
     const connectData = async ([apiLead, apiContact, apiAddress]: [
       ALead,
       AContact | undefined,
-      AAddress | undefined
+      AAddress | undefined,
     ]) => {
       let updatedLead = apiLead;
 
@@ -161,7 +167,7 @@ export const useLeadsApi = (props: APIHookProps) => {
     return await post<ALead>(
       `/api/leads/${leadId}/contacts/${contactId}`,
       {},
-      { isFormData: false, signal: getSignal("linkContactToLead") }
+      { isFormData: false, signal: getSignal("linkContactToLead") },
     );
   };
 
@@ -175,7 +181,7 @@ export const useLeadsApi = (props: APIHookProps) => {
     return await post<ALead>(
       `/api/leads/${leadId}/addresses/${addressId}`,
       {},
-      { isFormData: false, signal: getSignal("linkAddressToLead") }
+      { isFormData: false, signal: getSignal("linkAddressToLead") },
     );
   };
 
@@ -189,7 +195,34 @@ export const useLeadsApi = (props: APIHookProps) => {
     return await post<ALead>(
       `/api/leads/${leadId}/users/${userId}`,
       {},
-      { isFormData: false, signal: getSignal("linkUserToLead") }
+      { isFormData: false, signal: getSignal("linkUserToLead") },
+    );
+  };
+
+  const linkUserToProperty = async ({
+    userId,
+    propertyId,
+  }: {
+    userId: number;
+    propertyId: number;
+  }) => {
+    return await post<AUser>(
+      `/api/users/${userId}/properties/${propertyId}`,
+      {},
+      { isFormData: false, signal: getSignal("linkUserToProperty") },
+    );
+  };
+
+  const unlinkUserFromProperty = async ({
+    userId,
+    propertyId,
+  }: {
+    userId: number;
+    propertyId: number;
+  }) => {
+    return await del(
+      `/api/users/${userId}/properties/${propertyId}`,
+      getSignal("unlinkUserFromProperty"),
     );
   };
 
@@ -228,7 +261,7 @@ export const useLeadsApi = (props: APIHookProps) => {
           notes: newLead.notes ?? ogLead.notes,
           image_url: newLead.imageUrl ?? ogLead.imageUrl,
         },
-        { isFormData: false, signal: getSignal("createData") }
+        { isFormData: false, signal: getSignal("createData") },
       );
       if (leadRes.err || !leadRes.data)
         return errorOut(leadRes.err, "Edit lead api failed");
@@ -281,7 +314,7 @@ export const useLeadsApi = (props: APIHookProps) => {
     const connectData = async ([apiLead, apiContact, apiAddress]: [
       ALead,
       AContact | undefined,
-      AAddress | undefined
+      AAddress | undefined,
     ]) => {
       let updatedLead = apiLead;
 
@@ -323,7 +356,7 @@ export const useLeadsApi = (props: APIHookProps) => {
             notes: ogLead.notes,
             image_url: ogLead.imageUrl,
           },
-          { isFormData: false, signal: getSignal("createData") }
+          { isFormData: false, signal: getSignal("createData") },
         );
       }
 
@@ -340,7 +373,7 @@ export const useLeadsApi = (props: APIHookProps) => {
         // If linked unlink
         if (shouldCreateContact)
           await del(
-            `/api/leads/${ogLead.leadId}/contacts/${touchedContact.contact_id}`
+            `/api/leads/${ogLead.leadId}/contacts/${touchedContact.contact_id}`,
           );
 
         await action();
@@ -359,7 +392,7 @@ export const useLeadsApi = (props: APIHookProps) => {
         // If linked unlink
         if (shouldCreateAddress)
           await del(
-            `/api/leads/${ogLead.leadId}/addresses/${touchedAddress.address_id}`
+            `/api/leads/${ogLead.leadId}/addresses/${touchedAddress.address_id}`,
           );
 
         await action();
@@ -398,7 +431,7 @@ export const useLeadsApi = (props: APIHookProps) => {
     return await post<AImage>(
       `/api/leads/${leadId}/image${gallery ? "s" : ""}`,
       formData,
-      { isFormData: true, signal: getSignal("addLeadImage") }
+      { isFormData: true, signal: getSignal("addLeadImage") },
     );
   };
 
@@ -422,14 +455,14 @@ export const useLeadsApi = (props: APIHookProps) => {
   }) => {
     return await del(
       `/api/leads/${leadId}/images/${imageId}`,
-      getSignal("deleteLeadImage")
+      getSignal("deleteLeadImage"),
     );
   };
 
   const getLeads = async (leadIds: number[], _userId: number | string) => {
     return await get<ALead[]>(
       `/api/leads?${idsToQueryString(leadIds, "lead_ids")}`,
-      getSignal("getLeads")
+      getSignal("getLeads"),
     );
   };
 
@@ -443,7 +476,7 @@ export const useLeadsApi = (props: APIHookProps) => {
       {
         location_text: query,
       },
-      { isFormData: false, signal: getSignal("searchLeads") }
+      { isFormData: false, signal: getSignal("searchLeads") },
     );
 
     if (response.err || !response.data) {
@@ -457,9 +490,27 @@ export const useLeadsApi = (props: APIHookProps) => {
       ? response.data.aggregated_leads.map(Normalizer.APINormalizer.sourceLead)
       : [];
 
+    const nearbyPropertyPins = Array.isArray(response.data.nearby_properties)
+      ? response.data.nearby_properties.map((p) => ({
+          propertyId: p.property_id,
+          propertyName: p.property_name ?? "Property",
+          address: {
+            lat: p.address.lat,
+            long: p.address.long,
+            street1: p.address.street_1,
+            city: p.address.city,
+            state: p.address.state,
+            zipcode: p.address.zipcode,
+          },
+          distanceMiles: p.distance_miles,
+          source: "user_property" as const,
+        }))
+      : [];
+
     return {
       data: {
         nearby_properties,
+        nearbyPropertyPins,
         external_persistence: response.data.external_persistence ?? {},
         errors: response.data.errors ?? {},
       },
@@ -481,6 +532,8 @@ export const useLeadsApi = (props: APIHookProps) => {
     linkContactToLead,
     linkAddressToLead,
     linkUserToLead,
+    linkUserToProperty,
+    unlinkUserFromProperty,
     updateLead,
     getLeads,
     getLead,

@@ -16,8 +16,10 @@ import type {
   ACampaignSummary,
 } from "../../interfaces";
 
+import transition from "../../utils/transitions/transition";
+
 const DEFAULT_HTML =
-  "<p>Hi there,<br/>Here is a quick update from the Zala team.</p>";
+  "<p>Hi there,<br/>Here is a quick update from the ZLA team.</p>";
 
 type DraftFormState = {
   campaignId: string;
@@ -51,7 +53,7 @@ const buildSendState = (campaignId: string): SendFormState => ({
   body: DEFAULT_HTML,
 });
 
-export const CampaignEmailDemoPage = () => {
+export const CampaignEmailDemoPage = transition(() => {
   const {
     listCampaigns,
     createCampaignEmailDraft,
@@ -83,7 +85,7 @@ export const CampaignEmailDemoPage = () => {
   const [loadingCampaigns, setLoadingCampaigns] = useState(false);
 
   const [draftForm, setDraftForm] = useState<DraftFormState>(
-    buildDraftState("")
+    buildDraftState(""),
   );
   const [sendForm, setSendForm] = useState<SendFormState>(buildSendState(""));
   const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
@@ -92,7 +94,7 @@ export const CampaignEmailDemoPage = () => {
   const [draftsLoading, setDraftsLoading] = useState(false);
 
   const [sendResults, setSendResults] = useState<ACampaignEmailSendResult[]>(
-    []
+    [],
   );
   const [resultCampaignName, setResultCampaignName] = useState("");
 
@@ -104,9 +106,9 @@ export const CampaignEmailDemoPage = () => {
     () =>
       campaigns.find(
         (campaign) =>
-          String(campaign.campaign_id) === String(selectedCampaignId)
+          String(campaign.campaign_id) === String(selectedCampaignId),
       ),
-    [campaigns, selectedCampaignId]
+    [campaigns, selectedCampaignId],
   );
 
   const numberOrNull = (value: string) => {
@@ -133,7 +135,7 @@ export const CampaignEmailDemoPage = () => {
       setDraftForm(buildDraftState(campaignIdValue));
       setEditingMessageId(null);
     },
-    [selectedCampaignId]
+    [selectedCampaignId],
   );
 
   const refreshDrafts = useCallback(async (campaignId: number) => {
@@ -161,7 +163,7 @@ export const CampaignEmailDemoPage = () => {
     setCampaigns(response.data);
     if (response.data.length > 0) {
       setSelectedCampaignId((prev) =>
-        prev ? prev : String(response.data[0].campaign_id)
+        prev || !response.data ? prev : String(response.data[0].campaign_id),
       );
     }
   }, []);
@@ -175,12 +177,12 @@ export const CampaignEmailDemoPage = () => {
     setDraftForm((prev) =>
       prev.campaignId === selectedCampaignId
         ? prev
-        : { ...prev, campaignId: selectedCampaignId }
+        : { ...prev, campaignId: selectedCampaignId },
     );
     setSendForm((prev) =>
       prev.campaignId === selectedCampaignId
         ? prev
-        : { ...prev, campaignId: selectedCampaignId }
+        : { ...prev, campaignId: selectedCampaignId },
     );
     setEditingMessageId(null);
     const numericId = numberOrNull(selectedCampaignId);
@@ -285,7 +287,7 @@ export const CampaignEmailDemoPage = () => {
     setResultCampaignName(
       name
         ? `${response.data.campaign.campaign_id} – ${name}`
-        : `${response.data.campaign.campaign_id}`
+        : `${response.data.campaign.campaign_id}`,
     );
     successMsg("Campaign send completed");
     refreshDrafts(campaignId);
@@ -301,7 +303,10 @@ export const CampaignEmailDemoPage = () => {
       fromName: draft.from_name ?? "",
       body: draft.message_body,
     });
-    draftSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    draftSectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   };
 
   const onDeleteDraft = async (messageId: number) => {
@@ -495,8 +500,8 @@ export const CampaignEmailDemoPage = () => {
                 savingDraft
                   ? "Saving..."
                   : editingMessageId
-                  ? "Update Draft"
-                  : "Save Draft"
+                    ? "Update Draft"
+                    : "Save Draft"
               }
               onClick={onSaveDraft}
               disabled={savingDraft}
@@ -606,4 +611,4 @@ export const CampaignEmailDemoPage = () => {
       )}
     </div>
   );
-};
+});

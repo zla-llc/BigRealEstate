@@ -3,19 +3,29 @@ import {
   useSideNavControlStore,
   useSearchQueryStore,
   SideNavControlVariant,
+  useGlobalModalStore,
+  GlobalModalPage,
 } from "../../../stores";
 import { useApi } from "../../api";
 import { useAppNavigation } from "../../utils";
 
 export const useAppHeader = () => {
-  const { location, toLeadSearchPage, toBoardsPage, toBoardsV2Page } =
-    useAppNavigation();
+  const {
+    location,
+    toLeadSearchPage,
+    toBoardsPage,
+    // toBoardsV2Page,
+    toDashboard,
+  } = useAppNavigation();
+
   const {
     open: openSideNav,
     close: closeSideNav,
     isOpen,
   } = useSideNavControlStore();
-  const { query, setData, setQuery, setLoading } = useSearchQueryStore();
+  const { query, setData, setNearbyProperties, setQuery, setLoading } = useSearchQueryStore();
+
+  const globalModalStore = useGlobalModalStore();
 
   const { searchLeads } = useApi();
 
@@ -42,6 +52,7 @@ export const useAppHeader = () => {
       }
 
       setData(data.nearby_properties);
+      setNearbyProperties(data.nearbyPropertyPins ?? []);
     } finally {
       setLoading(false);
     }
@@ -49,6 +60,15 @@ export const useAppHeader = () => {
 
   const onSidenavBtn = () =>
     isOpen ? closeSideNav() : openSideNav(SideNavControlVariant.None);
+
+  const openLeaderBoardModal = () => {
+    globalModalStore.setPage(GlobalModalPage.LeaderBoardGlobal);
+    globalModalStore.toggleOpen();
+
+    globalModalStore.setListener("preClose", () => {
+      globalModalStore.setPage(GlobalModalPage.None);
+    });
+  };
 
   return {
     query,
@@ -60,6 +80,7 @@ export const useAppHeader = () => {
     onSearchClick,
     onSearchCore,
     onSidenavBtn,
-    toBoardsV2Page,
+    openLeaderBoardModal,
+    toDashboard,
   };
 };

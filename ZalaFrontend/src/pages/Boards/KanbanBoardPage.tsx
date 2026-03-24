@@ -27,7 +27,7 @@ import {
   type LeadComposerState,
   type PropertyComposerState,
 } from "./components";
-
+import transition from "../../utils/transitions/transition";
 const BOARD_TYPE_STORAGE_KEY = "zala-board-type-overrides";
 
 type AddressResponse = PropertyComposerState["address"] & {
@@ -55,9 +55,10 @@ const createDefaultPropertyForm = (): PropertyComposerState => ({
   },
 });
 
-export const KanbanBoardPage = () => {
+const KanbanBoardPage = () => {
   const { get, post, put, del } = useFetch();
   const { enqueueSnackbar } = useSnackbar();
+
   const currentUser = useAuthStore((state) => state.user);
   const [boards, setBoards] = useState<KanbanBoard[]>([]);
   const [activeBoardId, setActiveBoardId] = useState<number | null>(null);
@@ -1483,3 +1484,4 @@ export const KanbanBoardPage = () => {
     </div>
   );
 };
+ export default transition(KanbanBoardPage);

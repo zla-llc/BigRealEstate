@@ -12,18 +12,17 @@ import { useUnitApi } from "./useUnitApi";
 
 export const usePropertyApi = (props: APIHookProps) => {
   const { getSignal } = props;
-  const {
-    post,
-    // get,
-    put,
-    del,
-  } = useFetch();
+  const { post, get, put, del } = useFetch();
 
   const addressApi = useAddressApi(props);
   const unitApi = useUnitApi(props);
 
   const { createAddress, editAddress, deleteAddress } = addressApi;
   const { createUnit, deleteUnit, updateUnit } = unitApi;
+
+  const getUserProperties = async ({ userId }: { userId: number }) => {
+    return await get<AProperty[]>(`/api/users/${userId}/properties`);
+  };
 
   const createProperty = async ({
     property,
@@ -58,7 +57,7 @@ export const usePropertyApi = (props: APIHookProps) => {
           notes: property.notes,
           image_url: property.imageUrl,
         },
-        { isFormData: false, signal: getSignal("createProperty") }
+        { isFormData: false, signal: getSignal("createProperty") },
       );
 
       if (propertyRes.err || !propertyRes.data)
@@ -129,7 +128,7 @@ export const usePropertyApi = (props: APIHookProps) => {
     const createdUnits: AUnit[] = [];
 
     const newPropertyUnitIds = (newProperty.units ?? []).map(
-      (unit) => unit.unitId
+      (unit) => unit.unitId,
     );
     const removedUnits = ogProperty.units
       .map((unit) => unit.unitId)
@@ -148,7 +147,7 @@ export const usePropertyApi = (props: APIHookProps) => {
           notes: property.notes ?? ogProperty.notes,
           image_url: property.imageUrl ?? ogProperty.imageUrl,
         },
-        { isFormData: false, signal: getSignal("updateProperty") }
+        { isFormData: false, signal: getSignal("updateProperty") },
       );
 
     const createData = async (): Promise<AProperty> => {
@@ -179,7 +178,7 @@ export const usePropertyApi = (props: APIHookProps) => {
       if (newProperty.units) {
         for await (const unit of newProperty.units) {
           const foundUnit = ogProperty.units.find(
-            (ogUnit) => ogUnit.unitId === unit.unitId
+            (ogUnit) => ogUnit.unitId === unit.unitId,
           );
           const unitResponse = await (!foundUnit
             ? createUnit({
@@ -226,7 +225,7 @@ export const usePropertyApi = (props: APIHookProps) => {
 
           for await (const unit of touchedUnits) {
             const foundUnit = ogProperty.units.find(
-              (ogUnit) => ogUnit.unitId === unit.unit_id
+              (ogUnit) => ogUnit.unitId === unit.unit_id,
             );
             if (!foundUnit) continue;
             await updateUnit({
@@ -263,8 +262,10 @@ export const usePropertyApi = (props: APIHookProps) => {
   };
 
   const getProperties = async () => {
-    // // TODO - Add API route to get properties created by a single user
-    // return await get(`/api/address`)
+    return await get<AProperty[]>(
+      `/api/properties`,
+      getSignal(`getProperties`),
+    );
   };
 
   const addPropertyImage = async ({
@@ -284,7 +285,7 @@ export const usePropertyApi = (props: APIHookProps) => {
         gallery ? "s" : ""
       }`,
       formData,
-      { isFormData: true, signal: getSignal("addPropertyImage") }
+      { isFormData: true, signal: getSignal("addPropertyImage") },
     );
   };
 
@@ -314,7 +315,7 @@ export const usePropertyApi = (props: APIHookProps) => {
   }) => {
     return await del(
       `/api/addresses/${addressId}/properties/${propertyId}/images/${imageId}`,
-      getSignal("deleteLeadImage")
+      getSignal("deleteLeadImage"),
     );
   };
 
@@ -330,6 +331,7 @@ export const usePropertyApi = (props: APIHookProps) => {
 
   return {
     ...unitApi,
+    getUserProperties,
     getProperties,
     createProperty,
     updateProperty,

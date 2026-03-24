@@ -24,6 +24,12 @@ from app.routes import (
     campaign_leads,
     campaign_emails,
     google_mail,
+    smtp,
+    notifications,
+    websocket,
+    email_verification,
+    team_deals,
+    user_tutorials
 )
 from app.services.file_storage import get_upload_root
 
@@ -48,6 +54,7 @@ def read_root():
 
 # Mount all routes under the /api prefix
 app.include_router(users.public_router, prefix="/api")  # signup
+app.include_router(email_verification.router, prefix="/api")  # email verification
 app.include_router(auth.router, prefix="/api")  # Login with google signin
 app.include_router(
     location_filter.router, prefix="/api", include_in_schema=True
@@ -62,11 +69,13 @@ app.include_router(
 app.include_router(campaign_emails.router, prefix="/api", include_in_schema=True)
 app.include_router(campaign_leads.router, prefix="/api", include_in_schema=True)
 app.include_router(team.router, prefix="/api", include_in_schema=True)
+app.include_router(team_deals.router, prefix="/api", include_in_schema=True)
 
 app.include_router(campaigns.router, prefix="/api", include_in_schema=True)
 
 app.include_router(addresses.router, prefix="/api", include_in_schema=True)
 app.include_router(properties.router, prefix="/api", include_in_schema=True)
+app.include_router(properties.properties_public, prefix="/api", include_in_schema=True)
 app.include_router(units.router, prefix="/api", include_in_schema=True)
 app.include_router(leads.router, prefix="/api", include_in_schema=True)
 
@@ -77,3 +86,14 @@ app.include_router(users.router, prefix="/api", include_in_schema=True)
 app.include_router(contacts.router, prefix="/api", include_in_schema=True)
 
 app.include_router(csv_intake.router, prefix="/api", include_in_schema=True)
+
+# SMTP Email routes
+app.include_router(smtp.router, prefix="/api", include_in_schema=True)
+
+# Notifications routes
+app.include_router(notifications.router, prefix="/api", include_in_schema=True)
+
+# WebSocket routes (no /api prefix for WebSocket)
+app.include_router(websocket.router, include_in_schema=True)
+
+app.include_router(user_tutorials.router, prefix="/api", include_in_schema=True)

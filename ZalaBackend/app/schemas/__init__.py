@@ -9,7 +9,7 @@ from .board_step import BoardStepBase, BoardStepCreate, BoardStepUpdate, BoardSt
 from .user import (
     UserBase, UserCreate, UserSignup, UserUpdate, UserPublic, 
     UserPublicWithProperties, UserPublicWithLeads, UserPublicWithLeadsAndProperties,
-    UserSummary
+    UserSummary, XPAdd, XPPublic
 )
 from .unit import UnitBase, UnitCreate, UnitUpdate, UnitPublic
 from .lead import LeadBase, LeadCreate, LeadUpdate, LeadPublic
@@ -27,7 +27,7 @@ from .campaign_email import (
     CampaignEmailStatus,
     ContactMethod,
 )
-from .gmail import GmailSendRequest, GmailSendResponse
+from .gmail import GmailSendRequest, GmailSendResponse, GmailSignatureResponse
 from .campaign_lead import (
     CampaignLeadBase,
     CampaignLeadCreate,
@@ -36,18 +36,64 @@ from .campaign_lead import (
     CampaignLeadDetailedPublic,
 )
 from .location import LocationFilter, DataSource
+from .email_verification import (
+    SendVerificationCodeRequest,
+    SendVerificationCodeResponse,
+    VerifyCodeRequest,
+    VerifyCodeResponse,
+)
 from .summaries import UserSummary, LeadSummary, PropertySummary, CampaignSummary # Add CampaignSummary
 from .team import (
     TeamBase,
     TeamCreate,
     TeamUpdate,
     TeamPublic,
+    TeamPublicWithProperties,
+    TeamPublicWithBoards,
+    TeamPublicWithPropertiesAndBoards,
+    TeamSummary,
     TeamLeaderboardEntry,
     TeamUserXPEntry,
 )
+from .team_invitation import (
+    TeamInvitationBase,
+    TeamInvitationCreate,
+    TeamInvitationUpdate,
+    TeamInvitationPublic,
+)
+from .notification import (
+    NotificationBase,
+    NotificationUpdate,
+    NotificationPublic,
+)
+from .team import TeamSummary
+from .team_announcement import (
+    AnnouncementBase,
+    AnnouncementCreate,
+    AnnouncementUpdate,
+    AnnouncementPublic,
+)
 
+from .team_deal import (
+    TeamDealBase,
+    TeamDealCreate,
+    TeamDealCreateRequest,
+    TeamDealUpdate,
+    TeamDealPublic,
+    UserDealXPPublic
+)
+
+from .user_tutorial import (
+    UserTutorialBase,
+    UserTutorialCreate,
+    UserTutorialUpdate,
+    UserTutorialPublic
+)
 
 CampaignPublic.model_rebuild()
+PropertyPublic.model_rebuild()
 LeadPublic.model_rebuild()
 CampaignLeadPublic.model_rebuild()
 CampaignLeadDetailedPublic.model_rebuild()
+PropertyPublic.model_rebuild()
+BoardPublic.model_rebuild()

@@ -1,52 +1,35 @@
-# Byte-compiled / optimized / DLL files
+# Python bytecode
 __pycache__/
-*.py[cod]
-*$py.class
+**/__pycache__/
+*.pyc
+*.pyo
 
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual environments
+# Virtual environment
+myenv/
 venv/
-env/
-ENV/
-.env/          # If your virtualenv is named .env, ignore it
-.env           # Your env file with secrets
 .venv/
 
-# PyInstaller
-*.manifest
-*.spec
+# Postgres / Database local data
+pg_data/
+*.sql.bak
+dump.rdb
 
-# Logs
-*.log
-logs/
-*.sqlite3
+# App-specific secrets
+.env.local
+.env.*.local
 
-# Runtime media
-uploads/
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
 
-# IDE/editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*.sublime-project
-*.sublime-workspace
+# MyPy / Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Python cache
+__pycache__/
+*.pyc
+uploads/leads/*
+uploads/properties/*
