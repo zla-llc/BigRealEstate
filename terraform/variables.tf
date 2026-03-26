@@ -14,7 +14,7 @@ variable "github_token" {
 variable "repository" {
   type        = string
   description = "github repo url"
-  default     = "https://github.com/Jonathanz4344/BigRealEstate" # "YOUR SOURCE-CODE REPO URL"
+  default     = "https://github.com/zla-llc/BigRealEstate.git" # "YOUR SOURCE-CODE REPO URL"
 }
 
 variable "app_name" {
@@ -32,14 +32,14 @@ variable "app_root" {
 variable "branch_name" {
   type        = string
   description = "AWS Amplify App Repo Branch Name"
-  default     = "feature-terraform-amplify"
+  default     = "main"
 }
 
 
 # variable "domain_name" {
 #   type        = string
 #   description = "AWS Amplify Domain Name"
-#   default     = "pokopala.com"
+#   default     = ""
 # }
 
 variable "admin_policy" {
