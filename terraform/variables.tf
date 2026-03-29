@@ -14,7 +14,7 @@ variable "github_token" {
 variable "repository" {
   type        = string
   description = "github repo url"
-  default     = "https://github.com/Jonathanz4344/BigRealEstate" # "YOUR SOURCE-CODE REPO URL"
+  default     = "https://github.com/zla-llc/BigRealEstate.git" # "YOUR SOURCE-CODE REPO URL"
 }
 
 variable "app_name" {
@@ -32,14 +32,14 @@ variable "app_root" {
 variable "branch_name" {
   type        = string
   description = "AWS Amplify App Repo Branch Name"
-  default     = "feature-terraform-amplify"
+  default     = "terraform-amplify-update"
 }
 
 
 # variable "domain_name" {
 #   type        = string
 #   description = "AWS Amplify Domain Name"
-#   default     = "pokopala.com"
+#   default     = ""
 # }
 
 variable "admin_policy" {
@@ -52,4 +52,22 @@ variable "backend_policy" {
   type        = string
   default     = "arn:aws:iam::aws:policy/service-role/AmplifyBackendDeployFullAccess"
   description = "Default Backend Policy For Amplify"
+}
+
+variable "react_api_url" {
+  type        = string
+  description = "Url for the application to reach out to backend services"
+  default = "https://127.0.0.1:8000"
+}
+
+variable "google_maps_key" {
+  type        = string
+  description = "Google API key to give application access to google maps features"
+  default = ""
+}
+
+variable "google_client_id" {
+  type = string
+  description = "TODO Explain Better? - Google Client ID used for application's google services"
+  default = ""
 }
