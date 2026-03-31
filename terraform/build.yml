@@ -8,11 +8,12 @@ applications:
             - npm ci --cache .npm --prefer-offline --legacy-peer-deps
         build:
           commands:
-            - VITE_API_URL=${VITE_API_URL}
-            - VITE_GOOGLE_MAPS_KEY=${VITE_GOOGLE_MAPS_KEY}
-            - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
-            - VITE_GOOGLE_REDIRECT_URI=${VITE_GOOGLE_REDIRECT_URI}
-            - VITE_GOOGLE_SCOPES=${VITE_GOOGLE_SCOPES}
+            # Write to .env.local to guarantee Vite overrides the GitHub .env
+            - echo "VITE_API_URL=$VITE_API_URL" > .env.local
+            - echo "VITE_GOOGLE_MAPS_KEY=$VITE_GOOGLE_MAPS_KEY" >> .env.local
+            - echo "VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID" >> .env.local
+            - echo "VITE_GOOGLE_REDIRECT_URI=$VITE_GOOGLE_REDIRECT_URI" >> .env.local
+            - echo "VITE_GOOGLE_SCOPES=$VITE_GOOGLE_SCOPES" >> .env.local
             - npm run build
       artifacts:
         baseDirectory: dist
