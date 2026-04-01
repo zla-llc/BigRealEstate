@@ -34,8 +34,8 @@ export const TutorialText = {
     "Multiple selected leads can be emailed with the “Email All” button if there are selected leads with known emails.",
     "You can track how you’ve reached out to a lead by clicking the contact options here.",
     "You can leave miscellaneous notes on a lead here.",
-    "All known information about a lead is shown here."
-  ]
+    "All known information about a lead is shown here.",
+  ],
 };
 
 export type TutorialTextKey = keyof typeof TutorialText;
@@ -57,7 +57,7 @@ export const TutorialSequence = {
   navbar: ["component"],
   search: ["modal", "component", "component"],
   board: ["modal", "component", "component", "component"],
-  campaign: ["modal", "component", "component", "component", "component"]
+  campaign: ["modal", "component", "component", "component", "component"],
 };
 
 export const TutorialSequenceMaximums = {
@@ -65,7 +65,7 @@ export const TutorialSequenceMaximums = {
   navbar: TutorialText.navbar.length - 1,
   search: TutorialText.search.length - 1,
   board: TutorialText.board.length - 1,
-  campaign: TutorialText.campaign.length - 1
+  campaign: TutorialText.campaign.length - 1,
 };
 
 export const TutorialTextPlacements = {
@@ -90,5 +90,11 @@ export const TutorialTextPlacements = {
     TextPlacement.Bottom,
     TextPlacement.Top,
   ],
-  campaign: [TextPlacement.Top, TextPlacement.Top, TextPlacement.Bottom, TextPlacement.Bottom, TextPlacement.Bottom]
+  campaign: [
+    TextPlacement.Top,
+    TextPlacement.Top,
+    TextPlacement.Bottom,
+    TextPlacement.Top,
+    TextPlacement.Top,
+  ],
 };
