@@ -33,7 +33,7 @@ variable "app_root" {
 variable "branch_name" {
   type        = string
   description = "AWS Amplify App Repo Branch Name"
-  default     = "terraform-amplify-update"
+  default     = "terraform-proxy"
 }
 
 
