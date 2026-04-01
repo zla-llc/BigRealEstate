@@ -50,7 +50,7 @@ resource "aws_amplify_app" "amplify_app" {
     REACT_APP_ENV              = "PRODUCTION"
 
 
-    VITE_API_URL     = "http://${aws_eip.backend_ip.public_ip}:8000" #var.react_api_url
+    VITE_API_URL     = "http://${aws_eip.backend_ip.public_ip}:8000"
     VITE_GOOGLE_MAPS_KEY     = var.google_api_key
     VITE_GOOGLE_CLIENT_ID     = var.google_oauth_client_id
     VITE_GOOGLE_REDIRECT_URI     = "postmessage"

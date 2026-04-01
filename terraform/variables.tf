@@ -55,12 +55,6 @@ variable "backend_policy" {
   description = "Default Backend Policy For Amplify"
 }
 
-variable "react_api_url" {
-  type        = string
-  description = "Url for the application to reach out to backend services"
-  default = "https://127.0.0.1:8000"
-}
-
 variable "google_api_key" {
   type      = string
   description = "Google API key to give application access to google maps features"
