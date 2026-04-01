@@ -55,6 +55,18 @@ variable "backend_policy" {
   description = "Default Backend Policy For Amplify"
 }
 
+variable "lambda_exec_policy" {
+  type        = string
+  default     = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  description = "Default Execution Policy For Lambda"
+}
+
+variable "cloudwatch_exec_policy" {
+  type = string
+  default = "arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy"
+  description = "Default Logging Policy For Lambda"
+}
+
 variable "google_api_key" {
   type      = string
   description = "Google API key to give application access to google maps features"
