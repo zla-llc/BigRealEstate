@@ -8,7 +8,8 @@ variable "aws_region" {
 variable "github_token" {
   type        = string
   description = "github token to connect github repo"
-  # default     = "" # "Your Gitub Token"
+#  default     = ""
+  sensitive = true
 }
 
 variable "repository" {
@@ -70,4 +71,49 @@ variable "google_oauth_client_id" {
   type = string
   description = "The Client ID that connects the application to Googles OAuth provider"
   default = ""
+}
+
+variable "db_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "google_api_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "google_token_encryption_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "google_client_secret" {
+  type      = string
+  sensitive = true
+}
+
+variable "openai_api_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "brave_api_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "rapidapi_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "smtp_username" {
+  type      = string
+  sensitive = true
+}
+
+variable "smtp_password" {
+  type      = string
+  sensitive = true
 }
