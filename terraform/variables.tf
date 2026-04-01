@@ -60,14 +60,14 @@ variable "react_api_url" {
   default = "https://127.0.0.1:8000"
 }
 
-variable "google_maps_key" {
+variable "google_api_key" {
   type        = string
   description = "Google API key to give application access to google maps features"
   default = ""
 }
 
-variable "google_client_id" {
+variable "google_oauth_client_id" {
   type = string
-  description = "TODO Explain Better? - Google Client ID used for application's google services"
+  description = "The Client ID that connects the application to Googles OAuth provider"
   default = ""
 }

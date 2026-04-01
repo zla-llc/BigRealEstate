@@ -49,10 +49,10 @@ resource "aws_amplify_app" "amplify_app" {
 
     REACT_APP_ENV              = "PRODUCTION"
 
-    # Application Specific Env Variables
+
     VITE_API_URL     = var.react_api_url
-    VITE_GOOGLE_MAPS_KEY     = var.google_maps_key
-    VITE_GOOGLE_CLIENT_ID     = var.google_client_id
+    VITE_GOOGLE_MAPS_KEY     = var.google_api_key
+    VITE_GOOGLE_CLIENT_ID     = var.google_oauth_client_id
     VITE_GOOGLE_REDIRECT_URI     = "postmessage"
     VITE_GOOGLE_SCOPES     = "openid email profile https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.settings.basic"
 
