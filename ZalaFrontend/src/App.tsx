@@ -1,8 +1,4 @@
-import { CookiesProvider } from "react-cookie";
 import "./App.css";
-import { NavigationProvider } from "./providers";
-import { SnackbarProvider } from "notistack";
-import { useAllowScrollController } from "./hooks";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
