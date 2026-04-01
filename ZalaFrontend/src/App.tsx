@@ -43,7 +43,7 @@ const HomePage = () => {
         }
 
         const response = await fetch(
-          `https://5zym5fv92l.execute-api.us-east-1.amazonaws.com/DEV/forward//path`,
+          `https://8js0fnocvc.execute-api.us-east-1.amazonaws.com/DEV/forward/path`,
           {
             method,
             body: bodyToSend,
