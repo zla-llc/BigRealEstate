@@ -62,9 +62,9 @@ variable "react_api_url" {
 }
 
 variable "google_api_key" {
-  type        = string
+  type      = string
   description = "Google API key to give application access to google maps features"
-  default = ""
+  sensitive = true
 }
 
 variable "google_oauth_client_id" {
@@ -73,15 +73,6 @@ variable "google_oauth_client_id" {
   default = ""
 }
 
-variable "db_password" {
-  type      = string
-  sensitive = true
-}
-
-variable "google_api_key" {
-  type      = string
-  sensitive = true
-}
 
 variable "google_token_encryption_key" {
   type      = string
@@ -89,6 +80,11 @@ variable "google_token_encryption_key" {
 }
 
 variable "google_client_secret" {
+  type      = string
+  sensitive = true
+}
+
+variable "db_password" {
   type      = string
   sensitive = true
 }
