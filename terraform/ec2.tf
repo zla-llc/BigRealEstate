@@ -203,12 +203,7 @@ resource "aws_eip" "backend_ip" {
   }
 }
 
-# Output the IP address to your terminal so you know what it is after deploying
-output "backend_public_ip" {
-  value = aws_eip.backend_ip.public_ip
-}
-
 # Output a clickable link to test the live API
-output "backend_test_docs" {
-  value = "http://${aws_eip.backend_ip.public_ip}:8000/docs"
+output "API_URL" {
+  value = "http://${aws_eip.backend_ip.public_ip}:8000/api"
 }

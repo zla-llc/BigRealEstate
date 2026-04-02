@@ -34,7 +34,10 @@ export const useFetch = () => {
     body: unknown,
     { signal, isFormData }: RequestOptions = {},
   ): Promise<APIResponse<T>> => {
-    const url = CONFIG.api + apiEndpoint;
+    const isProduction = CONFIG.env === "PRODUCTION";
+    const url = isProduction
+      ? CONFIG.api + apiEndpoint.split("/").join("-")
+      : CONFIG.api + apiEndpoint;
     const abortSignal = signal ?? new AbortController().signal;
 
     try {

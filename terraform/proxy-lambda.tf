@@ -107,7 +107,7 @@ resource "aws_api_gateway_resource" "api_parent_resource" {
 
 resource "aws_api_gateway_resource" "proxy_path" {
   parent_id   = aws_api_gateway_resource.api_parent_resource.id
-  path_part   = "{path}"
+  path_part   = "{forwardPath}"
   rest_api_id = aws_api_gateway_rest_api.api.id
 }
 
@@ -173,7 +173,7 @@ resource "aws_api_gateway_integration" "get_integration" {
   rest_api_id = aws_api_gateway_rest_api.api.id
 
   type                    = "AWS_PROXY"
-  integration_http_method = aws_api_gateway_method.get_method.http_method
+  integration_http_method = "POST"
   uri                     = aws_lambda_function.proxy_handler.invoke_arn
 
   depends_on = [aws_lambda_function.proxy_handler]
@@ -185,12 +185,11 @@ resource "aws_api_gateway_integration" "post_integration" {
   rest_api_id = aws_api_gateway_rest_api.api.id
 
   type                    = "AWS_PROXY"
-  integration_http_method = aws_api_gateway_method.post_method.http_method
+  integration_http_method = "POST"
   uri                     = aws_lambda_function.proxy_handler.invoke_arn
 
   depends_on = [aws_lambda_function.proxy_handler]
 }
-
 
 resource "aws_api_gateway_integration" "put_integration" {
   http_method = aws_api_gateway_method.put_method.http_method
@@ -198,7 +197,7 @@ resource "aws_api_gateway_integration" "put_integration" {
   rest_api_id = aws_api_gateway_rest_api.api.id
 
   type                    = "AWS_PROXY"
-  integration_http_method = aws_api_gateway_method.put_method.http_method
+  integration_http_method = "POST"
   uri                     = aws_lambda_function.proxy_handler.invoke_arn
 
   depends_on = [aws_lambda_function.proxy_handler]
@@ -210,7 +209,7 @@ resource "aws_api_gateway_integration" "delete_integration" {
   rest_api_id = aws_api_gateway_rest_api.api.id
 
   type                    = "AWS_PROXY"
-  integration_http_method = aws_api_gateway_method.delete_method.http_method
+  integration_http_method = "POST"
   uri                     = aws_lambda_function.proxy_handler.invoke_arn
 
   depends_on = [aws_lambda_function.proxy_handler]
@@ -244,7 +243,7 @@ resource "aws_api_gateway_integration_response" "cors_integration_response" {
   status_code = aws_api_gateway_method_response.cors_response_200.status_code
   response_parameters = {
     "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT,DELETE'",
+    "method.response.header.Access-Control-Allow-Methods" = "'*'",
     "method.response.header.Access-Control-Allow-Origin"  = "'*'"
   }
 
@@ -261,12 +260,20 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     redeployment = sha1(jsonencode([
       aws_api_gateway_resource.api_parent_resource.id,
       aws_api_gateway_resource.proxy_path.id,
+
+      # Get
       aws_api_gateway_method.get_method.id,
       aws_api_gateway_integration.get_integration.id,
+
+      # Post
       aws_api_gateway_method.post_method.id,
       aws_api_gateway_integration.post_integration.id,
+
+      # # Put
       aws_api_gateway_method.put_method.id,
       aws_api_gateway_integration.put_integration.id,
+
+      # # Delete
       aws_api_gateway_method.delete_method.id,
       aws_api_gateway_integration.delete_integration.id
     ]))
@@ -276,7 +283,7 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     create_before_destroy = true
   }
 
-  depends_on = [aws_api_gateway_integration.post_integration]
+  depends_on = [aws_api_gateway_integration.get_integration,aws_api_gateway_integration.post_integration, aws_api_gateway_integration.put_integration, aws_api_gateway_integration.delete_integration]
 }
 
 resource "aws_api_gateway_stage" "api_stage" {
@@ -293,10 +300,6 @@ resource "aws_lambda_permission" "permission" {
   source_arn    = "${aws_api_gateway_rest_api.api.execution_arn}/*/*"
 }
 
-# output "proxy_bas" {
-#   value = aws_api_gateway_deployment.api_deployment.invoke_url
-# }
-
-output "proxy_url" {
-  value = "${aws_api_gateway_deployment.api_deployment.invoke_url}${aws_api_gateway_stage.api_stage.stage_name}/${aws_api_gateway_resource.api_parent_resource.path_part}/"
+output "PROXY_URL" {
+  value = "${aws_api_gateway_deployment.api_deployment.invoke_url}${aws_api_gateway_stage.api_stage.stage_name}/${aws_api_gateway_resource.api_parent_resource.path_part}"
 }
