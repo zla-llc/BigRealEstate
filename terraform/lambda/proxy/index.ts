@@ -28,15 +28,15 @@ export const handler: Handler = async (event: APIGatewayProxyEvent) => {
   const bodyJson = event.body;
 
   try {
-    const url = `${process.env.API_URL}/${forwardPath.split("-").join("/")}`;
+    const url = `${process.env.API_URL}/${forwardPath.split("[").join("/")}`;
 
-    console.log(`Request To:`);
-    console.log(url);
-    console.log(`Method:`);
-    console.log(method);
-    console.log(`Body:`);
-    console.log(bodyJson);
-    console.log(``);
+    // console.log(`Request To:`);
+    // console.log(url);
+    // console.log(`Method:`);
+    // console.log(method);
+    // console.log(`Body:`);
+    // console.log(bodyJson);
+    // console.log(``);
 
     const apiResponse = await fetch(url, {
       method,
@@ -46,16 +46,16 @@ export const handler: Handler = async (event: APIGatewayProxyEvent) => {
         "Content-Type": "application/json",
       },
     });
-    console.log(`Response:`);
-    console.log(apiResponse);
-    console.log(``);
+    // console.log(`Response:`);
+    // console.log(apiResponse);
+    // console.log(``);
 
     if (apiResponse.status === 204) return response;
 
     const json = await apiResponse.json();
-    console.log(`Response Json:`);
-    console.log(json);
-    console.log(``);
+    // console.log(`Response Json:`);
+    // console.log(json);
+    // console.log(``);
 
     if (json && typeof json === "object") response.body = JSON.stringify(json);
     return response;
