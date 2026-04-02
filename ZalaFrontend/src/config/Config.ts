@@ -1,5 +1,6 @@
 type IConfig = {
   api: string;
+  proxyApi: string;
   env: string;
   keys: {
     google: {
@@ -14,6 +15,7 @@ type IConfig = {
 
 export const CONFIG: IConfig = {
   api: import.meta.env.VITE_API_URL,
+  proxyApi: import.meta.env.VITE_PROXY_API_URL || "",
   env: import.meta.env.VITE_ENV,
   keys: {
     google: {

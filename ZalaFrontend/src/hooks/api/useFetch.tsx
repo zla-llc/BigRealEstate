@@ -37,7 +37,7 @@ export const useFetch = () => {
     const isProduction = CONFIG.env === "PRODUCTION";
     const separator = "__";
     const url = isProduction
-      ? CONFIG.api +
+      ? CONFIG.proxyApi +
         "/" +
         apiEndpoint.split("/").join(separator).slice(separator.length)
       : CONFIG.api + apiEndpoint;

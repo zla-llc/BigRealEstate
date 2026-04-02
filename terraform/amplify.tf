@@ -51,7 +51,8 @@ resource "aws_amplify_app" "amplify_app" {
     VITE_ENV = "PRODUCTION"
 
 
-    VITE_API_URL     = "${aws_api_gateway_deployment.api_deployment.invoke_url}${aws_api_gateway_stage.api_stage.stage_name}/${aws_api_gateway_resource.api_parent_resource.path_part}"
+    VITE_API_URL     = "http://${aws_eip.backend_ip.public_ip}:8000"
+    VITE_PROXY_API_URL = "${aws_api_gateway_deployment.api_deployment.invoke_url}${aws_api_gateway_stage.api_stage.stage_name}/${aws_api_gateway_resource.api_parent_resource.path_part}"
     VITE_GOOGLE_MAPS_KEY     = var.google_api_key
     VITE_GOOGLE_CLIENT_ID     = var.google_oauth_client_id
     VITE_GOOGLE_REDIRECT_URI     = "postmessage"
@@ -70,7 +71,7 @@ resource "aws_amplify_app" "amplify_app" {
     target = "/index.html"
   }
 
-  depends_on = [aws_api_gateway_deployment.api_deployment]
+  depends_on = [aws_eip.backend_ip, aws_api_gateway_deployment.api_deployment]
 }
 
 resource "aws_amplify_branch" "dev_branch" {
