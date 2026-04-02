@@ -36,7 +36,7 @@ export const useFetch = () => {
   ): Promise<APIResponse<T>> => {
     const isProduction = CONFIG.env === "PRODUCTION";
     const url = isProduction
-      ? CONFIG.api + apiEndpoint.split("/").join("-")
+      ? CONFIG.api + "/" + apiEndpoint.split("/").join("-").slice(1)
       : CONFIG.api + apiEndpoint;
     const abortSignal = signal ?? new AbortController().signal;
 
