@@ -28,7 +28,7 @@ export const handler: Handler = async (event: APIGatewayProxyEvent) => {
   const bodyJson = event.body;
 
   try {
-    const url = `${process.env.API_URL}/${forwardPath.split("_").join("/")}`;
+    const url = `${process.env.API_URL}/${forwardPath.split("__").join("/")}`;
 
     // console.log(`Request To:`);
     // console.log(url);
