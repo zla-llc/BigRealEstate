@@ -1,6 +1,5 @@
 type IConfig = {
   api: string;
-  ws: string;
   env: string;
   keys: {
     google: {
@@ -15,7 +14,6 @@ type IConfig = {
 
 export const CONFIG: IConfig = {
   api: import.meta.env.VITE_API_URL,
-  ws: import.meta.env.VITE_WS_URL || import.meta.env.VITE_API_URL,
   env: import.meta.env.VITE_ENV,
   keys: {
     google: {

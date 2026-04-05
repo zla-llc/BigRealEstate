@@ -55,10 +55,9 @@ export const useNotificationBell = () => {
   // WebSocket connection for real-time notifications - only fires on events, doesn't poll
   useEffect(() => {
     if (!user || wsConnected.current) return;
-
     // Construct WebSocket URL
-    const wsProtocol = CONFIG.ws.startsWith("https") ? "wss" : "ws";
-    const wsHost = CONFIG.ws.replace(/^https?:\/\//, "");
+    const wsProtocol = CONFIG.api.startsWith("https") ? "wss" : "ws";
+    const wsHost = CONFIG.api.replace(/^https?:\/\//, "");
     const wsUrl = `${wsProtocol}://${wsHost}/ws/notifications/${user.userId}`;
 
     wsManager.connect(wsUrl);
