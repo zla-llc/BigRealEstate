@@ -93,9 +93,15 @@ export const useTeamInvitePage = () => {
     setLoadingTeams(false);
   };
 
-  // Load team invitations
+  // Load team invitations (admin only)
   const loadInvitations = async (teamId: number) => {
     if (!user) return;
+    // Only admins can view invitations; skip to avoid 403
+    const team = teams.find((t) => t.team_id === teamId);
+    const isAdmin = team?.members.some(
+      (m) => m.user.user_id === user.userId && m.role === "admin",
+    );
+    if (!isAdmin) return;
     const response = await api.getTeamInvitations(teamId, user.userId);
     if (response.data) {
       setInvitations(
