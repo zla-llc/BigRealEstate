@@ -135,8 +135,8 @@ export const useTeamInvitePage = () => {
   useEffect(() => {
     if (!selectedTeam || !user) return;
 
-    const wsProtocol = CONFIG.api.startsWith("https") ? "wss" : "ws";
-    const wsHost = CONFIG.api.replace(/^https?:\/\//, "");
+    const wsProtocol = CONFIG.ws.startsWith("https") ? "wss" : "ws";
+    const wsHost = CONFIG.ws.replace(/^https?:\/\//, "");
     const wsUrl = `${wsProtocol}://${wsHost}/ws/team/${selectedTeam.team_id}`;
 
     // logs("[TeamWS] Connecting to:", wsUrl);
