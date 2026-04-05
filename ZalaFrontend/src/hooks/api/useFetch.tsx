@@ -34,7 +34,11 @@ export const useFetch = () => {
     body: unknown,
     { signal, isFormData }: RequestOptions = {},
   ): Promise<APIResponse<T>> => {
-    const url = CONFIG.api + apiEndpoint;
+    // Ensure trailing slash on path (before query string) to avoid FastAPI 307 redirects
+    const [path, query] = apiEndpoint.split("?");
+    const normalizedPath = path.endsWith("/") ? path : path + "/";
+    const normalizedEndpoint = query ? `${normalizedPath}?${query}` : normalizedPath;
+    const url = CONFIG.api + normalizedEndpoint;
     const abortSignal = signal ?? new AbortController().signal;
 
     try {
