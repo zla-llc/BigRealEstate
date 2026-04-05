@@ -31,7 +31,7 @@ export const useNotificationBell = () => {
   const hasFetchedNotifications = useRef(false);
   const wsConnected = useRef(false);
   const isProduction = CONFIG.env === "production";
-  const POLL_INTERVAL = 2_000; // 2 seconds
+  const POLL_INTERVAL = 1000; // 1 seconds
 
   // Constants
   const PREVIEW_COUNT = 3;
