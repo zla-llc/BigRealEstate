@@ -1,0 +1,26 @@
+version: 1
+applications:
+  - appRoot: ZalaFrontend
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci --legacy-peer-deps
+        build:
+          commands:
+            - echo "VITE_API_URL=$VITE_API_URL" > .env.local
+            - echo "VITE_ENV=$VITE_ENV" >> .env.local
+            - echo "VITE_WS_URL=$VITE_WS_URL" >> .env.local
+            - echo "VITE_GOOGLE_MAPS_KEY=$VITE_GOOGLE_MAPS_KEY" >> .env.local
+            - echo "VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID" >> .env.local
+            - echo "VITE_GOOGLE_REDIRECT_URI=$VITE_GOOGLE_REDIRECT_URI" >> .env.local
+            - echo "VITE_GOOGLE_SCOPES=$VITE_GOOGLE_SCOPES" >> .env.local
+            - cat .env.local
+            - npm run build
+      artifacts:
+        baseDirectory: dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
