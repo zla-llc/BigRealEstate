@@ -11,7 +11,7 @@ export const useContactApi = (props: APIHookProps) => {
   const { post, put, del } = useFetch();
 
   const createContact = async (body: CreateContactProps) => {
-    return await post<AContact>(`/api/contacts`, body, {
+    return await post<AContact>(`/api/contacts/`, body, {
       isFormData: false,
       signal: getSignal("createContact"),
     });
