@@ -20,4 +20,4 @@ export const IMAGES = {
   ZalaTabLogo,
 };
 
-export const IMAGES_ARR = Object.values(IMAGES);
+export const IMAGES_ARR = Object.values(IMAGES).slice(0, 4);
