@@ -81,7 +81,9 @@ resource "aws_lambda_function" "proxy_handler" {
     }
   }
 
-  depends_on = [ aws_eip.backend_ip, aws_cloudwatch_log_group.lambda_log_group ]
+  depends_on = [ aws_eip.backend_ip
+  # aws_cloudwatch_log_group.lambda_log_group
+  ]
 }
 
 #  Create API Gateway
