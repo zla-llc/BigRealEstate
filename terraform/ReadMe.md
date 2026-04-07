@@ -87,10 +87,10 @@ Feel free to expand each section with screenshots, URLs, or any organization‑s
 
 The project provides two helper scripts to install the required tools.
 
-| Platform                     | Script            | Run steps                                         |
-| ---------------------------- | ----------------- | ------------------------------------------------- |
-| **macOS**                    | `brew_install.sh` | `chmod +x brew_install.sh`<br>`./brew_install.sh` |
-| **Windows** (Git‑Bash / WSL) | `yum_install.sh`  | `chmod +x yum_install.sh`<br>`./yum_install.sh`   |
+| Platform                     | Script            | Run steps                                       |
+| ---------------------------- | ----------------- | ----------------------------------------------- |
+| **macOS**                    | `brew_install.sh` | `chmod +x brew_install.sh && ./brew_install.sh` |
+| **Windows** (Git‑Bash / WSL) | `yum_install.sh`  | `chmod +x yum_install.sh; ./yum_install.sh`     |
 
 The `chmod +x` command makes the script executable; it must be executed **once** before the first run.
 
