@@ -30,7 +30,7 @@ export const useNotificationBell = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const hasFetchedNotifications = useRef(false);
   const wsConnected = useRef(false);
-  const isProduction = CONFIG.env === "production";
+  const isProduction = CONFIG.env === "PRODUCTION";
   const POLL_INTERVAL = 1000; // 1 seconds
 
   // Constants

@@ -138,7 +138,7 @@ export const useTeamInvitePage = () => {
   }, [selectedTeam?.team_id]);
 
   // Production: poll for team updates | Dev: use WebSocket
-  const isProduction = CONFIG.env === "production";
+  const isProduction = CONFIG.env === "PRODUCTION";
   const POLL_INTERVAL = 1000; // 1 seconds
 
   useEffect(() => {
