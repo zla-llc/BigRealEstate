@@ -115,7 +115,11 @@ export const useTeamInvitePage = () => {
     if (!user) return;
     setLoadingAnnouncements(true);
     const response = await api.getTeamAnnouncements(teamId, user.userId);
-    if (response.data) {
+    if (response.data && Array.isArray(response.data)) {
+      console.log();
+      console.log(`Load Announcment:`);
+      console.log(response.data);
+      console.log(``);
       setAnnouncements(response.data);
     }
     setLoadingAnnouncements(false);

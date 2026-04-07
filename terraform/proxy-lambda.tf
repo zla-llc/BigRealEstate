@@ -107,7 +107,7 @@ resource "aws_api_gateway_resource" "api_parent_resource" {
 
 resource "aws_api_gateway_resource" "proxy_path" {
   parent_id   = aws_api_gateway_resource.api_parent_resource.id
-  path_part   = "{forwardPath}"
+  path_part   = "{forwardPath+}"
   rest_api_id = aws_api_gateway_rest_api.api.id
 }
 
