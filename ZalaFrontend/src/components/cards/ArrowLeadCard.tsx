@@ -42,7 +42,7 @@ export const ArrowLeadCard = ({
       <div className="w-[25%]">
         <img
           className="w-full h-full rounded-[15px]"
-          src={IMAGES_ARR[i % IMAGES_ARR.length]}
+          src={IMAGES_ARR[i % 4]}
         />
       </div>
 
