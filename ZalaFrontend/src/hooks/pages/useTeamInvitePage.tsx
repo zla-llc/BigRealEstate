@@ -103,7 +103,7 @@ export const useTeamInvitePage = () => {
     );
     if (!isAdmin) return;
     const response = await api.getTeamInvitations(teamId, user.userId);
-    if (response.data) {
+    if (response.data && Array.isArray(response.data)) {
       setInvitations(
         response.data.filter((invite: ITeamInvitation) => !invite.status),
       );
