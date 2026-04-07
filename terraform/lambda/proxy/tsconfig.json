@@ -6,6 +6,9 @@
     /* Modules */
     "module": "commonjs" /* Specify what module code is generated. */,
 
+    /* Fixes error with process.env */
+    "types": ["node"],
+
     /* Emit */
     // "rootDir": "./src",
     "outDir": "./dist" /* Specify an output folder for all emitted files. */,

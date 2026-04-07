@@ -3,7 +3,6 @@ import {
   APIGatewayProxyEvent,
   APIGatewayProxyResult,
 } from "aws-lambda";
-import { constants } from "buffer";
 
 const _importDynamic = new Function("modulePath", "return import(modulePath)");
 
@@ -31,22 +30,8 @@ export const handler: Handler = async (event: APIGatewayProxyEvent) => {
   };
   const paramKeys = Object.keys(params);
 
-  // console.log(`<-- Incoming: -->`);
-  // console.log(event.path);
-  // // console.log(event.pathParameters);
-  // console.log(event.queryStringParameters);
-  // console.log(`<-- End Incoming -->`);
-  console.log(`<--- --- -->`);
-  console.log(`Proxy: ${event.path}`);
-  console.log(
-    `Params: ${JSON.stringify(event.queryStringParameters, null, 2)}`,
-  );
-
   try {
     const url = `${process.env.API_URL}/${forwardPath.split("__").join("/")}${paramKeys.length > 0 ? `?${paramKeys.map((key, i, arr) => `${key}=${params[key]}${arr.length - 1 > i ? "&" : ""}`).join("")}` : ""}`;
-
-    console.log(`Forward to: ${url}`);
-    console.log(`Method: ${method}`);
 
     const apiResponse = await fetch(url, {
       method,
@@ -56,35 +41,30 @@ export const handler: Handler = async (event: APIGatewayProxyEvent) => {
         "Content-Type": "application/json",
       },
     });
-    // console.log(`Response:`);
-    // console.log(apiResponse);
-    // console.log(``);
 
     if (apiResponse.status === 204) {
-      console.log(`<--- --- -->`);
       return response;
     }
 
     const json = await apiResponse.json();
-    // console.log(`Response Json:`);
-    // console.log(json);
-    // console.log(``);
-    // console.log(`Forward Response: ${JSON.stringify(json, null, 2)}`);
-    console.log(`<--- --- -->`);
 
     if (json && typeof json === "object") response.body = JSON.stringify(json);
     return response;
   } catch (err: unknown) {
-    console.log(`Typescript Error:`);
+    console.log(`<--- --- --->`);
+    console.log(`Unexpected Typescript Error:`);
     response.statusCode = 500;
     response.body = JSON.stringify({
       success: false,
-      error: `Unkown error: ${err}`,
+      error: `Unkown Error: ${err}`,
     });
-    if (!(err instanceof Error)) return response;
+    if (!(err instanceof Error)) {
+      console.log(`<--- --- --->`);
+      return response;
+    }
     response.body = JSON.stringify({ success: false, error: err.message });
     console.log(err.message);
-    console.log("");
+    console.log(`<--- --- --->`);
   }
 
   return response;
