@@ -1,4 +1,4 @@
-import { CONFIG } from "../../config";
+import { CONFIG, ConfigEnv } from "../../config";
 import type { APIResponse } from "./types";
 
 const OK_STATUS_CODES = [200, 201, 202, 204];
@@ -34,7 +34,7 @@ export const useFetch = () => {
     body: unknown,
     { signal, isFormData }: RequestOptions = {},
   ): Promise<APIResponse<T>> => {
-    const isProduction = CONFIG.env === "PRODUCTION";
+    const isProduction = CONFIG.env === ConfigEnv.Production;
     const separator = "__";
     const url = isProduction
       ? CONFIG.proxyApi +

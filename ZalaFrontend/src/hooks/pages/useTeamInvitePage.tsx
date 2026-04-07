@@ -7,7 +7,7 @@ import {
   useEditingFormStore,
   useTeamsStore,
 } from "../../stores";
-import { CONFIG } from "../../config";
+import { CONFIG, ConfigEnv } from "../../config";
 import type {
   ITeam,
   ITeamInvitation,
@@ -138,8 +138,8 @@ export const useTeamInvitePage = () => {
   }, [selectedTeam?.team_id]);
 
   // Production: poll for team updates | Dev: use WebSocket
-  const isProduction = CONFIG.env === "PRODUCTION";
-  const POLL_INTERVAL = 5000; // 5 seconds
+  const isProduction = CONFIG.env === ConfigEnv.Production;
+  const POLL_INTERVAL = CONFIG.polling.interval;
 
   useEffect(() => {
     if (!selectedTeam || !user) return;
