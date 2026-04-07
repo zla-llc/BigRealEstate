@@ -157,7 +157,7 @@ resource "aws_instance" "backend_server" {
     # Google Cloud & OAuth
     GOOGLE_API_KEY=${var.google_api_key}
     GOOGLE_TOKEN_ENCRYPTION_KEY=${var.google_token_encryption_key}
-    GOOGLE_CLIENT_ID=${var.google_client_id}
+    GOOGLE_CLIENT_ID=${var.google_oauth_client_id}
     GOOGLE_CLIENT_SECRET=${var.google_client_secret}
     GOOGLE_REDIRECT_URI=postmessage
     VITE_GOOGLE_REDIRECT_URI=postmessage

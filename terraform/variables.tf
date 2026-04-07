@@ -55,33 +55,18 @@ variable "backend_policy" {
   description = "Default Backend Policy For Amplify"
 }
 
-variable "react_api_url" {
-  type        = string
-  description = "Url for the application to reach out to backend services"
-  default = "https://127.0.0.1:8000"
-}
-
-variable "google_maps_key" {
-  type        = string
-  description = "Google API key to give application access to google maps features"
-  default = ""
-}
-
-variable "google_client_id" {
-  type = string
-  description = "TODO Explain Better? - Google Client ID used for application's google services"
-  default = ""
-}
-
-variable "db_password" {
-  type      = string
-  sensitive = true
-}
-
 variable "google_api_key" {
   type      = string
+  description = "Google API key to give application access to google maps features"
   sensitive = true
 }
+
+variable "google_oauth_client_id" {
+  type = string
+  description = "The Client ID that connects the application to Googles OAuth provider"
+  default = ""
+}
+
 
 variable "google_token_encryption_key" {
   type      = string
@@ -89,6 +74,11 @@ variable "google_token_encryption_key" {
 }
 
 variable "google_client_secret" {
+  type      = string
+  sensitive = true
+}
+
+variable "db_password" {
   type      = string
   sensitive = true
 }

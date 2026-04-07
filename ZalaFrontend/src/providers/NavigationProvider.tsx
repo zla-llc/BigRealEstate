@@ -1,7 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from "react-router";
 import { RootLayout } from "../layouts";
 import { useAuthStore } from "../stores";
-import SignupPage from "../pages/Auth/Signup/SignupPage";
 import KanbanBoardPage from "../pages/Boards/KanbanBoardPage";
 import NotFoundPage from "../pages/NotFound/NotFoundPage";
 import TestEmailPage from "../pages/TestEmail/TestEmailPage";
@@ -16,6 +15,7 @@ import {
   SMTPTestPage,
   CampaignEmailDemoPage,
   LoginPage,
+  SignupPage,
 } from "../pages";
 import { NavigationPath } from "./types";
 
