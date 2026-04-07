@@ -33,7 +33,7 @@ variable "app_root" {
 variable "branch_name" {
   type        = string
   description = "AWS Amplify App Repo Branch Name"
-  default     = "terraform-amplify-update"
+  default     = "main"
 }
 
 
@@ -53,6 +53,18 @@ variable "backend_policy" {
   type        = string
   default     = "arn:aws:iam::aws:policy/service-role/AmplifyBackendDeployFullAccess"
   description = "Default Backend Policy For Amplify"
+}
+
+variable "lambda_exec_policy" {
+  type        = string
+  default     = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  description = "Default Execution Policy For Lambda"
+}
+
+variable "cloudwatch_exec_policy" {
+  type = string
+  default = "arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy"
+  description = "Default Logging Policy For Lambda"
 }
 
 variable "google_api_key" {

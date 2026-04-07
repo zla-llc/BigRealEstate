@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "build": "npx tsc",
+    "postbuild": "cp package*.json dist && cd dist && npm i --omit=dev"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.149",
+    "@types/node": "^22.19.17",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@types/node-fetch": "^2.6.13",
+    "node-fetch": "^3.3.2"
+  }
+}
