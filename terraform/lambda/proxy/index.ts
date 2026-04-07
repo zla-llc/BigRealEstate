@@ -19,24 +19,34 @@ export const handler: Handler = async (event: APIGatewayProxyEvent) => {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
     },
-    body: `${JSON.stringify({ success: true })}`,
+    body: ``,
   };
 
   const method = event.httpMethod;
   const forwardPath =
     (event.pathParameters?.forwardPath as string | undefined) || "";
   const bodyJson = event.body;
+  const params = (event.queryStringParameters || {}) as {
+    [key: string]: string;
+  };
+  const paramKeys = Object.keys(params);
+
+  // console.log(`<-- Incoming: -->`);
+  // console.log(event.path);
+  // // console.log(event.pathParameters);
+  // console.log(event.queryStringParameters);
+  // console.log(`<-- End Incoming -->`);
+  console.log(`<--- --- -->`);
+  console.log(`Proxy: ${event.path}`);
+  console.log(
+    `Params: ${JSON.stringify(event.queryStringParameters, null, 2)}`,
+  );
 
   try {
-    const url = `${process.env.API_URL}/${forwardPath.split("__").join("/")}`;
+    const url = `${process.env.API_URL}/${forwardPath.split("__").join("/")}${paramKeys.length > 0 ? `?${paramKeys.map((key, i, arr) => `${key}=${params[key]}${arr.length - 1 > i ? "&" : ""}`).join("")}` : ""}`;
 
-    // console.log(`Request To:`);
-    // console.log(url);
-    // console.log(`Method:`);
-    // console.log(method);
-    // console.log(`Body:`);
-    // console.log(bodyJson);
-    // console.log(``);
+    console.log(`Forward to: ${url}`);
+    console.log(`Method: ${method}`);
 
     const apiResponse = await fetch(url, {
       method,
@@ -50,12 +60,17 @@ export const handler: Handler = async (event: APIGatewayProxyEvent) => {
     // console.log(apiResponse);
     // console.log(``);
 
-    if (apiResponse.status === 204) return response;
+    if (apiResponse.status === 204) {
+      console.log(`<--- --- -->`);
+      return response;
+    }
 
     const json = await apiResponse.json();
     // console.log(`Response Json:`);
     // console.log(json);
     // console.log(``);
+    // console.log(`Forward Response: ${JSON.stringify(json, null, 2)}`);
+    console.log(`<--- --- -->`);
 
     if (json && typeof json === "object") response.body = JSON.stringify(json);
     return response;

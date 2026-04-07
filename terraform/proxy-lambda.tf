@@ -60,9 +60,9 @@ resource "aws_iam_role_policy_attachment" "logging_policy" {
 resource "aws_cloudwatch_log_group" "lambda_log_group" {
   name              = "/aws/lambda/ZLAProxyHandler"
   retention_in_days = 1
-  lifecycle {
-    prevent_destroy = false
-  }
+  # lifecycle {
+  #   prevent_destroy = false
+  # }
 }
 
 # # Connect Lambda
@@ -120,33 +120,33 @@ resource "aws_api_gateway_method" "cors_method" {
   rest_api_id   = aws_api_gateway_rest_api.api.id
 }
 
-resource "aws_api_gateway_method" "get_method" {
+resource "aws_api_gateway_method" "any_method" {
   authorization = "NONE"
-  http_method   = "GET"
+  http_method   = "ANY"
   resource_id   = aws_api_gateway_resource.proxy_path.id
   rest_api_id   = aws_api_gateway_rest_api.api.id
 }
 
-resource "aws_api_gateway_method" "post_method" {
-  authorization = "NONE"
-  http_method   = "POST"
-  resource_id   = aws_api_gateway_resource.proxy_path.id
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-}
+# resource "aws_api_gateway_method" "post_method" {
+#   authorization = "NONE"
+#   http_method   = "POST"
+#   resource_id   = aws_api_gateway_resource.proxy_path.id
+#   rest_api_id   = aws_api_gateway_rest_api.api.id
+# }
 
-resource "aws_api_gateway_method" "put_method" {
-  authorization = "NONE"
-  http_method   = "PUT"
-  resource_id   = aws_api_gateway_resource.proxy_path.id
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-}
+# resource "aws_api_gateway_method" "put_method" {
+#   authorization = "NONE"
+#   http_method   = "PUT"
+#   resource_id   = aws_api_gateway_resource.proxy_path.id
+#   rest_api_id   = aws_api_gateway_rest_api.api.id
+# }
 
-resource "aws_api_gateway_method" "delete_method" {
-  authorization = "NONE"
-  http_method   = "DELETE"
-  resource_id   = aws_api_gateway_resource.proxy_path.id
-  rest_api_id   = aws_api_gateway_rest_api.api.id
-}
+# resource "aws_api_gateway_method" "delete_method" {
+#   authorization = "NONE"
+#   http_method   = "DELETE"
+#   resource_id   = aws_api_gateway_resource.proxy_path.id
+#   rest_api_id   = aws_api_gateway_rest_api.api.id
+# }
 
 # Create method integrations
 
@@ -167,8 +167,20 @@ resource "aws_api_gateway_integration" "cors_integration" {
   depends_on = [aws_api_gateway_method.cors_method]
 }
 
-resource "aws_api_gateway_integration" "get_integration" {
-  http_method = aws_api_gateway_method.get_method.http_method
+# resource "aws_api_gateway_integration" "get_integration" {
+#   http_method = aws_api_gateway_method.get_method.http_method
+#   resource_id = aws_api_gateway_resource.proxy_path.id
+#   rest_api_id = aws_api_gateway_rest_api.api.id
+
+#   type                    = "AWS_PROXY"
+#   integration_http_method = "POST"
+#   uri                     = aws_lambda_function.proxy_handler.invoke_arn
+
+#   depends_on = [aws_lambda_function.proxy_handler]
+# }
+
+resource "aws_api_gateway_integration" "any_method_integration" {
+  http_method = aws_api_gateway_method.any_method.http_method
   resource_id = aws_api_gateway_resource.proxy_path.id
   rest_api_id = aws_api_gateway_rest_api.api.id
 
@@ -179,41 +191,29 @@ resource "aws_api_gateway_integration" "get_integration" {
   depends_on = [aws_lambda_function.proxy_handler]
 }
 
-resource "aws_api_gateway_integration" "post_integration" {
-  http_method = aws_api_gateway_method.post_method.http_method
-  resource_id = aws_api_gateway_resource.proxy_path.id
-  rest_api_id = aws_api_gateway_rest_api.api.id
+# resource "aws_api_gateway_integration" "put_integration" {
+#   http_method = aws_api_gateway_method.put_method.http_method
+#   resource_id = aws_api_gateway_resource.proxy_path.id
+#   rest_api_id = aws_api_gateway_rest_api.api.id
 
-  type                    = "AWS_PROXY"
-  integration_http_method = "POST"
-  uri                     = aws_lambda_function.proxy_handler.invoke_arn
+#   type                    = "AWS_PROXY"
+#   integration_http_method = "POST"
+#   uri                     = aws_lambda_function.proxy_handler.invoke_arn
 
-  depends_on = [aws_lambda_function.proxy_handler]
-}
+#   depends_on = [aws_lambda_function.proxy_handler]
+# }
 
-resource "aws_api_gateway_integration" "put_integration" {
-  http_method = aws_api_gateway_method.put_method.http_method
-  resource_id = aws_api_gateway_resource.proxy_path.id
-  rest_api_id = aws_api_gateway_rest_api.api.id
+# resource "aws_api_gateway_integration" "delete_integration" {
+#   http_method = aws_api_gateway_method.delete_method.http_method
+#   resource_id = aws_api_gateway_resource.proxy_path.id
+#   rest_api_id = aws_api_gateway_rest_api.api.id
 
-  type                    = "AWS_PROXY"
-  integration_http_method = "POST"
-  uri                     = aws_lambda_function.proxy_handler.invoke_arn
+#   type                    = "AWS_PROXY"
+#   integration_http_method = "POST"
+#   uri                     = aws_lambda_function.proxy_handler.invoke_arn
 
-  depends_on = [aws_lambda_function.proxy_handler]
-}
-
-resource "aws_api_gateway_integration" "delete_integration" {
-  http_method = aws_api_gateway_method.delete_method.http_method
-  resource_id = aws_api_gateway_resource.proxy_path.id
-  rest_api_id = aws_api_gateway_rest_api.api.id
-
-  type                    = "AWS_PROXY"
-  integration_http_method = "POST"
-  uri                     = aws_lambda_function.proxy_handler.invoke_arn
-
-  depends_on = [aws_lambda_function.proxy_handler]
-}
+#   depends_on = [aws_lambda_function.proxy_handler]
+# }
 
 # Create response for CORS methods
 
@@ -262,20 +262,20 @@ resource "aws_api_gateway_deployment" "api_deployment" {
       aws_api_gateway_resource.proxy_path.id,
 
       # Get
-      aws_api_gateway_method.get_method.id,
-      aws_api_gateway_integration.get_integration.id,
+      aws_api_gateway_method.any_method.id,
+      aws_api_gateway_integration.any_method_integration.id,
 
       # Post
-      aws_api_gateway_method.post_method.id,
-      aws_api_gateway_integration.post_integration.id,
+      # aws_api_gateway_method.post_method.id,
+      # aws_api_gateway_integration.post_integration.id,
 
-      # # Put
-      aws_api_gateway_method.put_method.id,
-      aws_api_gateway_integration.put_integration.id,
+      # # # Put
+      # aws_api_gateway_method.put_method.id,
+      # aws_api_gateway_integration.put_integration.id,
 
-      # # Delete
-      aws_api_gateway_method.delete_method.id,
-      aws_api_gateway_integration.delete_integration.id
+      # # # Delete
+      # aws_api_gateway_method.delete_method.id,
+      # aws_api_gateway_integration.delete_integration.id
     ]))
   }
 
@@ -283,7 +283,8 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     create_before_destroy = true
   }
 
-  depends_on = [aws_api_gateway_integration.get_integration,aws_api_gateway_integration.post_integration, aws_api_gateway_integration.put_integration, aws_api_gateway_integration.delete_integration]
+  # depends_on = [aws_api_gateway_integration.get_integration,aws_api_gateway_integration.post_integration, aws_api_gateway_integration.put_integration, aws_api_gateway_integration.delete_integration]
+  depends_on = [aws_api_gateway_integration.any_method_integration]
 }
 
 resource "aws_api_gateway_stage" "api_stage" {

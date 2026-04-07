@@ -205,5 +205,6 @@ resource "aws_eip" "backend_ip" {
 
 # Output a clickable link to test the live API
 output "API_URL" {
-  value = "http://${aws_eip.backend_ip.public_ip}:8000/api"
+  value = "http://${aws_eip.backend_ip.public_ip}:8000"
+  # value = "http://${aws_eip.backend_ip.public_ip}:8000/api"
 }

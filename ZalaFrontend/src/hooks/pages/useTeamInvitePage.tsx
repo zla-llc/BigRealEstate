@@ -116,10 +116,6 @@ export const useTeamInvitePage = () => {
     setLoadingAnnouncements(true);
     const response = await api.getTeamAnnouncements(teamId, user.userId);
     if (response.data && Array.isArray(response.data)) {
-      console.log();
-      console.log(`Load Announcment:`);
-      console.log(response.data);
-      console.log(``);
       setAnnouncements(response.data);
     }
     setLoadingAnnouncements(false);
@@ -143,7 +139,7 @@ export const useTeamInvitePage = () => {
 
   // Production: poll for team updates | Dev: use WebSocket
   const isProduction = CONFIG.env === "PRODUCTION";
-  const POLL_INTERVAL = 1000; // 1 seconds
+  const POLL_INTERVAL = 5000; // 5 seconds
 
   useEffect(() => {
     if (!selectedTeam || !user) return;
