@@ -96,7 +96,7 @@ resource "null_resource" "trigger_amplify_deployment" {
   # The command to be ran
   provisioner "local-exec" {
     command = "aws amplify start-job --app-id ${aws_amplify_app.amplify_app.id} --branch-name ${aws_amplify_branch.dev_branch.branch_name} --job-type RELEASE"
-    interpreter = ["PowerShell", "-c" ]
+    interpreter = [locals.os == "Windows" ? "PowerShell" : "bash", "-c" ]
   }
 }
 

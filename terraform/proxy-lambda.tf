@@ -11,7 +11,7 @@ resource "terraform_data" "bootstrap" {
   provisioner "local-exec" {
     command     = "npm run build"
     working_dir = "${path.module}/lambda/proxy"
-    interpreter = ["PowerShell", "-c" ]
+    interpreter = [locals.os == "Windows" ? "PowerShell" : "bash", "-c" ]
   }
 }
 
