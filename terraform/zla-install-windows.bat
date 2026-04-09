@@ -8,14 +8,19 @@ winget install -e --id Hashicorp.Terraform
 
 @REM Setup Project files
 git clone https://github.com/zla-llc/BigRealEstate.git
-git checkout script-handoff @REM TODO Remove
 copy .\variables.tfvars .\BigRealEstate\terraform\variables.tfvars
 
-@REM Move into project and kickoff install script
+@REM Move into project 
 cd .\BigRealEstate\terraform
+
+@REM Kickoff project
 aws configure
 terraform init
 terraform apply --auto-approve -var-file="variables.tfvars"
 
 @REM Move back to original dir
 cd ..\..\
+
+@REM Make zla commands available
+copy .\BigRealEstate\terraform\zla-start.bat .\zla-start.bat
+copy .\BigRealEstate\terraform\zla-stop.bat .\zla-stop.bat
