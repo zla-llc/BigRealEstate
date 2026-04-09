@@ -11,6 +11,7 @@ resource "terraform_data" "bootstrap" {
   provisioner "local-exec" {
     command     = "npm install; npm run build"
     working_dir = "${path.module}/lambda/proxy"
+    interpreter = ["bash", "-c" ]
   }
 }
 
