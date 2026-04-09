@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "npx run-script-os",
+    "build": "(npm install || true) && run-script-os",
     "build:macos:linux": "npm install --omit=dev && npx tsc",
     "build:default": "npm install --omit=dev ; npx tsc",
     "postbuild": "npx run-script-os",
