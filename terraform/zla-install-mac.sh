@@ -10,15 +10,18 @@ brew install hashicorp/tap/terraform
 
 # Setup project files
 git clone https://github.com/zla-llc/BigRealEstate.git
-git checkout script-handoff # TODO Remove
 cp ./variables.tfvars ./BigRealEstate/terraform/variables.tfvars
 
-# Move into project and kickoff install script
+# Move into project
 cd ./BigRealEstate/terraform
+
+# Kickoff project
 aws configure
 terraform init
 terraform apply --auto-approve -var-file="variables.tfvars"
 
-# Make commands available and move back to original dir
+# Make zla commands available
 source ./zla-mac.sh
+
+# Move back to original dir
 cd ../../
