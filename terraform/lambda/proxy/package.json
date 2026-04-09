@@ -1,9 +1,7 @@
 {
   "scripts": {
-    "build": "(npm install || true) && run-script-os",
-    "build:macos:linux": "npm install --omit=dev && npx tsc",
-    "build:default": "npm install --omit=dev ; npx tsc",
-    "postbuild": "npx run-script-os",
+    "build": "(npm install || true) && npx tsc",
+    "postbuild": "run-script-os",
     "postbuild:macos:linux": "cp package*.json dist && cd dist && npm i --omit=dev",
     "postbuild:default": "copy package*.json dist ; cd dist ; npm i --omit=dev"
   },
