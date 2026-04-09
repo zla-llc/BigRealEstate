@@ -3,7 +3,7 @@
     "build": "(npm install || true) && npx tsc",
     "postbuild": "run-script-os",
     "postbuild:macos:linux": "cp package*.json dist && cd dist && npm i --omit=dev",
-    "postbuild:default": "copy package*.json dist ; cd dist ; npm i --omit=dev"
+    "postbuild:default": "(copy package*.json dist || true) && (cd dist || true) && npm i --omit=dev"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.149",
