@@ -16,6 +16,7 @@ import {
   CampaignEmailDemoPage,
   LoginPage,
   SignupPage,
+  AdminPage,
 } from "../pages";
 import { NavigationPath } from "./types";
 
@@ -44,6 +45,8 @@ export const NavigationProvider = () => {
             path={NavigationPath.SignUp}
             element={user ? <NavToDashboard /> : <SignupPage />}
           />
+
+          <Route path={NavigationPath.Admin} element={<AdminPage />} />
 
           {!user && (
             <Route path={NavigationPath.All} element={<NavToLogin />} />

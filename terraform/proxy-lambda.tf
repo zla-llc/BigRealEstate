@@ -205,6 +205,12 @@ resource "aws_api_gateway_deployment" "api_deployment" {
       aws_api_gateway_resource.proxy_path.id,
       aws_api_gateway_method.any_method.id,
       aws_api_gateway_integration.any_method_integration.id,
+      aws_api_gateway_resource.ec2_control_parent.id,
+      aws_api_gateway_resource.ec2_control_action.id,
+      aws_api_gateway_method.ec2_control_post.id,
+      aws_api_gateway_integration.ec2_control_post_integration.id,
+      aws_api_gateway_method.ec2_control_get.id,
+      aws_api_gateway_integration.ec2_control_get_integration.id,
     ]))
   }
 
@@ -212,7 +218,11 @@ resource "aws_api_gateway_deployment" "api_deployment" {
     create_before_destroy = true
   }
 
-  depends_on = [aws_api_gateway_integration.any_method_integration]
+  depends_on = [
+    aws_api_gateway_integration.any_method_integration,
+    aws_api_gateway_integration.ec2_control_post_integration,
+    aws_api_gateway_integration.ec2_control_get_integration,
+  ]
 }
 
 resource "aws_api_gateway_stage" "api_stage" {
