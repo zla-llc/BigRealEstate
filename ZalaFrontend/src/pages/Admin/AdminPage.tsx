@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { CONFIG } from "../../config";
 
 type EC2Status =
   | "running"
