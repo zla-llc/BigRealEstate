@@ -36,6 +36,7 @@ export const NavigationProvider = () => {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
+        <Route path={NavigationPath.Admin} element={<AdminPage />} />
         <Route element={<RootLayout />}>
           <Route
             path={NavigationPath.Login}
@@ -45,8 +46,6 @@ export const NavigationProvider = () => {
             path={NavigationPath.SignUp}
             element={user ? <NavToDashboard /> : <SignupPage />}
           />
-
-          <Route path={NavigationPath.Admin} element={<AdminPage />} />
 
           {!user && (
             <Route path={NavigationPath.All} element={<NavToLogin />} />
