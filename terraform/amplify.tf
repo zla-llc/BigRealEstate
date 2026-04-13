@@ -58,6 +58,10 @@ resource "aws_amplify_app" "amplify_app" {
     VITE_GOOGLE_REDIRECT_URI     = "postmessage"
     VITE_GOOGLE_SCOPES     = "openid email profile https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.settings.basic"
 
+    VITE_ADMIN_USERNAME    = var.admin_dashboard_username
+    VITE_ADMIN_PASSWORD    = var.admin_dashboard_password
+    VITE_EC2_CONTROL_URL   = "${aws_api_gateway_deployment.api_deployment.invoke_url}${aws_api_gateway_stage.api_stage.stage_name}/ec2"
+
   }
 
   custom_rule {

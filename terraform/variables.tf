@@ -119,3 +119,15 @@ variable "smtp_password" {
   type      = string
   sensitive = true
 }
+
+variable "admin_dashboard_username" {
+  type        = string
+  description = "Username for the frontend AWS admin dashboard"
+  default     = "admin"
+}
+
+variable "admin_dashboard_password" {
+  type        = string
+  description = "Password for the frontend AWS admin dashboard"
+  sensitive   = true
+}

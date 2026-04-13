@@ -2,15 +2,6 @@ resource "aws_security_group" "zla_test" {
   name        = "zla_test"
   description = "Security group for backend EC2"
 
-  # SSH
-  ingress {
-    description = "SSH from my IP"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["168.92.252.37/32"]
-  }
-
   # basic https
   ingress {
     description = "HTTP"
@@ -125,6 +116,7 @@ resource "aws_instance" "backend_server" {
     services:
       api:
         build: .
+        restart: always
         ports:
           - "8000:8000"
         depends_on:
@@ -133,6 +125,7 @@ resource "aws_instance" "backend_server" {
           - .env
       db:
         image: postgres:15
+        restart: always
         environment:
           POSTGRES_USER: postgresadmin
           POSTGRES_PASSWORD: ${var.db_password}

@@ -16,6 +16,7 @@ import {
   CampaignEmailDemoPage,
   LoginPage,
   SignupPage,
+  AdminPage,
 } from "../pages";
 import { NavigationPath } from "./types";
 
@@ -35,6 +36,7 @@ export const NavigationProvider = () => {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
+        <Route path={NavigationPath.Admin} element={<AdminPage />} />
         <Route element={<RootLayout />}>
           <Route
             path={NavigationPath.Login}
