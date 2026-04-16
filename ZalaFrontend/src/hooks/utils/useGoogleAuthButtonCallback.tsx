@@ -13,15 +13,13 @@ export const useGoogleAuthButtonCallback = ({
   const loginUser = useAuthUser();
   const [successMsg, errorMsg] = useSnack();
   const callback = ({ error, user }: UseGoogleAuthButtonCallbackProps) => {
-    if (error) {
-      errorMsg(error);
-    }
-
-    if (user) {
+    if (user?.userId) {
       successMsg(onMsg(user));
       loginUser(user);
-      onSuccess();
+      return onSuccess();
     }
+
+    errorMsg(error || "Google authentication failed - please try again");
   };
   return callback;
 };

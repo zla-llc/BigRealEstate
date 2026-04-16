@@ -70,9 +70,9 @@ resource "local_file" "private_key_pem" {
 
 # ec2
 resource "aws_instance" "backend_server" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro"
-  key_name      = aws_key_pair.generated_key.key_name
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t3.micro"
+  key_name               = aws_key_pair.generated_key.key_name
   vpc_security_group_ids = [aws_security_group.zla_test.id]
 
   # hdd size for docker
@@ -99,6 +99,8 @@ resource "aws_instance" "backend_server" {
     cd /home/ubuntu
     git clone https://${var.github_token}@github.com/zla-llc/BigRealEstate.git
     cd BigRealEstate/ZalaBackend
+    git checkout quick-fix-imgs
+    git pull
 
     # 4. generate the Dockerfile
     cat << 'DOCKERFILE' > Dockerfile
