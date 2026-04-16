@@ -27,13 +27,17 @@ def get_user_by_id(db: Session, user_id: int):
     Get a single user by their ID
     SELECT * FROM users WHERE user_id = {user_id}
     """
-    return db.query(User).options(
-        joinedload(User.contact),
-        joinedload(User.properties),
-        joinedload(User.google_credentials),
-        joinedload(User.authentication),
-    ).filter(
-        User.user_id == user_id).first()
+    return (
+        db.query(User)
+        .options(
+            joinedload(User.contact),
+            joinedload(User.properties),
+            joinedload(User.google_credentials),
+            joinedload(User.authentication),
+        )
+        .filter(User.user_id == user_id)
+        .first()
+    )
 
 
 def get_user_by_email(db: Session, email: str):
@@ -42,6 +46,7 @@ def get_user_by_email(db: Session, email: str):
     SELECT * FROM users JOIN contacts WHERE contact.email = {email}
     """
     from sqlalchemy import func
+
     return (
         db.query(User)
         .join(Contact)
@@ -115,7 +120,9 @@ def get_users_by_ids(db: Session, user_ids: Sequence[int]) -> List[User]:
     return [users_by_id[user_id] for user_id in user_ids if user_id in users_by_id]
 
 
-def get_user_by_provider(db: Session, provider: str, provider_subject: str) -> Optional[User]:
+def get_user_by_provider(
+    db: Session, provider: str, provider_subject: str
+) -> Optional[User]:
     """
     Look up a user by external auth provider identifier.
     """
@@ -154,7 +161,9 @@ def _generate_unique_username(db: Session, seed: Optional[str]) -> str:
     while get_user_by_username(db, candidate):
         suffix = str(counter)
         available_length = max(1, 15 - len(suffix))
-        candidate = f"{base_seed[:available_length]}{suffix}" if base_seed else f"user{suffix}"
+        candidate = (
+            f"{base_seed[:available_length]}{suffix}" if base_seed else f"user{suffix}"
+        )
         counter += 1
 
     return candidate
@@ -215,7 +224,9 @@ def _attach_google_identity_to_user(db: Session, db_user: User, profile: dict) -
 
 def _create_user_from_google_profile(db: Session, profile: dict) -> User:
     contact = _ensure_contact_for_google_profile(db, profile)
-    username_seed = profile.get("email") or profile.get("given_name") or profile.get("name")
+    username_seed = (
+        profile.get("email") or profile.get("given_name") or profile.get("name")
+    )
     username = _generate_unique_username(db, username_seed)
 
     db_user = User(
@@ -241,12 +252,14 @@ def _create_user_from_google_profile(db: Session, profile: dict) -> User:
 
     db.commit()
     db.refresh(db_user)
-    
+
     # Link any pending team invitations sent to this email
     email = profile.get("email")
     if email:
-        team_invitation_crud.link_pending_invitations_to_user(db, db_user.user_id, email)
-    
+        team_invitation_crud.link_pending_invitations_to_user(
+            db, db_user.user_id, email
+        )
+
     return db_user
 
 
@@ -289,7 +302,9 @@ def create_user(db: Session, user: schemas.UserCreate):
     if contact_id is not None and isinstance(contact_id, int) and contact_id <= 0:
         contact_id = None
     if contact_id:
-        existing_contact = db.query(Contact).filter(Contact.contact_id == contact_id).first()
+        existing_contact = (
+            db.query(Contact).filter(Contact.contact_id == contact_id).first()
+        )
         if not existing_contact:
             # Caller provided an invalid contact_id
             return None
@@ -429,8 +444,12 @@ def create_user_with_contact(db: Session, user: schemas.UserSignup) -> User:
 
     # Link any pending team invitations sent to this email
     if contact_in.email:
-        print(f"[Signup] Checking for pending invitations for email: {contact_in.email}")
-        linked = team_invitation_crud.link_pending_invitations_to_user(db, db_user.user_id, contact_in.email)
+        print(
+            f"[Signup] Checking for pending invitations for email: {contact_in.email}"
+        )
+        linked = team_invitation_crud.link_pending_invitations_to_user(
+            db, db_user.user_id, contact_in.email
+        )
         print(f"[Signup] Linked {len(linked)} invitations")
 
     return db_user
@@ -456,7 +475,9 @@ def link_contact_to_user(db: Session, user_id: int, contact_id: int) -> Optional
     return db_user
 
 
-def unlink_contact_from_user(db: Session, user_id: int, contact_id: int) -> Optional[User]:
+def unlink_contact_from_user(
+    db: Session, user_id: int, contact_id: int
+) -> Optional[User]:
     """Unlink (but do not delete) a Contact from a User. Returns None if user/contact missing, or the updated user."""
     db_user = db.query(User).filter(User.user_id == user_id).first()
     if not db_user:
@@ -488,7 +509,11 @@ def add_property_to_user(db: Session, user_id: int, property_id: int) -> Optiona
 
 def get_property_ids_for_user(db: Session, user_id: int):
     """Return list of property_ids linked to the user via association table."""
-    rows = db.query(user_properties.c.property_id).filter(user_properties.c.user_id == user_id).all()
+    rows = (
+        db.query(user_properties.c.property_id)
+        .filter(user_properties.c.user_id == user_id)
+        .all()
+    )
     return [r[0] for r in rows]
 
 
@@ -502,20 +527,31 @@ def get_properties_for_user(db: Session, user_id: int):
         db.query(Property)
         .join(user_properties, user_properties.c.property_id == Property.property_id)
         .filter(user_properties.c.user_id == user_id)
-        .options(joinedload(Property.address), joinedload(Property.units), joinedload(Property.users))
+        .options(
+            joinedload(Property.address),
+            joinedload(Property.units),
+            joinedload(Property.users),
+        )
         .all()
     )
 
 
 def get_contact_for_user(db: Session, user_id: int):
     """Return the Contact object associated with a user, or None."""
-    db_user = db.query(User).options(joinedload(User.contact)).filter(User.user_id == user_id).first()
+    db_user = (
+        db.query(User)
+        .options(joinedload(User.contact))
+        .filter(User.user_id == user_id)
+        .first()
+    )
     if not db_user:
         return None
     return db_user.contact
 
 
-def create_or_update_contact_for_user(db: Session, user_id: int, contact_in: schemas.ContactCreate):
+def create_or_update_contact_for_user(
+    db: Session, user_id: int, contact_in: schemas.ContactCreate
+):
     """Create a new Contact and link it to the user, or update existing contact for that user."""
     db_user = db.query(User).filter(User.user_id == user_id).first()
     if not db_user:
@@ -523,7 +559,9 @@ def create_or_update_contact_for_user(db: Session, user_id: int, contact_in: sch
 
     # If user already has a contact, update it
     if db_user.contact:
-        updated = contact_crud.update_contact(db, db_user.contact.contact_id, contact_in)
+        updated = contact_crud.update_contact(
+            db, db_user.contact.contact_id, contact_in
+        )
         return updated
 
     # Otherwise create a new contact and attach
@@ -553,7 +591,9 @@ def delete_contact_for_user(db: Session, user_id: int):
     return contact_crud.delete_contact(db, contact_id)
 
 
-def remove_property_from_user(db: Session, user_id: int, property_id: int) -> Optional[User]:
+def remove_property_from_user(
+    db: Session, user_id: int, property_id: int
+) -> Optional[User]:
     db_user = db.query(User).filter(User.user_id == user_id).first()
     if not db_user:
         return None
@@ -602,12 +642,19 @@ def delete_user(db: Session, user_id: int):
 
 def authenticate_user(db: Session, username: str, password: str) -> User | None:
 
-    db_user = get_user_by_username(db,username)
+    db_user = get_user_by_username(db, username)
+
+    if not db_user:
+        db_user = get_user_by_email(db, username)
 
     if not db_user:
         return None
 
-    db_auth = db.query(UserAuthentication).filter(UserAuthentication.user_id == db_user.user_id).first()
+    db_auth = (
+        db.query(UserAuthentication)
+        .filter(UserAuthentication.user_id == db_user.user_id)
+        .first()
+    )
 
     if not db_auth:
         return None

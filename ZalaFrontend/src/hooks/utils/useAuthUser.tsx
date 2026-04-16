@@ -35,6 +35,7 @@ export const useAuthUser = () => {
   };
 
   const authUser = async (user: IUser) => {
+    console.log(`User: `, user);
     removeCookie(CookieKeys.LoggedOut);
     setCookie(CookieKeys.UserId, user.userId.toString());
     setUser(user);

@@ -50,6 +50,7 @@ export const useFetch = () => {
       if (method !== "GET" && method !== "DELETE" && body != null) {
         if (isFormData) {
           if (body instanceof FormData) {
+            headers["Content-Type"] = "multipart/form-data";
             bodyToSend = body;
           } else {
             throw new Error("Form data body must be an instance of FormData");

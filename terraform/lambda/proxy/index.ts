@@ -21,24 +21,37 @@ export const handler: Handler = async (event: APIGatewayProxyEvent) => {
     body: ``,
   };
 
+  const contentType =
+    event.headers["content-type"] || event.headers["Content-Type"];
   const method = event.httpMethod;
   const forwardPath =
     (event.pathParameters?.forwardPath as string | undefined) || "";
-  const bodyJson = event.body;
+  const incomingBody = event.body;
   const params = (event.queryStringParameters || {}) as {
     [key: string]: string;
   };
   const paramKeys = Object.keys(params);
 
   try {
+    let sendingBody: string | FormData | null = incomingBody;
     const url = `${process.env.API_URL}/${forwardPath.split("__").join("/")}${paramKeys.length > 0 ? `?${paramKeys.map((key, i, arr) => `${key}=${params[key]}${arr.length - 1 > i ? "&" : ""}`).join("")}` : ""}`;
+
+    if (contentType === "multipart/form-data") {
+      const formData = new FormData();
+      const bodyObj = JSON.parse(incomingBody || "{}");
+      for (const key in bodyObj) {
+        formData.append(key, bodyObj[key]);
+      }
+      sendingBody = formData;
+      console.log(`Forwarding multipart/form-data request to: ${url}`);
+    }
 
     const apiResponse = await fetch(url, {
       method,
-      body: bodyJson,
+      body: sendingBody,
       headers: {
         Accept: "application/json",
-        "Content-Type": "application/json",
+        "Content-Type": contentType || "application/json",
       },
     });
 

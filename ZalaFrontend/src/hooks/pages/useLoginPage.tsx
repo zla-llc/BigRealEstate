@@ -53,7 +53,7 @@ export const useLoginPage = () => {
   const loginV1 = async () => {
     const loginRes = await loginAPI({ username: userName, password });
 
-    if (loginRes.err || !loginRes.data) {
+    if (loginRes.err || !loginRes.data || !loginRes.data?.user_id) {
       console.log(`Internal Error - Login: ${loginRes.err}`);
       console.log(``);
       errorMsg("Internal error - please try again later");

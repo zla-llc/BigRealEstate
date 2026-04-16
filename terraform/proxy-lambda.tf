@@ -11,7 +11,7 @@ resource "terraform_data" "bootstrap" {
   provisioner "local-exec" {
     command     = "npm run build"
     working_dir = "${path.module}/lambda/proxy"
-    interpreter = [local.os == "Windows" ? "PowerShell" : "bash", "-c" ]
+    interpreter = [local.os == "Windows" ? "PowerShell" : "bash", "-c"]
   }
 }
 
@@ -59,17 +59,17 @@ resource "aws_iam_role_policy_attachment" "logging_policy" {
 # Create Cloudwatch Log Group
 # Uncomment if unkown errors start to reoccur from backend
 
-# resource "aws_cloudwatch_log_group" "lambda_log_group" {
-#   name              = "/aws/lambda/ZLAProxyHandler"
-#   retention_in_days = 1
-# }
+resource "aws_cloudwatch_log_group" "lambda_log_group" {
+  name              = "/aws/lambda/ZLAProxyHandler-${formatdate("YYYY-MM-DD-HH-mm", timestamp())}"
+  retention_in_days = 1
+}
 
 # # Connect Lambda
 
 resource "aws_lambda_function" "proxy_handler" {
   role = aws_iam_role.lambda_role.arn
 
-  function_name    = "ZLAProxyHandler"
+  function_name    = "ZLAProxyHandler-${formatdate("YYYY-MM-DD-HH-mm", timestamp())}"
   filename         = data.archive_file.lambda_zip_file.output_path
   handler          = "index.handler"
   runtime          = "nodejs16.x"
@@ -82,8 +82,9 @@ resource "aws_lambda_function" "proxy_handler" {
     }
   }
 
-  depends_on = [ aws_eip.backend_ip
-  # aws_cloudwatch_log_group.lambda_log_group
+  depends_on = [
+    aws_eip.backend_ip,
+    aws_cloudwatch_log_group.lambda_log_group
   ]
 }
 
@@ -228,7 +229,7 @@ resource "aws_api_gateway_deployment" "api_deployment" {
 resource "aws_api_gateway_stage" "api_stage" {
   deployment_id = aws_api_gateway_deployment.api_deployment.id
   rest_api_id   = aws_api_gateway_rest_api.api.id
-  stage_name = "DEV"
+  stage_name    = "DEV"
 }
 
 resource "aws_lambda_permission" "permission" {
