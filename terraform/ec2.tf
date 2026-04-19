@@ -29,6 +29,15 @@ resource "aws_security_group" "zla_test" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # ssh
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # outbound
   egress {
     from_port   = 0
