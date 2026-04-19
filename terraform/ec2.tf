@@ -68,6 +68,10 @@ resource "tls_private_key" "zla_ssh_key" {
 resource "aws_key_pair" "generated_key" {
   key_name   = "zla-stakeholder-key"
   public_key = tls_private_key.zla_ssh_key.public_key_openssh
+
+  lifecycle {
+    ignore_changes = [public_key]
+  }
 }
 
 # save private key
@@ -81,7 +85,7 @@ resource "local_file" "private_key_pem" {
 resource "aws_instance" "backend_server" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.micro"
-  key_name      = aws_key_pair.generated_key.key_name
+  key_name      = "zla-stakeholder-key"
   vpc_security_group_ids = [aws_security_group.zla_test.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_s3_profile.name
 
