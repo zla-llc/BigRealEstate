@@ -67,7 +67,8 @@ export const useGetCampaignLeads = (
       user.userId
     );
 
-    if (res.err || !res.data) return apiResponseError("get leads", res.err);
+    if (res.err || !res.data || !Array.isArray(res.data))
+      return apiResponseError("get leads", res.err);
 
     const apiLeads = res.data.map(Normalizer.APINormalizer.lead);
 
