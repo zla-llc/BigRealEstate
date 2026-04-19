@@ -39,13 +39,16 @@ export const handler: Handler = async (event: APIGatewayProxyEvent) => {
     event.headers?.["Content-Type"] ||
     event.headers?.["content-type"] ||
     "application/json";
-  const params = (event.queryStringParameters || {}) as {
-    [key: string]: string;
+  const multiParams = (event.multiValueQueryStringParameters || {}) as {
+    [key: string]: string[];
   };
-  const paramKeys = Object.keys(params);
+  const paramKeys = Object.keys(multiParams);
 
   try {
-    const url = `${process.env.API_URL}/${forwardPath.split("__").join("/")}${paramKeys.length > 0 ? `?${paramKeys.map((key, i, arr) => `${key}=${params[key]}${arr.length - 1 > i ? "&" : ""}`).join("")}` : ""}`;
+    const queryString = paramKeys
+      .flatMap((key) => multiParams[key].map((val) => `${key}=${val}`))
+      .join("&");
+    const url = `${process.env.API_URL}/${forwardPath.split("__").join("/")}${queryString ? `?${queryString}` : ""}`;
 
     // Build request body — decode base64 for binary uploads
     let requestBody: any = null;
