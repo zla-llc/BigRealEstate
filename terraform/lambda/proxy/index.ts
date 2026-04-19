@@ -49,9 +49,17 @@ export const handler: Handler = async (event: APIGatewayProxyEvent) => {
 
     // Build request body — decode base64 for binary uploads
     let requestBody: any = null;
+    const isBinaryContent =
+      /^multipart\/form-data/i.test(incomingContentType) ||
+      /^image\//i.test(incomingContentType) ||
+      /^application\/octet-stream/i.test(incomingContentType);
+
     if (bodyJson) {
       if (isBase64) {
         requestBody = Buffer.from(bodyJson, "base64");
+      } else if (isBinaryContent) {
+        // API Gateway may pass binary as latin1 string when not base64-encoded
+        requestBody = Buffer.from(bodyJson, "latin1");
       } else {
         requestBody = bodyJson;
       }

@@ -217,6 +217,7 @@ resource "aws_api_gateway_deployment" "api_deployment" {
       aws_api_gateway_integration.ec2_control_post_integration.id,
       aws_api_gateway_method.ec2_control_get.id,
       aws_api_gateway_integration.ec2_control_get_integration.id,
+      aws_api_gateway_rest_api.api.binary_media_types,
     ]))
   }
 
