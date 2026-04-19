@@ -74,9 +74,9 @@ export const useGetCampaignLeads = (
 
     setLoading(false);
     setLeads(
-      campaign.leads.map(
-        (lead) => apiLeads.find((aLead) => aLead.leadId === lead.leadId)!
-      )
+      campaign.leads
+        .map((lead) => apiLeads.find((aLead) => aLead.leadId === lead.leadId))
+        .filter((lead): lead is ILead => lead !== undefined)
     );
   };
 
