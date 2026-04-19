@@ -17,14 +17,28 @@ export const handler: Handler = async (event: APIGatewayProxyEvent) => {
     headers: {
       "Content-Type": "application/json",
       "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers":
+        "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+      "Access-Control-Allow-Methods": "*",
     },
     body: ``,
   };
 
   const method = event.httpMethod;
+
+  // Handle CORS preflight
+  if (method === "OPTIONS") {
+    return response;
+  }
+
   const forwardPath =
     (event.pathParameters?.forwardPath as string | undefined) || "";
   const bodyJson = event.body;
+  const isBase64 = event.isBase64Encoded || false;
+  const incomingContentType =
+    event.headers?.["Content-Type"] ||
+    event.headers?.["content-type"] ||
+    "application/json";
   const params = (event.queryStringParameters || {}) as {
     [key: string]: string;
   };
@@ -33,12 +47,22 @@ export const handler: Handler = async (event: APIGatewayProxyEvent) => {
   try {
     const url = `${process.env.API_URL}/${forwardPath.split("__").join("/")}${paramKeys.length > 0 ? `?${paramKeys.map((key, i, arr) => `${key}=${params[key]}${arr.length - 1 > i ? "&" : ""}`).join("")}` : ""}`;
 
+    // Build request body — decode base64 for binary uploads
+    let requestBody: any = null;
+    if (bodyJson) {
+      if (isBase64) {
+        requestBody = Buffer.from(bodyJson, "base64");
+      } else {
+        requestBody = bodyJson;
+      }
+    }
+
     const apiResponse = await fetch(url, {
       method,
-      body: bodyJson,
+      body: requestBody,
       headers: {
         Accept: "application/json",
-        "Content-Type": "application/json",
+        "Content-Type": incomingContentType,
       },
     });
 
