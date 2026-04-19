@@ -35,16 +35,21 @@ export const useGetCampaignLeads = (
           : null
         : null;
       if (stateLeads && stateLeads.length > 0) {
-        setLeads(
-          campaign.leads.map(
-            (lead) => stateLeads.find((aLead) => aLead.leadId === lead.leadId)!
+        const resolved = campaign.leads
+          .map((lead) =>
+            stateLeads.find((aLead) => aLead.leadId === lead.leadId)
           )
-        );
+          .filter((lead): lead is ILead => lead !== undefined);
+        if (resolved.length === campaign.leads.length) {
+          setLeads(resolved);
+        } else {
+          getLeads();
+        }
       } else {
         getLeads();
       }
     },
-    [stringify(state), campaign?.campaignId],
+    [stringify(state), campaign?.campaignId, campaign?.leads.length],
     250
   );
 
