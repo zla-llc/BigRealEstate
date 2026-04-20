@@ -150,7 +150,7 @@ def send_campaign_email(
         gmail_request = schemas.GmailSendRequest(
             user_id=campaign.user.user_id,
             # to=to_email,
-            to="colin.d.m.tondreau@gmail.com",
+            to="noreply.zla.llc@gmail.com",
             subject=message_in.message_subject,
             html=message_in.message_body,
             from_name=message_in.from_name,
