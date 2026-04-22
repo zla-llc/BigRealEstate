@@ -29,7 +29,7 @@ docker run -it --rm ^
   -e AWS_ACCESS_KEY_ID=%AWS_KEY% ^
   -e AWS_SECRET_ACCESS_KEY=%AWS_SECRET% ^
   -e AWS_DEFAULT_REGION=us-east-1 ^
-  alpine/terragrunt:latest sh -c "apk add --update nodejs npm git && cd /app && if [ ! -d 'BigRealEstate' ]; then git clone https://github.com/zla-llc/BigRealEstate.git; fi && cp /app/variables.tfvars /app/BigRealEstate/terraform/variables.tfvars && cd /app/BigRealEstate/terraform && terraform init && terraform apply --auto-approve -var-file='variables.tfvars'"
+  alpine/terragrunt:latest sh -c "apk add --update nodejs npm git && cd /app && if [ ! -d 'BigRealEstate' ]; then git clone https://github.com/zla-llc/BigRealEstate.git; fi && cp /app/variables.tfvars /app/BigRealEstate/terraform/variables.tfvars && cp /app/variables.tfvars /app/BigRealEstate/variables.tfvars && cd /app/BigRealEstate/terraform && terraform init && terraform apply --auto-approve -var-file='variables.tfvars'"
 
 if errorlevel 1 goto :DEPLOY_ERROR
 
