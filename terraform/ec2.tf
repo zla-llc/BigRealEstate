@@ -83,9 +83,9 @@ resource "local_file" "private_key_pem" {
 
 # ec2
 resource "aws_instance" "backend_server" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro"
-  key_name      = "zla-stakeholder-key"
+  ami                    = data.aws_ami.ubuntu.id
+  instance_type          = "t3.micro"
+  key_name               = "zla-stakeholder-key"
   vpc_security_group_ids = [aws_security_group.zla_test.id]
   iam_instance_profile   = aws_iam_instance_profile.ec2_s3_profile.name
 
