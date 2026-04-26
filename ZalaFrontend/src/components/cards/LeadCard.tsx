@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { useEffect, useRef } from "react";
 import type { ILead, ISourceResult } from "../../interfaces";
-import { IMAGES_ARR } from "../../assets";
+import { AGENT_IMAGES_ARR } from "../../assets";
 import { Button } from "../buttons";
 import { Icons } from "../icons";
 import { ButtonVariant } from "../buttons/ButtonVariant";
@@ -62,7 +62,7 @@ export const LeadCard = ({
       <div className="w-[40%] mr-3.75">
         <img
           className="w-full h-full rounded-3.75"
-          src={IMAGES_ARR[i % IMAGES_ARR.length]}
+          src={AGENT_IMAGES_ARR[i % AGENT_IMAGES_ARR.length]}
         />
       </div>
       <div className="w-[60%] flex flex-col justify-between">

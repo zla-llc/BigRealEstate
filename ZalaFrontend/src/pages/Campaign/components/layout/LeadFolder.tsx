@@ -1,5 +1,5 @@
 import { type PropsWithChildren } from "react";
-import { IMAGES_ARR } from "../../../../assets";
+import { AGENT_IMAGES_ARR } from "../../../../assets";
 
 export const LeadFolder = ({
   i,
@@ -11,7 +11,7 @@ export const LeadFolder = ({
         <div className="w-[250px] h-[250px] rounded-[15px] overflow-hidden">
           <img
             className="w-full h-full object-cover"
-            src={IMAGES_ARR[i % IMAGES_ARR.length]}
+            src={AGENT_IMAGES_ARR[i % AGENT_IMAGES_ARR.length]}
             alt={`Lead-${i + 1}-img`}
           />
         </div>

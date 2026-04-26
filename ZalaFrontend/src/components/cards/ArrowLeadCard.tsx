@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import type { ILead } from "../../interfaces";
-import { IMAGES_ARR } from "../../assets";
+import { AGENT_IMAGES_ARR } from "../../assets";
 import { IconButton, IconButtonVariant } from "../buttons";
 import { Icons } from "../icons";
 import { useHover } from "../../hooks";
@@ -42,7 +42,7 @@ export const ArrowLeadCard = ({
       <div className="w-[25%]">
         <img
           className="w-full h-full rounded-[15px]"
-          src={IMAGES_ARR[i % IMAGES_ARR.length]}
+          src={AGENT_IMAGES_ARR[i % AGENT_IMAGES_ARR.length]}
         />
       </div>
 
