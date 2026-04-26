@@ -24,7 +24,7 @@ import ZalaBlackLogo from "./images/zala_b.png";
 import ZalaWhiteLogo from "./images/zala_w.png";
 import ZalaTabLogo from "./images/zala_w_uncropped.png";
 
-export const IMAGES = {
+export const AGENT_IMAGES = {
   agent1,
   agent2,
   agent3,
@@ -45,6 +45,10 @@ export const IMAGES = {
   agent18,
   agent19,
   agent20,
+};
+
+export const IMAGES = {
+  ...AGENT_IMAGES,
 
   ZalaBotWave,
   ZalaBlackLogo,
@@ -52,4 +56,6 @@ export const IMAGES = {
   ZalaTabLogo,
 };
 
-export const IMAGES_ARR = Object.values(IMAGES).slice(0, 20);
+export const IMAGES_ARR = Object.values(IMAGES);
+
+export const AGENT_IMAGES_ARR = Object.values(AGENT_IMAGES);

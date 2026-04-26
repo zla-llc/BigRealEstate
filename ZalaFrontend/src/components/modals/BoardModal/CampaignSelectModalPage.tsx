@@ -10,14 +10,14 @@ import { Loader } from "../../feedback";
 import clsx from "clsx";
 import { SwitchInput } from "../../inputs";
 import { ModalButtons } from "../../buttons";
-import { IMAGES_ARR } from "../../../assets";
+import { AGENT_IMAGES_ARR } from "../../../assets";
 import { ModalCenterButtons } from "../../buttons/ModalCenterButtons";
 import { LeadInfoSection, LeadNotesSection } from "../../sections";
 import { Icons } from "../../icons";
 import { useCampaignSelectModalPage } from "../../../hooks";
 
 export const CampaignSelectModalPage = (
-  props: BoardModalPageProps & { onConfirm: () => void }
+  props: BoardModalPageProps & { onConfirm: () => void },
 ) => {
   const {
     loading,
@@ -56,7 +56,7 @@ export const CampaignSelectModalPage = (
             <span
               className={clsx(
                 "text-lg text-center",
-                isCampaignSelectPage ? "w-[40%]" : ""
+                isCampaignSelectPage ? "w-[40%]" : "",
               )}
             >
               {isCampaignSelectPage
@@ -138,8 +138,9 @@ export const CampaignSelectModalPage = (
                     <img
                       className="w-full h-full object-cover"
                       src={
-                        IMAGES_ARR[
-                          Math.max(viewingLeadKey[1], 0) % IMAGES_ARR.length
+                        AGENT_IMAGES_ARR[
+                          Math.max(viewingLeadKey[1], 0) %
+                            AGENT_IMAGES_ARR.length
                         ]
                       }
                       alt={`Lead-${viewingLeadKey[1] + 1}-img`}
